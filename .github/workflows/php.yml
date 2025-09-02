@@ -47,7 +47,7 @@ jobs:
     - name: Run PHPStan
       run: |
         cd clients/php
-        vendor/bin/phpstan analyse --if-present
+        if [ -f vendor/bin/phpstan ]; then vendor/bin/phpstan analyse; fi
     
     - name: Run tests
       run: |
