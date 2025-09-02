@@ -39,13 +39,18 @@ jobs:
         id: pages
         uses: actions/configure-pages@v4
         
+      - name: Create Gemfile
+        run: |
+          cat > docs/Gemfile << 'EOF'
+          source "https://rubygems.org"
+          gem "github-pages", group: :jekyll_plugins
+          gem "just-the-docs"
+          EOF
+          
       - name: Build with Jekyll
         run: |
           cd docs
-          bundle init
-          bundle add jekyll
-          bundle add jekyll-remote-theme
-          bundle add just-the-docs
+          bundle install
           bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: production

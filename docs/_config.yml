@@ -90,6 +90,7 @@ collections:
 # Plugins (GitHub Pages supported)
 plugins:
   - jekyll-remote-theme
+  - jekyll-seo-tag
 
 # Markdown processor
 markdown: kramdown
