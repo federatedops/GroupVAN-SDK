@@ -1,5 +1,11 @@
 # GroupVAN API Client Libraries
 
+[![Python CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/python.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/python.yml)
+[![Node.js CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/nodejs.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/nodejs.yml)
+[![PHP CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/php.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/php.yml)
+[![.NET CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/dotnet.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/dotnet.yml)
+[![Documentation](https://github.com/federatedops/groupvan-api-client/actions/workflows/docs.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/docs.yml)
+
 Official client libraries for authenticating with GroupVAN V3 APIs using JWT tokens with RSA256 asymmetric cryptography.
 
 ## Overview

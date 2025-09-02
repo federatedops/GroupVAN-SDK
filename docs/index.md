@@ -14,6 +14,13 @@ permalink: /
 Secure, easy-to-use client libraries for GroupVAN V3 API authentication.
 {: .fs-6 .fw-300 .hero-subtitle }
 
+[![Python CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/python.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/python.yml)
+[![Node.js CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/nodejs.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/nodejs.yml)
+[![PHP CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/php.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/php.yml)
+[![.NET CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/dotnet.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/dotnet.yml)
+[![Documentation](https://github.com/federatedops/groupvan-api-client/actions/workflows/docs.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/docs.yml)
+{: .text-center }
+
 <div class="hero-buttons" markdown="1">
 
 [Get Started](quickstart){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
