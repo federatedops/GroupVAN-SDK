@@ -1,179 +1,16 @@
-// Custom styles for GroupVAN API documentation
+// Minimal custom styles for GroupVAN API documentation
 
-// Brand colors (matching GroupVAN logo)
+// Brand colors
 $groupvan-orange: #ff6b35;
-$groupvan-blue: #1e3a8a;
-$groupvan-primary: $groupvan-blue;
-$groupvan-secondary: $groupvan-orange;
-$groupvan-accent: #4f46e5;
-$groupvan-dark: #0f172a;
-$groupvan-light: #f8fafc;
+$groupvan-blue: #5b9dd9;  // Lighter blue for better visibility
 
-// Override Just the Docs variables
-$link-color: $groupvan-primary;
-$btn-primary-color: $groupvan-primary;
-
-// Custom button styles
-.btn-groupvan {
-  @extend .btn;
-  background-color: $groupvan-primary;
-  color: white;
-  border: 2px solid $groupvan-primary;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background-color: darken($groupvan-primary, 10%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-}
-
-// Enhanced code blocks
-div.highlighter-rouge {
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin: 1.5rem 0;
-  
-  &:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  }
-}
-
-pre.highlight {
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  position: relative;
-  
-  &::before {
-    content: "CODE";
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    font-size: 0.7rem;
-    color: #64748b;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-  }
-}
-
-// Copy button for code blocks
-.code-copy-button {
-  position: absolute;
-  top: 0.5rem;
-  right: 3.5rem;
-  padding: 0.25rem 0.5rem;
-  background: $groupvan-primary;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  
-  &:hover {
-    background: darken($groupvan-primary, 10%);
-    transform: scale(1.05);
-  }
-  
-  &.copied {
-    background: $groupvan-secondary;
-  }
-}
-
-// Custom callout boxes
-.callout {
-  padding: 1rem 1.25rem;
-  margin: 1.5rem 0;
-  border-radius: 8px;
-  border-left: 4px solid;
-  background: rgba(255, 255, 255, 0.05);
-  
-  &.callout-note {
-    border-color: $groupvan-primary;
-    background: rgba(59, 130, 246, 0.1);
-  }
-  
-  &.callout-warning {
-    border-color: #f59e0b;
-    background: rgba(245, 158, 11, 0.1);
-  }
-  
-  &.callout-success {
-    border-color: $groupvan-secondary;
-    background: rgba(16, 185, 129, 0.1);
-  }
-  
-  &.callout-danger {
-    border-color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
-  }
-  
-  &.callout-info {
-    border-color: #06b6d4;
-    background: rgba(6, 182, 212, 0.1);
-  }
-  
-  .callout-title {
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    
-    &::before {
-      margin-right: 0.5rem;
-      font-size: 1.25rem;
-    }
-  }
-  
-  &.callout-note .callout-title::before { content: "ℹ️"; }
-  &.callout-warning .callout-title::before { content: "⚠️"; }
-  &.callout-success .callout-title::before { content: "✅"; }
-  &.callout-danger .callout-title::before { content: "🚨"; }
-  &.callout-info .callout-title::before { content: "💡"; }
-}
-
-// Enhanced tables
-table {
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  
-  thead {
-    background: linear-gradient(135deg, $groupvan-blue, $groupvan-orange);
-    
-    th {
-      color: white;
-      font-weight: 600;
-      text-transform: uppercase;
-      font-size: 0.85rem;
-      letter-spacing: 0.05em;
-    }
-  }
-  
-  tbody tr {
-    transition: background-color 0.2s;
-    
-    &:hover {
-      background-color: rgba(59, 130, 246, 0.05);
-    }
-  }
-}
-
-// Feature cards
+// Feature cards with subtle styling
 .feature-card {
   padding: 1.5rem;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(30, 58, 138, 0.1), rgba(255, 107, 53, 0.1));
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   margin: 1rem 0;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    border-color: $groupvan-orange;
-  }
+  background: rgba(255, 255, 255, 0.02);
   
   h3 {
     color: $groupvan-orange;
@@ -186,46 +23,76 @@ table {
   }
 }
 
-// Language tabs for code examples
+// Hero section
+.hero {
+  text-align: center;
+  padding: 2rem 0;
+  margin-bottom: 2rem;
+  
+  .hero-subtitle {
+    font-size: 1.1rem;
+    margin: 1rem 0;
+  }
+  
+  .hero-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+}
+
+// Simple callout boxes using Just the Docs styles
+.callout {
+  padding: 1rem;
+  margin: 1.5rem 0;
+  border-radius: 4px;
+  border-left: 4px solid;
+  
+  &.callout-note {
+    border-color: $groupvan-blue;
+  }
+  
+  &.callout-warning {
+    border-color: #f59e0b;
+  }
+  
+  &.callout-info {
+    border-color: #06b6d4;
+  }
+  
+  .callout-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+}
+
+// Language tabs for code examples - simplified
 .code-tabs {
   margin: 1.5rem 0;
-  border-radius: 8px;
-  overflow: hidden;
-  background: rgba(0, 0, 0, 0.2);
   
   .tab-buttons {
     display: flex;
-    background: rgba(0, 0, 0, 0.3);
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 0;
     
     button {
-      padding: 0.75rem 1.5rem;
+      padding: 0.5rem 1rem;
       background: transparent;
-      color: #94a3b8;
       border: none;
       cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s;
-      position: relative;
+      color: inherit;
+      opacity: 0.7;
       
       &:hover {
-        color: white;
-        background: rgba(255, 255, 255, 0.05);
+        opacity: 1;
       }
       
       &.active {
-        color: white;
-        background: rgba(59, 130, 246, 0.2);
-        
-        &::after {
-          content: "";
-          position: absolute;
-          bottom: -2px;
-          left: 0;
-          right: 0;
-          height: 2px;
-          background: $groupvan-primary;
-        }
+        opacity: 1;
+        border-bottom: 2px solid $groupvan-orange;
+        margin-bottom: -1px;
       }
     }
   }
@@ -237,122 +104,29 @@ table {
       &.active {
         display: block;
       }
-      
-      pre {
-        margin: 0;
-        border-radius: 0;
-      }
     }
   }
 }
 
-// Badges
-.badge {
-  display: inline-block;
+// Copy button for code blocks
+.code-copy-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
   padding: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
   font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  cursor: pointer;
+  opacity: 0.7;
   
-  &.badge-primary {
-    background: $groupvan-primary;
-    color: white;
+  &:hover {
+    opacity: 1;
   }
   
-  &.badge-success {
-    background: $groupvan-secondary;
-    color: white;
-  }
-  
-  &.badge-warning {
-    background: #f59e0b;
-    color: white;
-  }
-  
-  &.badge-danger {
-    background: #ef4444;
-    color: white;
-  }
-}
-
-// Improved search
-.search-input {
-  border-radius: 8px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.2);
-  transition: all 0.3s;
-  
-  &:focus {
-    border-color: $groupvan-primary;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    background: rgba(0, 0, 0, 0.3);
-  }
-}
-
-// Navigation improvements
-.nav-list {
-  .nav-list-item {
-    .nav-list-link {
-      border-radius: 6px;
-      transition: all 0.2s;
-      
-      &:hover {
-        background: rgba(59, 130, 246, 0.1);
-        padding-left: 1rem;
-      }
-      
-      &.active {
-        background: rgba(59, 130, 246, 0.2);
-        border-left: 3px solid $groupvan-primary;
-      }
-    }
-  }
-}
-
-// Homepage hero section
-.hero {
-  text-align: center;
-  padding: 3rem 0;
-  background: linear-gradient(135deg, rgba(30, 58, 138, 0.15), rgba(255, 107, 53, 0.15));
-  border-radius: 12px;
-  margin-bottom: 2rem;
-  
-  h1 {
-    font-size: 3rem;
-    background: linear-gradient(135deg, $groupvan-blue, $groupvan-orange);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 1rem;
-  }
-  
-  .hero-subtitle {
-    font-size: 1.25rem;
-    color: #94a3b8;
-    margin-bottom: 2rem;
-  }
-  
-  .hero-buttons {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-}
-
-// Mobile responsiveness
-@media (max-width: 768px) {
-  .hero h1 {
-    font-size: 2rem;
-  }
-  
-  .code-tabs .tab-buttons {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .feature-card {
-    padding: 1rem;
+  &.copied {
+    background: rgba(16, 185, 129, 0.2);
   }
 }
