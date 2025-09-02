@@ -1,0 +1,92 @@
+# Jekyll configuration for GroupVAN API Client Documentation
+
+title: GroupVAN API Client
+description: Official client libraries for authenticating with GroupVAN V3 APIs
+baseurl: "/groupvan-api-client"
+url: "https://federatedops.github.io"
+
+# Theme configuration
+remote_theme: just-the-docs/just-the-docs@v0.7.0
+color_scheme: light
+
+# Enable search
+search_enabled: true
+search:
+  heading_level: 2
+  previews: 3
+  preview_words_before: 5
+  preview_words_after: 10
+  tokenizer_separator: /[\s\-/]+/
+  rel_url: true
+  button: true
+
+# Aux links for top navigation
+aux_links:
+  "GitHub Repository":
+    - "https://github.com/federatedops/groupvan-api-client"
+  "GroupVAN API Docs":
+    - "https://api.groupvan.com/docs"
+
+# Makes Aux links open in a new tab
+aux_links_new_tab: true
+
+# Footer content
+footer_content: "Copyright &copy; 2025 GroupVAN. Distributed under the <a href=\"https://github.com/federatedops/groupvan-api-client/blob/main/LICENSE\">MIT License</a>."
+
+# Footer last edited timestamp
+last_edit_timestamp: true
+last_edit_time_format: "%b %e %Y at %I:%M %p"
+
+# GitHub repository for "Edit this page on GitHub" links
+gh_edit_link: true
+gh_edit_link_text: "Edit this page on GitHub"
+gh_edit_repository: "https://github.com/federatedops/groupvan-api-client"
+gh_edit_branch: "main"
+gh_edit_source: docs
+gh_edit_view_mode: "tree"
+
+# Back to top link
+back_to_top: true
+back_to_top_text: "Back to top"
+
+# Heading anchor links
+heading_anchors: true
+
+# External navigation links
+nav_external_links:
+  - title: PyPI Package
+    url: https://pypi.org/project/groupvan-client
+  - title: npm Package
+    url: https://www.npmjs.com/package/@groupvan/client
+  - title: NuGet Package
+    url: https://www.nuget.org/packages/GroupVAN.Client
+  - title: Packagist Package
+    url: https://packagist.org/packages/groupvan/client
+
+# Collections for versioning
+collections:
+  docs:
+    permalink: "/:collection/:path/"
+    output: true
+
+# Plugins
+plugins:
+  - jekyll-seo-tag
+  - jekyll-github-metadata
+  - jekyll-include-cache
+
+# Markdown processor
+markdown: kramdown
+kramdown:
+  syntax_highlighter_opts:
+    block:
+      line_numbers: false
+
+# Compress HTML
+compress_html:
+  clippings: all
+  comments: all
+  endings: all
+  startings: []
+  blanklines: false
+  profile: false
