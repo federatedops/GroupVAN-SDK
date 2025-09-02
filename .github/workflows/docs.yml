@@ -44,9 +44,8 @@ jobs:
           cd docs
           bundle init
           bundle add jekyll
-          bundle add jekyll-seo-tag
-          bundle add jekyll-github-metadata
-          bundle add jekyll-include-cache
+          bundle add jekyll-remote-theme
+          bundle add just-the-docs
           bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: production

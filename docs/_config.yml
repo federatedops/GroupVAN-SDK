@@ -6,8 +6,8 @@ baseurl: "/groupvan-api-client"
 url: "https://federatedops.github.io"
 
 # Theme configuration
-remote_theme: just-the-docs/just-the-docs@v0.9.0
-color_scheme: dark
+remote_theme: just-the-docs/just-the-docs
+color_scheme: groupvan
 
 # Enable search
 search_enabled: true
@@ -87,11 +87,9 @@ collections:
     permalink: "/:collection/:path/"
     output: true
 
-# Plugins
+# Plugins (GitHub Pages supported)
 plugins:
-  - jekyll-seo-tag
-  - jekyll-github-metadata
-  - jekyll-include-cache
+  - jekyll-remote-theme
 
 # Markdown processor
 markdown: kramdown
