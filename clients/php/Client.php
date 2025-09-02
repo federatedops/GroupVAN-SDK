@@ -374,7 +374,7 @@ function loadKeysFromFiles($privateKeyPath, $publicKeyPath = null)
     ];
 }
 
-// Run example if executed directly
-if (php_sapi_name() === 'cli') {
+// Run example if executed directly (not during tests)
+if (php_sapi_name() === 'cli' && !defined('PHPUNIT_COMPOSER_INSTALL') && !defined('PHPUNIT_TESTSUITE')) {
     main();
 }
