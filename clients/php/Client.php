@@ -36,7 +36,6 @@ class GroupVANClient
     private $developerId;
     private $keyId;
     private $privateKeyPem;
-    private $baseUrl;
     private $httpClient;
 
     /**
@@ -52,7 +51,6 @@ class GroupVANClient
         $this->developerId = $developerId;
         $this->keyId = $keyId;
         $this->privateKeyPem = $privateKeyPem;
-        $this->baseUrl = $baseUrl;
         $this->httpClient = new Client([
             'base_uri' => $baseUrl,
             'timeout' => 30.0,

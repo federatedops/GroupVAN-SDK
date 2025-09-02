@@ -8,3 +8,5 @@ parameters:
     treatPhpDocTypesAsCertain: false
     checkMissingIterableValueType: false
     checkGenericClassInNonGenericObjectType: false
+    ignoreErrors:
+        - identifier: missingType.generics
