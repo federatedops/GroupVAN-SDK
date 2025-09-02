@@ -1,0 +1,54 @@
+{
+  "name": "@groupvan/client",
+  "version": "1.0.0",
+  "description": "Official Node.js client for GroupVAN V3 API authentication",
+  "main": "client.js",
+  "scripts": {
+    "test": "jest",
+    "coverage": "jest --coverage",
+    "lint": "eslint .",
+    "keygen": "node client.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/groupvan/groupvan-api-client.git"
+  },
+  "keywords": [
+    "groupvan",
+    "api",
+    "client",
+    "jwt",
+    "authentication",
+    "rsa"
+  ],
+  "author": "GroupVAN",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/groupvan/groupvan-api-client/issues"
+  },
+  "homepage": "https://github.com/groupvan/groupvan-api-client#readme",
+  "dependencies": {
+    "jsonwebtoken": "^9.0.0",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.50.0",
+    "jest": "^29.7.0",
+    "@types/node": "^20.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "client.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "bin": {
+    "groupvan-keygen": "./client.js"
+  }
+}

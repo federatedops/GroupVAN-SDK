@@ -1,0 +1,104 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish-python:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Build package
+      run: |
+        cd clients/python
+        python -m build
+    
+    - name: Publish to PyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        cd clients/python
+        twine upload dist/*
+
+  publish-nodejs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+        registry-url: 'https://registry.npmjs.org'
+    
+    - name: Install dependencies
+      run: |
+        cd clients/nodejs
+        npm ci
+    
+    - name: Publish to npm
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: |
+        cd clients/nodejs
+        npm publish --access public
+
+  publish-csharp:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Build and pack
+      run: |
+        cd clients/csharp
+        dotnet build --configuration Release
+        dotnet pack --configuration Release --no-build
+    
+    - name: Publish to NuGet
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      run: |
+        cd clients/csharp
+        dotnet nuget push **/*.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+
+  create-release:
+    needs: [publish-python, publish-nodejs, publish-csharp]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          See [CHANGELOG.md](CHANGELOG.md) for details.
+          
+          ## Package Releases
+          - PyPI: https://pypi.org/project/groupvan-client/
+          - npm: https://www.npmjs.com/package/@groupvan/client
+          - NuGet: https://www.nuget.org/packages/GroupVAN.Client/
+        draft: false
+        prerelease: false

@@ -1,0 +1,56 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'clients/nodejs/**'
+      - '.github/workflows/nodejs.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'clients/nodejs/**'
+      - '.github/workflows/nodejs.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['16.x', '18.x', '20.x']
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+    
+    - name: Install dependencies
+      run: |
+        cd clients/nodejs
+        npm ci
+    
+    - name: Run linter
+      run: |
+        cd clients/nodejs
+        npm run lint --if-present
+    
+    - name: Run tests
+      run: |
+        cd clients/nodejs
+        npm test
+    
+    - name: Generate coverage report
+      run: |
+        cd clients/nodejs
+        npm run coverage --if-present
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      if: matrix.node-version == '18.x'
+      with:
+        file: ./clients/nodejs/coverage/lcov.info
+        flags: nodejs
+        name: Node.js Coverage

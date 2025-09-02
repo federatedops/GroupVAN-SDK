@@ -1,0 +1,63 @@
+name: PHP CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'clients/php/**'
+      - '.github/workflows/php.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'clients/php/**'
+      - '.github/workflows/php.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['7.4', '8.0', '8.1', '8.2', '8.3']
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup PHP ${{ matrix.php-version }}
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: mbstring, openssl
+        coverage: xdebug
+    
+    - name: Validate composer.json
+      run: |
+        cd clients/php
+        composer validate --strict
+    
+    - name: Install dependencies
+      run: |
+        cd clients/php
+        composer install --prefer-dist --no-progress
+    
+    - name: Run PHP CS Fixer
+      run: |
+        cd clients/php
+        vendor/bin/php-cs-fixer fix --dry-run --diff
+    
+    - name: Run PHPStan
+      run: |
+        cd clients/php
+        vendor/bin/phpstan analyse --if-present
+    
+    - name: Run tests
+      run: |
+        cd clients/php
+        vendor/bin/phpunit --coverage-clover coverage.xml
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      if: matrix.php-version == '8.2'
+      with:
+        file: ./clients/php/coverage.xml
+        flags: php
+        name: PHP Coverage

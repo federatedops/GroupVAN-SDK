@@ -1,0 +1,64 @@
+name: Python CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'clients/python/**'
+      - '.github/workflows/python.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'clients/python/**'
+      - '.github/workflows/python.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        cd clients/python
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install pytest pytest-cov flake8 black mypy
+    
+    - name: Lint with flake8
+      run: |
+        cd clients/python
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Format check with black
+      run: |
+        cd clients/python
+        black --check .
+    
+    - name: Type check with mypy
+      run: |
+        cd clients/python
+        mypy . --ignore-missing-imports
+    
+    - name: Test with pytest
+      run: |
+        cd clients/python
+        pytest --cov=. --cov-report=xml --cov-report=html
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      if: matrix.python-version == '3.11'
+      with:
+        file: ./clients/python/coverage.xml
+        flags: python
+        name: Python Coverage

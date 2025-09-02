@@ -1,0 +1,49 @@
+{
+    "name": "groupvan/client",
+    "description": "Official PHP client for GroupVAN V3 API authentication",
+    "type": "library",
+    "version": "1.0.0",
+    "homepage": "https://github.com/groupvan/groupvan-api-client",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "GroupVAN",
+            "email": "support@groupvan.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "firebase/php-jwt": "^6.0",
+        "guzzlehttp/guzzle": "^7.0",
+        "phpseclib/phpseclib": "~3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "phpstan/phpstan": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "GroupVAN\\Client\\": "src/"
+        },
+        "files": ["Client.php"]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "GroupVAN\\Client\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "cs-fix": "vendor/bin/php-cs-fixer fix",
+        "phpstan": "vendor/bin/phpstan analyse",
+        "keygen": "php Client.php"
+    },
+    "support": {
+        "issues": "https://github.com/groupvan/groupvan-api-client/issues",
+        "source": "https://github.com/groupvan/groupvan-api-client"
+    },
+    "bin": [
+        "bin/groupvan-keygen"
+    ]
+}
