@@ -23,8 +23,7 @@
     "autoload": {
         "psr-4": {
             "GroupVAN\\Client\\": "src/"
-        },
-        "files": ["Client.php"]
+        }
     },
     "autoload-dev": {
         "psr-4": {
