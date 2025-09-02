@@ -6,14 +6,21 @@ description: "Official client libraries for authenticating with GroupVAN V3 APIs
 permalink: /
 ---
 
+<div class="hero" markdown="1">
+
 # GroupVAN API Client Libraries
 {: .fs-9 }
 
 Secure, easy-to-use client libraries for GroupVAN V3 API authentication.
-{: .fs-6 .fw-300 }
+{: .fs-6 .fw-300 .hero-subtitle }
+
+<div class="hero-buttons" markdown="1">
 
 [Get Started](quickstart){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
 [View on GitHub](https://github.com/federatedops/groupvan-api-client){: .btn .fs-5 .mb-4 .mb-md-0 }
+
+</div>
+</div>
 
 ---
 
@@ -58,12 +65,33 @@ dotnet add package GroupVAN.Client
 
 ## Key Features
 
-- 🔐 **RSA256 Asymmetric Cryptography** - Private keys never leave your servers
-- ⏱️ **Short-lived Tokens** - 5-minute expiration for enhanced security
-- 🔄 **Key Rotation Support** - Seamless key updates without downtime
-- 📦 **Native Package Management** - Install via pip, npm, composer, or NuGet
-- 🧪 **Comprehensive Testing** - Full test coverage across all languages
-- 📚 **Detailed Documentation** - Clear examples and best practices
+<div class="feature-card" markdown="1">
+<div class="feature-icon">🔐</div>
+
+### RSA256 Asymmetric Cryptography
+Private keys never leave your servers. Only you can create valid tokens with your private key, while GroupVAN servers only need your public key for verification.
+</div>
+
+<div class="feature-card" markdown="1">
+<div class="feature-icon">⏱️</div>
+
+### Short-lived Tokens
+5-minute expiration by default for enhanced security. Automatic expiration handling in all client libraries with support for custom expiration times when needed.
+</div>
+
+<div class="feature-card" markdown="1">
+<div class="feature-icon">🔄</div>
+
+### Key Rotation Support
+Seamless key updates without downtime. Support for multiple active keys during rotation period with secure storage recommendations for production environments.
+</div>
+
+<div class="feature-card" markdown="1">
+<div class="feature-icon">📦</div>
+
+### Native Package Management
+Install via pip, npm, composer, or NuGet. All packages are published to official repositories with semantic versioning and dependency management.
+</div>
 
 ## Security Model
 

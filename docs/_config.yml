@@ -6,8 +6,8 @@ baseurl: "/groupvan-api-client"
 url: "https://federatedops.github.io"
 
 # Theme configuration
-remote_theme: just-the-docs/just-the-docs@v0.7.0
-color_scheme: light
+remote_theme: just-the-docs/just-the-docs@v0.9.0
+color_scheme: dark
 
 # Enable search
 search_enabled: true
@@ -51,6 +51,24 @@ back_to_top_text: "Back to top"
 
 # Heading anchor links
 heading_anchors: true
+
+# Enable callouts
+callouts_level: quiet
+callouts:
+  highlight:
+    color: yellow
+  important:
+    title: Important
+    color: blue
+  new:
+    title: New
+    color: green
+  note:
+    title: Note
+    color: purple
+  warning:
+    title: Warning
+    color: red
 
 # External navigation links
 nav_external_links:

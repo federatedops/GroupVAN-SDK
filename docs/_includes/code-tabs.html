@@ -1,0 +1,69 @@
+{% comment %}
+Usage: {% include code-tabs.html python="python code" nodejs="node code" php="php code" csharp="c# code" %}
+{% endcomment %}
+
+<div class="code-tabs">
+  <div class="tab-buttons">
+    {% if include.python %}
+    <button class="active" data-lang="python">Python</button>
+    {% endif %}
+    {% if include.nodejs %}
+    <button {% unless include.python %}class="active"{% endunless %} data-lang="nodejs">Node.js</button>
+    {% endif %}
+    {% if include.php %}
+    <button {% unless include.python or include.nodejs %}class="active"{% endunless %} data-lang="php">PHP</button>
+    {% endif %}
+    {% if include.csharp %}
+    <button {% unless include.python or include.nodejs or include.php %}class="active"{% endunless %} data-lang="csharp">C#/.NET</button>
+    {% endif %}
+  </div>
+  <div class="tab-content">
+    {% if include.python %}
+    <div class="tab-pane active" data-lang="python">
+      {% highlight python %}{{ include.python }}{% endhighlight %}
+    </div>
+    {% endif %}
+    {% if include.nodejs %}
+    <div class="tab-pane {% unless include.python %}active{% endunless %}" data-lang="nodejs">
+      {% highlight javascript %}{{ include.nodejs }}{% endhighlight %}
+    </div>
+    {% endif %}
+    {% if include.php %}
+    <div class="tab-pane {% unless include.python or include.nodejs %}active{% endunless %}" data-lang="php">
+      {% highlight php %}{{ include.php }}{% endhighlight %}
+    </div>
+    {% endif %}
+    {% if include.csharp %}
+    <div class="tab-pane {% unless include.python or include.nodejs or include.php %}active{% endunless %}" data-lang="csharp">
+      {% highlight csharp %}{{ include.csharp }}{% endhighlight %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const container = document.currentScript.previousElementSibling;
+  const buttons = container.querySelectorAll('.tab-buttons button');
+  const panes = container.querySelectorAll('.tab-pane');
+  
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const lang = button.dataset.lang;
+      
+      // Update buttons
+      buttons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+      
+      // Update panes
+      panes.forEach(pane => {
+        if (pane.dataset.lang === lang) {
+          pane.classList.add('active');
+        } else {
+          pane.classList.remove('active');
+        }
+      });
+    });
+  });
+});
+</script>

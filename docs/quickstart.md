@@ -20,10 +20,14 @@ Get up and running with GroupVAN API authentication in minutes.
 
 ## Prerequisites
 
-Before you begin, ensure you have:
+<div class="callout callout-info" markdown="1">
+<div class="callout-title">Before You Begin</div>
+
+Ensure you have:
 - A GroupVAN developer account
 - Your preferred programming language environment set up
 - Basic understanding of JWT and RSA cryptography concepts
+</div>
 
 ## Generating RSA Keys
 
@@ -49,9 +53,15 @@ php -r "require 'vendor/autoload.php'; GroupVAN\Client::generateKeyPair();"
 dotnet run --project GroupVAN.Client.KeyGen
 ```
 
+<div class="callout callout-warning" markdown="1">
+<div class="callout-title">Security Warning</div>
+
 This will generate two files:
 - `private_key.pem` - **Keep this secret!** Never share or commit to version control
 - `public_key.pem` - Share this with your GroupVAN Integration Specialist
+
+Never commit private keys to version control or share them with anyone!
+</div>
 
 ## Registering Your Public Key
 
