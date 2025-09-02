@@ -11,7 +11,7 @@ import time
 import math
 import requests
 import json
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
@@ -69,8 +69,8 @@ class GroupVANClient:
         self,
         method: str,
         endpoint: str,
-        data: Dict[str, Any] = None,
-        params: Dict[str, Any] = None,
+        data: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, Any]] = None,
     ) -> requests.Response:
         """
         Make an authenticated request to the V3 API.

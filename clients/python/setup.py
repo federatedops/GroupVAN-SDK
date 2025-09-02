@@ -27,6 +27,7 @@ setup(
     install_requires=[
         "PyJWT>=2.8.0",
         "cryptography>=41.0.0",
+        "requests>=2.31.0",
     ],
     extras_require={
         "dev": [
@@ -35,6 +36,7 @@ setup(
             "black>=23.0.0",
             "flake8>=6.0.0",
             "mypy>=1.0.0",
+            "types-requests>=2.31.0",
         ],
     },
     entry_points={
