@@ -82,6 +82,82 @@ dotnet test
 
 Each client library has its own test suite. Please ensure all tests pass before submitting a pull request.
 
+### Running Tests Locally
+
+Before pushing changes or opening a PR, run the tests locally to catch issues early. This matches what the CI/CD pipeline will run.
+
+#### Python
+```bash
+cd clients/python
+# Install dependencies
+pip install -e .
+pip install pytest pytest-cov flake8 black mypy types-requests
+
+# Run linters and formatters
+flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+black --check .
+mypy . --ignore-missing-imports
+
+# Run tests
+pytest test_client.py --cov=. --cov-report=xml
+```
+
+#### Node.js
+```bash
+cd clients/nodejs
+# Install dependencies
+npm install
+
+# Run linter
+npm run lint
+
+# Run tests
+npm test
+```
+
+#### PHP
+```bash
+cd clients/php
+# Install dependencies
+composer install
+
+# Run PHP CS Fixer
+vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff
+
+# Run PHPStan (static analysis)
+vendor/bin/phpstan analyse
+
+# Run tests
+vendor/bin/phpunit
+```
+
+#### C#/.NET
+```bash
+cd clients/csharp
+# Restore packages
+dotnet restore
+
+# Format code
+dotnet format --verify-no-changes
+
+# Build
+dotnet build
+
+# Run tests
+dotnet test GroupVAN.Client.Tests/
+```
+
+### CI/CD Pipeline
+
+All tests are automatically run on GitHub Actions when you push changes or open a pull request. The CI pipeline tests against multiple versions:
+
+- **Python**: 3.10, 3.11, 3.12, 3.13
+- **Node.js**: 16.x, 18.x, 20.x
+- **PHP**: 7.4, 8.0, 8.1, 8.2, 8.3
+- **C#/.NET**: .NET 6.0, 7.0, 8.0
+
+Check the status of your builds at the [Actions tab](https://github.com/federatedops/groupvan-api-client/actions).
+
 ## Code Style
 
 ### Python

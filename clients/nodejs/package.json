@@ -4,7 +4,8 @@
   "description": "Official Node.js client for GroupVAN V3 API authentication",
   "main": "client.js",
   "scripts": {
-    "test": "jest",
+    "test": "node test.js",
+    "test:jest": "jest",
     "coverage": "jest --coverage",
     "lint": "eslint .",
     "keygen": "node client.js"
