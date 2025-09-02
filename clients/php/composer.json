@@ -7,8 +7,7 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "GroupVAN",
-            "email": "support@groupvan.com"
+            "name": "GroupVAN"
         }
     ],
     "require": {

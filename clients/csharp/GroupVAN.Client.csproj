@@ -11,7 +11,7 @@
     <Company>GroupVAN</Company>
     <Product>GroupVAN API Client</Product>
     <Description>Official .NET client for GroupVAN V3 API authentication</Description>
-    <Copyright>Copyright © GroupVAN 2024</Copyright>
+    <Copyright>Copyright © GroupVAN 2025</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/groupvan/groupvan-api-client</PackageProjectUrl>
     <RepositoryUrl>https://github.com/groupvan/groupvan-api-client</RepositoryUrl>

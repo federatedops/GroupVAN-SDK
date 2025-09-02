@@ -7,7 +7,6 @@ setup(
     name="groupvan-client",
     version="1.0.0",
     author="GroupVAN",
-    author_email="support@groupvan.com",
     description="Official Python client for GroupVAN V3 API authentication",
     long_description=long_description,
     long_description_content_type="text/markdown",

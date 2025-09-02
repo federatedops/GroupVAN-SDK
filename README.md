@@ -89,7 +89,7 @@ For detailed API documentation, visit our [API Documentation](https://api.groupv
 
 ### Reporting Security Vulnerabilities
 
-If you discover a security vulnerability, please email security@groupvan.com instead of using the issue tracker.
+If you discover a security vulnerability, please contact your GroupVAN Integration Specialist instead of using the issue tracker.
 
 ### Best Practices
 
@@ -107,7 +107,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 - **Documentation**: [https://api.groupvan.com/docs](https://api.groupvan.com/docs)
 - **Issues**: [GitHub Issues](https://github.com/groupvan/groupvan-api-client/issues)
-- **Email**: support@groupvan.com
+- **Support**: Contact your GroupVAN Integration Specialist
 
 ## License
 

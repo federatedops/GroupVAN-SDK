@@ -11,7 +11,7 @@ We release patches for security vulnerabilities. Which versions are eligible for
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability within GroupVAN API Client, please send an email to security@groupvan.com. All security vulnerabilities will be promptly addressed.
+If you discover a security vulnerability within GroupVAN API Client, please contact your GroupVAN Integration Specialist. All security vulnerabilities will be promptly addressed.
 
 Please do not report security vulnerabilities through public GitHub issues.
 
@@ -76,4 +76,4 @@ Before deploying to production:
 
 ## Contact
 
-For any security concerns, please email: security@groupvan.com
+For any security concerns, please contact your GroupVAN Integration Specialist.

@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added secure key storage recommendations
 - Implemented 5-minute token expiration by default
 
-## [1.0.0] - 2024-09-02
+## [1.0.0] - 2025-01-02
 
 ### Added
 - Initial public release
