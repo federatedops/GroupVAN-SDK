@@ -2,7 +2,6 @@
     "name": "groupvan/client",
     "description": "Official PHP client for GroupVAN V3 API authentication",
     "type": "library",
-    "version": "1.0.0",
     "homepage": "https://github.com/groupvan/groupvan-api-client",
     "license": "MIT",
     "authors": [
