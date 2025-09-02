@@ -153,7 +153,7 @@ All tests are automatically run on GitHub Actions when you push changes or open 
 
 - **Python**: 3.10, 3.11, 3.12, 3.13
 - **Node.js**: 16.x, 18.x, 20.x
-- **PHP**: 7.4, 8.0, 8.1, 8.2, 8.3
+- **PHP**: 8.1 (LTS), 8.2, 8.3
 - **C#/.NET**: .NET 6.0, 7.0, 8.0
 
 Check the status of your builds at the [Actions tab](https://github.com/federatedops/groupvan-api-client/actions).
