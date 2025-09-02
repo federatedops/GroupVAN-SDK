@@ -32,7 +32,7 @@ jobs:
         cd clients/python
         python -m pip install --upgrade pip
         pip install -e .
-        pip install pytest pytest-cov flake8 black mypy
+        pip install pytest pytest-cov flake8 black mypy types-requests
     
     - name: Lint with flake8
       run: |
