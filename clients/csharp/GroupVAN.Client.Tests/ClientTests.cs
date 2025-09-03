@@ -87,16 +87,8 @@ namespace GroupVAN.Client.Tests
 
             // Assert
             Assert.Equal("RS256", jwt.Header.Alg);
-            // Check if kid exists in header
-            if (jwt.Header.ContainsKey("kid"))
-            {
-                Assert.Equal("test_key_456", jwt.Header["kid"]?.ToString());
-            }
-            else
-            {
-                // kid might be in claims instead
-                Assert.Contains(jwt.Claims, c => c.Type == "kid" && c.Value == "test_key_456");
-            }
+            Assert.True(jwt.Header.ContainsKey("kid"));
+            Assert.Equal("test_key_456", jwt.Header["kid"]?.ToString());
             Assert.True(jwt.Header.ContainsKey("gv-ver"));
             Assert.Equal("GV-JWT-V1", jwt.Header["gv-ver"]?.ToString());
         }
@@ -184,9 +176,10 @@ namespace GroupVAN.Client.Tests
 
             // Assert - Use more specific method lookups to avoid ambiguity
             Assert.NotNull(type.GetMethod("GenerateJWT", new Type[] { typeof(int) }));
-            Assert.NotNull(type.GetMethod("MakeAuthenticatedRequestAsync"));
-            Assert.NotNull(type.GetMethod("GetCatalogAsync"));
-            Assert.NotNull(type.GetMethod("ListCatalogsAsync"));
+            Assert.NotNull(type.GetMethod("MakeAuthenticatedRequestAsync", 
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance));
+            Assert.NotNull(type.GetMethod("GetCatalogAsync", new Type[] { typeof(string) }));
+            Assert.NotNull(type.GetMethod("ListCatalogsAsync", new Type[] { typeof(int), typeof(int) }));
         }
     }
 }
