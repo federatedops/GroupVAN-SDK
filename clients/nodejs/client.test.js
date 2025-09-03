@@ -14,7 +14,7 @@ describe('GroupVAN API Client', () => {
     const keys = generateRSAKeyPair();
     privateKey = keys.privateKey;
     publicKey = keys.publicKey;
-    
+
     client = new GroupVANClient(
       'test_developer_id',
       'test_key_id',
@@ -25,7 +25,7 @@ describe('GroupVAN API Client', () => {
   describe('RSA Key Generation', () => {
     test('should generate valid RSA key pair', () => {
       const keys = generateRSAKeyPair();
-      
+
       expect(keys).toHaveProperty('privateKey');
       expect(keys).toHaveProperty('publicKey');
       expect(keys.privateKey).toContain('BEGIN PRIVATE KEY');
@@ -38,7 +38,7 @@ describe('GroupVAN API Client', () => {
   describe('JWT Generation', () => {
     test('should generate a valid JWT', () => {
       const token = client.generateJWT();
-      
+
       expect(token).toBeTruthy();
       expect(typeof token).toBe('string');
       expect(token.split('.')).toHaveLength(3);
@@ -47,7 +47,7 @@ describe('GroupVAN API Client', () => {
     test('should include correct claims', () => {
       const token = client.generateJWT();
       const decoded = jwt.decode(token);
-      
+
       expect(decoded.aud).toBe('groupvan');
       expect(decoded.iss).toBe('test_developer_id');
       expect(decoded.kid).toBe('test_key_id');
@@ -58,7 +58,7 @@ describe('GroupVAN API Client', () => {
     test('should include correct header', () => {
       const token = client.generateJWT();
       const decoded = jwt.decode(token, { complete: true });
-      
+
       expect(decoded.header.alg).toBe('RS256');
       expect(decoded.header.kid).toBe('test_key_id');
       expect(decoded.header['gv-ver']).toBe('GV-JWT-V1');
@@ -67,19 +67,19 @@ describe('GroupVAN API Client', () => {
     test('should allow custom expiry', () => {
       const token = client.generateJWT(600);
       const decoded = jwt.decode(token);
-      
+
       expect(decoded.exp - decoded.iat).toBe(600);
     });
 
     test('should be verifiable with public key', () => {
       const token = client.generateJWT();
-      
+
       const decoded = jwt.verify(token, publicKey, {
         algorithms: ['RS256'],
         audience: 'groupvan',
         issuer: 'test_developer_id',
       });
-      
+
       expect(decoded).toBeTruthy();
       expect(decoded.aud).toBe('groupvan');
     });
