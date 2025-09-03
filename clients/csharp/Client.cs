@@ -42,7 +42,7 @@ namespace GroupVAN.Auth
         /// <param name="keyId">Your key ID</param>
         /// <param name="privateKeyPem">Your RSA private key in PEM format</param>
         /// <param name="baseUrl">API base URL (optional)</param>
-        public GroupVANClient(string developerId, string keyId, string privateKeyPem, 
+        public GroupVANClient(string developerId, string keyId, string privateKeyPem,
             string baseUrl = "https://api.groupvan.com/v3")
         {
             _developerId = developerId;
@@ -138,7 +138,7 @@ namespace GroupVAN.Auth
         /// <summary>
         /// Make an authenticated request to the V3 API
         /// </summary>
-        public async Task<T> MakeAuthenticatedRequestAsync<T>(HttpMethod method, string endpoint, 
+        public async Task<T> MakeAuthenticatedRequestAsync<T>(HttpMethod method, string endpoint,
             object? data = null, Dictionary<string, string>? queryParams = null)
         {
             // Generate fresh JWT token
@@ -180,13 +180,13 @@ namespace GroupVAN.Auth
         public static (string privateKey, string publicKey) GenerateRSAKeyPair(int keySize = 2048)
         {
             using var rsa = RSA.Create(keySize);
-            
+
             // Export private key in PEM format
             var privateKey = ExportPrivateKeyPem(rsa);
-            
+
             // Export public key in PEM format
             var publicKey = ExportPublicKeyPem(rsa);
-            
+
             return (privateKey, publicKey);
         }
 
@@ -296,7 +296,7 @@ namespace GroupVAN.Auth
         public async Task<dynamic> GetCatalogAsync(string catalogId)
         {
             return await MakeAuthenticatedRequestAsync<dynamic>(
-                HttpMethod.Get, 
+                HttpMethod.Get,
                 $"/catalogs/{catalogId}"
             );
         }
@@ -313,7 +313,7 @@ namespace GroupVAN.Auth
             };
 
             return await MakeAuthenticatedRequestAsync<CatalogListResponse>(
-                HttpMethod.Get, 
+                HttpMethod.Get,
                 "/catalogs",
                 null,
                 queryParams
@@ -372,7 +372,7 @@ namespace GroupVAN.Auth
             Console.WriteLine("\n1. Generating RSA key pair:");
 
             var (privateKeyPem, publicKeyPem) = GroupVANClient.GenerateRSAKeyPair();
-            
+
             Console.WriteLine("Private Key (keep this secret!):");
             Console.WriteLine(privateKeyPem.Substring(0, Math.Min(200, privateKeyPem.Length)) + "...");
             Console.WriteLine("\nPublic Key (share with server):");
@@ -399,7 +399,7 @@ namespace GroupVAN.Auth
             {
                 Console.WriteLine($"  {claim.Type}: {claim.Value}");
             }
-            
+
             Console.WriteLine("\nToken Header:");
             Console.WriteLine($"  Algorithm: {jsonToken.Header.Alg}");
             Console.WriteLine($"  Key ID: {jsonToken.Header.Kid}");
