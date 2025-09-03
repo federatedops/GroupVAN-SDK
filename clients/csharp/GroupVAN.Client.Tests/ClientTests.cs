@@ -176,7 +176,7 @@ namespace GroupVAN.Client.Tests
 
             // Assert - Use more specific method lookups to avoid ambiguity
             Assert.NotNull(type.GetMethod("GenerateJWT", new Type[] { typeof(int) }));
-            Assert.NotNull(type.GetMethod("MakeAuthenticatedRequestAsync", 
+            Assert.NotNull(type.GetMethod("MakeAuthenticatedRequestAsync",
                 System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance));
             Assert.NotNull(type.GetMethod("GetCatalogAsync", new Type[] { typeof(string) }));
             Assert.NotNull(type.GetMethod("ListCatalogsAsync", new Type[] { typeof(int), typeof(int) }));

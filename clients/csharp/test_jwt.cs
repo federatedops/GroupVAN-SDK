@@ -13,16 +13,16 @@ class TestJWT
         var (privateKeyPem, _) = GroupVANClient.GenerateRSAKeyPair();
         var client = new GroupVANClient("test_dev_123", "test_key_456", privateKeyPem);
         var token = client.GenerateJWT();
-        
+
         var handler = new JwtSecurityTokenHandler();
         var jwt = handler.ReadJwtToken(token);
-        
+
         Console.WriteLine("Headers:");
         foreach (var header in jwt.Header)
         {
             Console.WriteLine($"  {header.Key}: {header.Value}");
         }
-        
+
         Console.WriteLine("\nClaims:");
         foreach (var claim in jwt.Claims)
         {
