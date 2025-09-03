@@ -1,9 +1,10 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Cryptography;
 using Microsoft.IdentityModel.Tokens;
 using Xunit;
-using GroupVAN.Client;
+using GroupVAN.Auth;
 
 namespace GroupVAN.Client.Tests
 {

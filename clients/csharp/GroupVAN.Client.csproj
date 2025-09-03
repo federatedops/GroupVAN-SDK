@@ -34,4 +34,10 @@
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="GroupVAN.Client.Tests\**" />
+    <EmbeddedResource Remove="GroupVAN.Client.Tests\**" />
+    <None Remove="GroupVAN.Client.Tests\**" />
+  </ItemGroup>
+
 </Project>
