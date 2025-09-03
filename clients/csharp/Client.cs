@@ -139,7 +139,7 @@ namespace GroupVAN.Auth
         /// Make an authenticated request to the V3 API
         /// </summary>
         public async Task<T> MakeAuthenticatedRequestAsync<T>(HttpMethod method, string endpoint, 
-            object data = null, Dictionary<string, string> queryParams = null)
+            object? data = null, Dictionary<string, string>? queryParams = null)
         {
             // Generate fresh JWT token
             var token = GenerateJWT();

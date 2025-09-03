@@ -48,7 +48,11 @@ jobs:
     - name: Build
       run: |
         cd clients/csharp
-        dotnet build GroupVAN.sln --no-restore --configuration Release -f ${{ env.TARGET_FRAMEWORK }}
+        if [[ "${{ env.TARGET_FRAMEWORK }}" == "net6.0" ]] || [[ "${{ env.TARGET_FRAMEWORK }}" == "net7.0" ]] || [[ "${{ env.TARGET_FRAMEWORK }}" == "net8.0" ]]; then
+          dotnet build GroupVAN.sln --no-restore --configuration Release -f ${{ env.TARGET_FRAMEWORK }}
+        else
+          dotnet build GroupVAN.sln --no-restore --configuration Release
+        fi
     
     - name: Format check
       run: |
