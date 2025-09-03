@@ -1,0 +1,33 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GroupVAN.Client", "GroupVAN.Client.csproj", "{8B5C5A1D-7E4A-4B2D-9C3E-5F8D6A9B7E3C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GroupVAN.Auth", "GroupVAN.Auth.csproj", "{2A4D6B8C-3F5E-4A7B-8C9D-1E2F3A4B5C6D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GroupVAN.Client.Tests", "GroupVAN.Client.Tests\GroupVAN.Client.Tests.csproj", "{5C7E8D9F-1A2B-3C4D-5E6F-7A8B9C0D1E2F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8B5C5A1D-7E4A-4B2D-9C3E-5F8D6A9B7E3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B5C5A1D-7E4A-4B2D-9C3E-5F8D6A9B7E3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B5C5A1D-7E4A-4B2D-9C3E-5F8D6A9B7E3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B5C5A1D-7E4A-4B2D-9C3E-5F8D6A9B7E3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A4D6B8C-3F5E-4A7B-8C9D-1E2F3A4B5C6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A4D6B8C-3F5E-4A7B-8C9D-1E2F3A4B5C6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A4D6B8C-3F5E-4A7B-8C9D-1E2F3A4B5C6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A4D6B8C-3F5E-4A7B-8C9D-1E2F3A4B5C6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C7E8D9F-1A2B-3C4D-5E6F-7A8B9C0D1E2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C7E8D9F-1A2B-3C4D-5E6F-7A8B9C0D1E2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C7E8D9F-1A2B-3C4D-5E6F-7A8B9C0D1E2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C7E8D9F-1A2B-3C4D-5E6F-7A8B9C0D1E2F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
