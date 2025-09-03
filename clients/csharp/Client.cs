@@ -66,32 +66,26 @@ namespace GroupVAN.Auth
             var securityKey = new RsaSecurityKey(_privateKey);
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.RsaSha256);
 
-            // Create JWT claims
-            var claims = new List<Claim>
+            var now = DateTime.UtcNow;
+            var expires = now.AddSeconds(expiresIn);
+
+            // Create JWT header
+            var header = new JwtHeader(credentials);
+            header["kid"] = _keyId;
+            header["gv-ver"] = "GV-JWT-V1";
+
+            // Create JWT payload
+            var payload = new JwtPayload
             {
-                new Claim("aud", "groupvan"),
-                new Claim("iss", _developerId),
-                new Claim("kid", _keyId),
-                new Claim("iat", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
-                new Claim("exp", DateTimeOffset.UtcNow.AddSeconds(expiresIn).ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+                { "aud", "groupvan" },
+                { "iss", _developerId },
+                { "kid", _keyId },
+                { "iat", new DateTimeOffset(now).ToUnixTimeSeconds() },
+                { "exp", new DateTimeOffset(expires).ToUnixTimeSeconds() }
             };
 
-            // Create token with custom header
+            var token = new JwtSecurityToken(header, payload);
             var tokenHandler = new JwtSecurityTokenHandler();
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                SigningCredentials = credentials,
-                IssuedAt = DateTime.UtcNow,
-                Expires = DateTime.UtcNow.AddSeconds(expiresIn),
-                AdditionalHeaderClaims = new Dictionary<string, object>
-                {
-                    { "kid", _keyId },
-                    { "gv-ver", "GV-JWT-V1" }
-                }
-            };
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
 
@@ -108,30 +102,26 @@ namespace GroupVAN.Auth
             var securityKey = new RsaSecurityKey(privateKey);
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.RsaSha256);
 
-            var currentTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var now = DateTime.UtcNow;
+            var currentTime = new DateTimeOffset(now).ToUnixTimeSeconds();
 
-            var claims = new List<Claim>
+            // Create JWT header
+            var header = new JwtHeader(credentials);
+            header["kid"] = keyId;
+            header["gv-ver"] = "GV-JWT-V1";
+
+            // Create JWT payload
+            var payload = new JwtPayload
             {
-                new Claim("aud", "groupvan"),
-                new Claim("iss", developerId),
-                new Claim("kid", keyId),
-                new Claim("iat", currentTime.ToString(), ClaimValueTypes.Integer64),
-                new Claim("exp", (currentTime + 300).ToString(), ClaimValueTypes.Integer64)
+                { "aud", "groupvan" },
+                { "iss", developerId },
+                { "kid", keyId },
+                { "iat", currentTime },
+                { "exp", currentTime + 300 }
             };
 
+            var token = new JwtSecurityToken(header, payload);
             var tokenHandler = new JwtSecurityTokenHandler();
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                SigningCredentials = credentials,
-                AdditionalHeaderClaims = new Dictionary<string, object>
-                {
-                    { "kid", keyId },
-                    { "gv-ver", "GV-JWT-V1" }
-                }
-            };
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
 
@@ -249,11 +239,11 @@ namespace GroupVAN.Auth
         /// </summary>
         private static string ExportPrivateKeyPem(RSA rsa)
         {
-            var privateKeyBytes = rsa.ExportRSAPrivateKey();
+            var privateKeyBytes = rsa.ExportPkcs8PrivateKey();
             var sb = new StringBuilder();
-            sb.AppendLine("-----BEGIN RSA PRIVATE KEY-----");
+            sb.AppendLine("-----BEGIN PRIVATE KEY-----");
             sb.AppendLine(Convert.ToBase64String(privateKeyBytes, Base64FormattingOptions.InsertLineBreaks));
-            sb.AppendLine("-----END RSA PRIVATE KEY-----");
+            sb.AppendLine("-----END PRIVATE KEY-----");
             return sb.ToString();
         }
 
