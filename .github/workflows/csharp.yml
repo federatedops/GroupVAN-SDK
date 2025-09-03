@@ -57,7 +57,7 @@ jobs:
     - name: Format check
       run: |
         cd clients/csharp
-        dotnet format GroupVAN.sln --verify-no-changes --no-restore -f ${{ env.TARGET_FRAMEWORK }}
+        dotnet format GroupVAN.sln --verify-no-changes --no-restore
     
     - name: Test
       run: |
