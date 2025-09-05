@@ -18,7 +18,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+**/python/**/lib/
+**/venv/**/lib/
 lib64/
 parts/
 sdist/
@@ -112,6 +113,19 @@ coverage/
 # Documentation build
 docs/_build/
 docs/.doctrees/
+
+# Dart/Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+*.g.dart
+*.freezed.dart
+*.config.dart
+*.mocks.dart
 
 # Temporary files
 *.tmp
