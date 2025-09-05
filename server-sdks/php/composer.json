@@ -1,8 +1,8 @@
 {
-    "name": "groupvan/client",
-    "description": "Official PHP client for GroupVAN V3 API authentication",
+    "name": "groupvan/server-sdk",
+    "description": "Official PHP server SDK for GroupVAN V3 API authentication",
     "type": "library",
-    "homepage": "https://github.com/groupvan/groupvan-api-client",
+    "homepage": "https://github.com/federatedops/GroupVAN-SDK",
     "license": "MIT",
     "authors": [
         {
@@ -22,12 +22,12 @@
     },
     "autoload": {
         "psr-4": {
-            "GroupVAN\\Client\\": "src/"
+            "GroupVAN\\ServerSDK\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "GroupVAN\\Client\\Tests\\": "tests/"
+            "GroupVAN\\ServerSDK\\Tests\\": "tests/"
         }
     },
     "scripts": {
@@ -37,10 +37,10 @@
         "keygen": "php Client.php"
     },
     "support": {
-        "issues": "https://github.com/groupvan/groupvan-api-client/issues",
-        "source": "https://github.com/groupvan/groupvan-api-client"
+        "issues": "https://github.com/federatedops/GroupVAN-SDK/issues",
+        "source": "https://github.com/federatedops/GroupVAN-SDK"
     },
     "bin": [
-        "bin/groupvan-keygen"
+        "bin/groupvan-server-keygen"
     ]
 }

@@ -15,25 +15,25 @@ echo "🧹 Cleaning existing artifacts..."
 
 # C#/.NET
 echo "  • Cleaning C# artifacts..."
-cd "$ROOT_DIR/clients/csharp"
+cd "$ROOT_DIR/server-sdks/csharp"
 rm -rf bin obj **/bin **/obj **/TestResults
 cd "$ROOT_DIR"
 
 # Node.js
 echo "  • Cleaning Node.js artifacts..."
-cd "$ROOT_DIR/clients/nodejs"
+cd "$ROOT_DIR/server-sdks/nodejs"
 rm -rf node_modules package-lock.json coverage .nyc_output
 cd "$ROOT_DIR"
 
 # Python
 echo "  • Cleaning Python artifacts..."
-cd "$ROOT_DIR/clients/python"
+cd "$ROOT_DIR/server-sdks/python"
 rm -rf __pycache__ **/__pycache__ *.egg-info build dist .coverage htmlcov coverage.xml .pytest_cache .mypy_cache
 cd "$ROOT_DIR"
 
 # PHP
 echo "  • Cleaning PHP artifacts..."
-cd "$ROOT_DIR/clients/php"
+cd "$ROOT_DIR/server-sdks/php"
 rm -rf vendor composer.lock coverage.xml .php_cs.cache
 cd "$ROOT_DIR"
 
@@ -42,19 +42,19 @@ echo "📦 Reinstalling dependencies..."
 
 # C#/.NET
 echo "  • Installing C# dependencies..."
-cd "$ROOT_DIR/clients/csharp"
+cd "$ROOT_DIR/server-sdks/csharp"
 dotnet restore GroupVAN.sln
 cd "$ROOT_DIR"
 
 # Node.js
 echo "  • Installing Node.js dependencies..."
-cd "$ROOT_DIR/clients/nodejs"
+cd "$ROOT_DIR/server-sdks/nodejs"
 npm install
 cd "$ROOT_DIR"
 
 # Python
 echo "  • Installing Python dependencies..."
-cd "$ROOT_DIR/clients/python"
+cd "$ROOT_DIR/server-sdks/python"
 python3 -m pip install --upgrade pip 2>/dev/null || python -m pip install --upgrade pip
 pip3 install -e . 2>/dev/null || pip install -e .
 pip3 install pytest pytest-cov flake8 black mypy types-requests 2>/dev/null || pip install pytest pytest-cov flake8 black mypy types-requests
@@ -62,7 +62,7 @@ cd "$ROOT_DIR"
 
 # PHP
 echo "  • Installing PHP dependencies..."
-cd "$ROOT_DIR/clients/php"
+cd "$ROOT_DIR/server-sdks/php"
 composer install --prefer-dist --no-progress
 cd "$ROOT_DIR"
 

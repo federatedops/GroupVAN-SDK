@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Test PHP client (mirrors .github/workflows/php.yml)
+# Test PHP server SDK (mirrors .github/workflows/php.yml)
 
 set -e
 
-echo "🔧 Testing PHP Client"
-echo "===================="
+echo "🔧 Testing PHP Server SDK"
+echo "========================="
 
 # Check if php and composer are installed
 if ! command -v php &> /dev/null; then
@@ -24,8 +24,8 @@ fi
 echo "📦 PHP version: $(php --version | head -n1)"
 echo "📦 Composer version: $(composer --version)"
 
-# Change to PHP client directory
-cd "$(dirname "$0")/../clients/php"
+# Change to PHP server SDK directory
+cd "$(dirname "$0")/../server-sdks/php"
 
 echo ""
 echo "📦 Validating composer.json..."
@@ -58,7 +58,7 @@ echo "🧪 Running tests with coverage..."
 vendor/bin/phpunit --coverage-clover coverage.xml
 
 echo ""
-echo "✅ PHP tests completed successfully!"
+echo "✅ PHP server SDK tests completed successfully!"
 
 # Display coverage info
 if [ -f "coverage.xml" ]; then

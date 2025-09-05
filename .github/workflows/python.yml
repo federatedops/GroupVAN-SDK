@@ -4,12 +4,12 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'clients/python/**'
+      - 'server-sdks/python/**'
       - '.github/workflows/python.yml'
   pull_request:
     branches: [ main ]
     paths:
-      - 'clients/python/**'
+      - 'server-sdks/python/**'
       - '.github/workflows/python.yml'
 
 jobs:
@@ -29,36 +29,36 @@ jobs:
     
     - name: Install dependencies
       run: |
-        cd clients/python
+        cd server-sdks/python
         python -m pip install --upgrade pip
         pip install -e .
         pip install pytest pytest-cov flake8 black mypy types-requests
     
     - name: Lint with flake8
       run: |
-        cd clients/python
+        cd server-sdks/python
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     
     - name: Format check with black
       run: |
-        cd clients/python
+        cd server-sdks/python
         black --check .
     
     - name: Type check with mypy
       run: |
-        cd clients/python
+        cd server-sdks/python
         mypy . --ignore-missing-imports
     
     - name: Test with pytest
       run: |
-        cd clients/python
+        cd server-sdks/python
         pytest --cov=. --cov-report=xml --cov-report=html
     
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
       if: matrix.python-version == '3.11'
       with:
-        file: ./clients/python/coverage.xml
+        file: ./server-sdks/python/coverage.xml
         flags: python
         name: Python Coverage

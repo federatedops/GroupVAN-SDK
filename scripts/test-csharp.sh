@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Test C#/.NET client (mirrors .github/workflows/csharp.yml)
+# Test C#/.NET server SDK (mirrors .github/workflows/csharp.yml)
 
 set -e
 
-echo "🔧 Testing C#/.NET Client"
-echo "=========================="
+echo "🔧 Testing C#/.NET Server SDK"
+echo "============================="
 
 # Check if dotnet is installed
 if ! command -v dotnet &> /dev/null; then
@@ -22,8 +22,8 @@ dotnet --list-sdks
 TARGET_FRAMEWORK=${TARGET_FRAMEWORK:-net8.0}
 echo "🎯 Target Framework: $TARGET_FRAMEWORK"
 
-# Change to C# client directory
-cd "$(dirname "$0")/../clients/csharp"
+# Change to C# server SDK directory
+cd "$(dirname "$0")/../server-sdks/csharp"
 
 echo ""
 echo "📦 Restoring dependencies..."
@@ -42,7 +42,7 @@ echo "🧪 Running tests with coverage..."
 dotnet test GroupVAN.sln --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" -f $TARGET_FRAMEWORK
 
 echo ""
-echo "✅ C#/.NET tests completed successfully!"
+echo "✅ C#/.NET server SDK tests completed successfully!"
 
 # Find and display coverage files
 echo ""

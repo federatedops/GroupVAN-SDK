@@ -4,12 +4,12 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'clients/csharp/**'
+      - 'server-sdks/csharp/**'
       - '.github/workflows/csharp.yml'
   pull_request:
     branches: [ main ]
     paths:
-      - 'clients/csharp/**'
+      - 'server-sdks/csharp/**'
       - '.github/workflows/csharp.yml'
 
 jobs:
@@ -42,12 +42,12 @@ jobs:
     
     - name: Restore dependencies
       run: |
-        cd clients/csharp
+        cd server-sdks/csharp
         dotnet restore GroupVAN.sln
     
     - name: Build
       run: |
-        cd clients/csharp
+        cd server-sdks/csharp
         if [[ "${{ env.TARGET_FRAMEWORK }}" == "net6.0" ]] || [[ "${{ env.TARGET_FRAMEWORK }}" == "net7.0" ]] || [[ "${{ env.TARGET_FRAMEWORK }}" == "net8.0" ]]; then
           dotnet build GroupVAN.sln --no-restore --configuration Release -f ${{ env.TARGET_FRAMEWORK }}
         else
@@ -56,18 +56,18 @@ jobs:
     
     - name: Format check
       run: |
-        cd clients/csharp
+        cd server-sdks/csharp
         dotnet format GroupVAN.sln --verify-no-changes --no-restore
     
     - name: Test
       run: |
-        cd clients/csharp
+        cd server-sdks/csharp
         dotnet test GroupVAN.sln --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" -f ${{ env.TARGET_FRAMEWORK }}
     
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
       if: matrix.dotnet-version == '8.0.x'
       with:
-        file: ./clients/csharp/**/coverage.cobertura.xml
+        file: ./server-sdks/csharp/**/coverage.cobertura.xml
         flags: csharp
         name: C# Coverage

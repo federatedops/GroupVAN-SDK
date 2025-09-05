@@ -4,13 +4,13 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="groupvan-client",
+    name="groupvan-server-sdk",
     version="1.0.0",
     author="GroupVAN",
-    description="Official Python client for GroupVAN V3 API authentication",
+    description="Official Python server SDK for GroupVAN V3 API authentication",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/groupvan/groupvan-api-client",
+    url="https://github.com/federatedops/GroupVAN-SDK",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -41,12 +41,12 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "groupvan-keygen=groupvan_client.keygen:main",
+            "groupvan-server-keygen=groupvan_server_sdk.keygen:main",
         ],
     },
     project_urls={
-        "Bug Reports": "https://github.com/groupvan/groupvan-api-client/issues",
-        "Source": "https://github.com/groupvan/groupvan-api-client",
+        "Bug Reports": "https://github.com/federatedops/GroupVAN-SDK/issues",
+        "Source": "https://github.com/federatedops/GroupVAN-SDK",
         "Documentation": "https://api.groupvan.com/docs",
     },
 )

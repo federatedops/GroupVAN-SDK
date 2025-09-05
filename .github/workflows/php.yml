@@ -4,12 +4,12 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'clients/php/**'
+      - 'server-sdks/php/**'
       - '.github/workflows/php.yml'
   pull_request:
     branches: [ main ]
     paths:
-      - 'clients/php/**'
+      - 'server-sdks/php/**'
       - '.github/workflows/php.yml'
 
 jobs:
@@ -31,33 +31,33 @@ jobs:
     
     - name: Validate composer.json
       run: |
-        cd clients/php
+        cd server-sdks/php
         composer validate --strict
     
     - name: Install dependencies
       run: |
-        cd clients/php
+        cd server-sdks/php
         composer install --prefer-dist --no-progress
     
     - name: Run PHP CS Fixer
       run: |
-        cd clients/php
+        cd server-sdks/php
         vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff
     
     - name: Run PHPStan
       run: |
-        cd clients/php
+        cd server-sdks/php
         if [ -f vendor/bin/phpstan ]; then vendor/bin/phpstan analyse; fi
     
     - name: Run tests
       run: |
-        cd clients/php
+        cd server-sdks/php
         vendor/bin/phpunit --coverage-clover coverage.xml
     
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
       if: matrix.php-version == '8.2'
       with:
-        file: ./clients/php/coverage.xml
+        file: ./server-sdks/php/coverage.xml
         flags: php
         name: PHP Coverage

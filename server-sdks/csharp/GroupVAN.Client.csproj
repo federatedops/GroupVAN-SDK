@@ -5,18 +5,18 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageId>GroupVAN.Client</PackageId>
+    <PackageId>GroupVAN.ServerSDK</PackageId>
     <Version>1.0.0</Version>
     <Authors>GroupVAN</Authors>
     <Company>GroupVAN</Company>
-    <Product>GroupVAN API Client</Product>
-    <Description>Official .NET client for GroupVAN V3 API authentication</Description>
+    <Product>GroupVAN Server SDK</Product>
+    <Description>Official .NET server SDK for GroupVAN V3 API authentication</Description>
     <Copyright>Copyright © GroupVAN 2025</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/groupvan/groupvan-api-client</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/groupvan/groupvan-api-client</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/federatedops/GroupVAN-SDK</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/federatedops/GroupVAN-SDK</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>groupvan;api;client;jwt;authentication;rsa</PackageTags>
+    <PackageTags>groupvan;api;sdk;server;jwt;authentication;rsa</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

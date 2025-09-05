@@ -1,19 +1,19 @@
-# GroupVAN API Client Testing Makefile
-# Unified testing interface for all client languages
+# GroupVAN SDK Testing Makefile
+# Unified testing interface for all SDK languages
 
 .PHONY: help test-all test-csharp test-nodejs test-python test-php clean install-deps
 
 # Default target
 help:
-	@echo "GroupVAN API Client Testing"
-	@echo "============================"
+	@echo "GroupVAN SDK Testing"
+	@echo "==================="
 	@echo ""
 	@echo "Available targets:"
-	@echo "  test-all      - Run tests for all client languages"
-	@echo "  test-csharp   - Run C#/.NET client tests"
-	@echo "  test-nodejs   - Run Node.js client tests"
-	@echo "  test-python   - Run Python client tests"
-	@echo "  test-php      - Run PHP client tests"
+	@echo "  test-all      - Run tests for all SDK languages"
+	@echo "  test-csharp   - Run C#/.NET server SDK tests"
+	@echo "  test-nodejs   - Run Node.js server SDK tests"
+	@echo "  test-python   - Run Python server SDK tests"
+	@echo "  test-php      - Run PHP server SDK tests"
 	@echo ""
 	@echo "Utility targets:"
 	@echo "  install-deps  - Install all dependencies"
@@ -33,24 +33,24 @@ help:
 
 # Test all languages
 test-all:
-	@echo "🚀 Running all client tests..."
+	@echo "🚀 Running all SDK tests..."
 	@./scripts/test-all.sh
 
 # Individual language tests
 test-csharp:
-	@echo "🔧 Testing C#/.NET client..."
+	@echo "🔧 Testing C#/.NET server SDK..."
 	@./scripts/test-csharp.sh
 
 test-nodejs:
-	@echo "🔧 Testing Node.js client..."
+	@echo "🔧 Testing Node.js server SDK..."
 	@./scripts/test-nodejs.sh
 
 test-python:
-	@echo "🔧 Testing Python client..."
+	@echo "🔧 Testing Python server SDK..."
 	@./scripts/test-python.sh
 
 test-php:
-	@echo "🔧 Testing PHP client..."
+	@echo "🔧 Testing PHP server SDK..."
 	@./scripts/test-php.sh
 
 # Install dependencies for all languages
@@ -58,102 +58,102 @@ install-deps: install-csharp install-nodejs install-python install-php
 
 install-csharp:
 	@echo "📦 Installing C# dependencies..."
-	@cd clients/csharp && dotnet restore GroupVAN.sln
+	@cd server-sdks/csharp && dotnet restore GroupVAN.sln
 
 install-nodejs:
 	@echo "📦 Installing Node.js dependencies..."
-	@cd clients/nodejs && npm ci
+	@cd server-sdks/nodejs && npm ci
 
 install-python:
 	@echo "📦 Installing Python dependencies..."
-	@cd clients/python && pip install -e . && pip install pytest pytest-cov flake8 black mypy types-requests
+	@cd server-sdks/python && pip install -e . && pip install pytest pytest-cov flake8 black mypy types-requests
 
 install-php:
 	@echo "📦 Installing PHP dependencies..."
-	@cd clients/php && composer install --prefer-dist --no-progress
+	@cd server-sdks/php && composer install --prefer-dist --no-progress
 
 # Clean build artifacts and dependencies
 clean: clean-csharp clean-nodejs clean-python clean-php
 
 clean-csharp:
 	@echo "🧹 Cleaning C# artifacts..."
-	@cd clients/csharp && rm -rf bin obj **/**/bin **/**/obj **/**/TestResults
+	@cd server-sdks/csharp && rm -rf bin obj **/**/bin **/**/obj **/**/TestResults
 
 clean-nodejs:
 	@echo "🧹 Cleaning Node.js artifacts..."
-	@cd clients/nodejs && rm -rf node_modules coverage .nyc_output
+	@cd server-sdks/nodejs && rm -rf node_modules coverage .nyc_output
 
 clean-python:
 	@echo "🧹 Cleaning Python artifacts..."
-	@cd clients/python && rm -rf __pycache__ **/__pycache__ *.egg-info build dist .coverage htmlcov coverage.xml .pytest_cache .mypy_cache
+	@cd server-sdks/python && rm -rf __pycache__ **/__pycache__ *.egg-info build dist .coverage htmlcov coverage.xml .pytest_cache .mypy_cache
 
 clean-php:
 	@echo "🧹 Cleaning PHP artifacts..."
-	@cd clients/php && rm -rf vendor coverage.xml .php_cs.cache
+	@cd server-sdks/php && rm -rf vendor coverage.xml .php_cs.cache
 
 # Coverage reports
 coverage: coverage-csharp coverage-nodejs coverage-python coverage-php
 
 coverage-csharp:
 	@echo "📊 Generating C# coverage..."
-	@cd clients/csharp && dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage
+	@cd server-sdks/csharp && dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage
 
 coverage-nodejs:
 	@echo "📊 Generating Node.js coverage..."
-	@cd clients/nodejs && npm run coverage
+	@cd server-sdks/nodejs && npm run coverage
 
 coverage-python:
 	@echo "📊 Generating Python coverage..."
-	@cd clients/python && pytest --cov=. --cov-report=html --cov-report=xml
+	@cd server-sdks/python && pytest --cov=. --cov-report=html --cov-report=xml
 
 coverage-php:
 	@echo "📊 Generating PHP coverage..."
-	@cd clients/php && vendor/bin/phpunit --coverage-html coverage --coverage-clover coverage.xml
+	@cd server-sdks/php && vendor/bin/phpunit --coverage-html coverage --coverage-clover coverage.xml
 
 # Lint and format checks
 lint: lint-csharp lint-nodejs lint-python lint-php
 
 lint-csharp:
 	@echo "🔍 Checking C# formatting..."
-	@cd clients/csharp && dotnet format GroupVAN.sln --verify-no-changes
+	@cd server-sdks/csharp && dotnet format GroupVAN.sln --verify-no-changes
 
 lint-nodejs:
 	@echo "🔍 Linting Node.js code..."
-	@cd clients/nodejs && npm run lint
+	@cd server-sdks/nodejs && npm run lint
 
 lint-python:
 	@echo "🔍 Linting Python code..."
-	@cd clients/python && flake8 . && black --check . && mypy . --ignore-missing-imports
+	@cd server-sdks/python && flake8 . && black --check . && mypy . --ignore-missing-imports
 
 lint-php:
 	@echo "🔍 Linting PHP code..."
-	@cd clients/php && vendor/bin/php-cs-fixer fix --dry-run --diff
+	@cd server-sdks/php && vendor/bin/php-cs-fixer fix --dry-run --diff
 
 # Format code
 format: format-csharp format-nodejs format-python format-php
 
 format-csharp:
 	@echo "🎨 Formatting C# code..."
-	@cd clients/csharp && dotnet format GroupVAN.sln
+	@cd server-sdks/csharp && dotnet format GroupVAN.sln
 
 format-nodejs:
 	@echo "🎨 Formatting Node.js code..."
-	@cd clients/nodejs && npm run lint -- --fix
+	@cd server-sdks/nodejs && npm run lint -- --fix
 
 format-python:
 	@echo "🎨 Formatting Python code..."
-	@cd clients/python && black .
+	@cd server-sdks/python && black .
 
 format-php:
 	@echo "🎨 Formatting PHP code..."
-	@cd clients/php && vendor/bin/php-cs-fixer fix
+	@cd server-sdks/php && vendor/bin/php-cs-fixer fix
 
 # CI simulation (runs the same commands as GitHub Actions)
 ci: ci-csharp ci-nodejs ci-python ci-php
 
 ci-csharp:
 	@echo "🤖 Running C# CI simulation..."
-	@cd clients/csharp && \
+	@cd server-sdks/csharp && \
 		dotnet restore GroupVAN.sln && \
 		dotnet build GroupVAN.sln --no-restore --configuration Release && \
 		dotnet format GroupVAN.sln --verify-no-changes --no-restore && \
@@ -161,7 +161,7 @@ ci-csharp:
 
 ci-nodejs:
 	@echo "🤖 Running Node.js CI simulation..."
-	@cd clients/nodejs && \
+	@cd server-sdks/nodejs && \
 		npm ci && \
 		npm run lint && \
 		npm test && \
@@ -169,7 +169,7 @@ ci-nodejs:
 
 ci-python:
 	@echo "🤖 Running Python CI simulation..."
-	@cd clients/python && \
+	@cd server-sdks/python && \
 		pip install -e . && \
 		pip install pytest pytest-cov flake8 black mypy types-requests && \
 		flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics && \
@@ -179,7 +179,7 @@ ci-python:
 
 ci-php:
 	@echo "🤖 Running PHP CI simulation..."
-	@cd clients/php && \
+	@cd server-sdks/php && \
 		composer validate --strict && \
 		composer install --prefer-dist --no-progress && \
 		vendor/bin/php-cs-fixer fix --dry-run --diff && \

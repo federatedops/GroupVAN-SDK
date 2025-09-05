@@ -4,12 +4,12 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'clients/nodejs/**'
+      - 'server-sdks/nodejs/**'
       - '.github/workflows/nodejs.yml'
   pull_request:
     branches: [ main ]
     paths:
-      - 'clients/nodejs/**'
+      - 'server-sdks/nodejs/**'
       - '.github/workflows/nodejs.yml'
 
 jobs:
@@ -29,28 +29,28 @@ jobs:
     
     - name: Install dependencies
       run: |
-        cd clients/nodejs
+        cd server-sdks/nodejs
         npm ci
     
     - name: Run linter
       run: |
-        cd clients/nodejs
+        cd server-sdks/nodejs
         npm run lint --if-present
     
     - name: Run tests
       run: |
-        cd clients/nodejs
+        cd server-sdks/nodejs
         npm test
     
     - name: Generate coverage report
       run: |
-        cd clients/nodejs
+        cd server-sdks/nodejs
         npm run coverage --if-present
     
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
       if: matrix.node-version == '18.x'
       with:
-        file: ./clients/nodejs/coverage/lcov.info
+        file: ./server-sdks/nodejs/coverage/lcov.info
         flags: nodejs
         name: Node.js Coverage

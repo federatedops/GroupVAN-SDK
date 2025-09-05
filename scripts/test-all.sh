@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Run all client tests (unified test runner)
+# Run all SDK tests (unified test runner)
 
 set -e
 
@@ -8,8 +8,8 @@ SCRIPT_DIR="$(dirname "$0")"
 FAILED_TESTS=()
 PASSED_TESTS=()
 
-echo "🚀 Running All Client Tests"
-echo "============================"
+echo "🚀 Running All SDK Tests"
+echo "========================"
 echo ""
 
 # Function to run a test and track results

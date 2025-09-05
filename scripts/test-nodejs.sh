@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Test Node.js client (mirrors .github/workflows/nodejs.yml)
+# Test Node.js server SDK (mirrors .github/workflows/nodejs.yml)
 
 set -e
 
-echo "🔧 Testing Node.js Client"
-echo "========================="
+echo "🔧 Testing Node.js Server SDK"
+echo "============================="
 
 # Check if node and npm are installed
 if ! command -v node &> /dev/null; then
@@ -24,8 +24,8 @@ fi
 echo "📦 Node.js version: $(node --version)"
 echo "📦 npm version: $(npm --version)"
 
-# Change to Node.js client directory
-cd "$(dirname "$0")/../clients/nodejs"
+# Change to Node.js server SDK directory
+cd "$(dirname "$0")/../server-sdks/nodejs"
 
 echo ""
 echo "📦 Installing dependencies..."
@@ -50,7 +50,7 @@ echo "📊 Generating coverage report..."
 npm run coverage --if-present
 
 echo ""
-echo "✅ Node.js tests completed successfully!"
+echo "✅ Node.js server SDK tests completed successfully!"
 
 # Display coverage info if available
 if [ -f "coverage/lcov.info" ]; then

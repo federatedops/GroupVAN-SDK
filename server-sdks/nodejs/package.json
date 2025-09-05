@@ -1,7 +1,7 @@
 {
-  "name": "@groupvan/client",
+  "name": "@groupvan/server-sdk",
   "version": "1.0.0",
-  "description": "Official Node.js client for GroupVAN V3 API authentication",
+  "description": "Official Node.js server SDK for GroupVAN V3 API authentication",
   "main": "client.js",
   "scripts": {
     "test": "jest",
@@ -11,12 +11,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/groupvan/groupvan-api-client.git"
+    "url": "git+https://github.com/federatedops/GroupVAN-SDK.git"
   },
   "keywords": [
     "groupvan",
     "api",
-    "client",
+    "sdk",
+    "server",
     "jwt",
     "authentication",
     "rsa"
@@ -24,9 +25,9 @@
   "author": "GroupVAN",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/groupvan/groupvan-api-client/issues"
+    "url": "https://github.com/federatedops/GroupVAN-SDK/issues"
   },
-  "homepage": "https://github.com/groupvan/groupvan-api-client#readme",
+  "homepage": "https://github.com/federatedops/GroupVAN-SDK#readme",
   "dependencies": {
     "jsonwebtoken": "^9.0.0",
     "axios": "^1.6.0"
@@ -49,6 +50,6 @@
     "LICENSE"
   ],
   "bin": {
-    "groupvan-keygen": "./client.js"
+    "groupvan-server-keygen": "./client.js"
   }
 }

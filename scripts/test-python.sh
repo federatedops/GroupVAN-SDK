@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Test Python client (mirrors .github/workflows/python.yml)
+# Test Python server SDK (mirrors .github/workflows/python.yml)
 
 set -e
 
-echo "🔧 Testing Python Client"
-echo "========================"
+echo "🔧 Testing Python Server SDK"
+echo "============================"
 
 # Check if python and pip are installed
 if ! command -v python &> /dev/null && ! command -v python3 &> /dev/null; then
@@ -27,8 +27,8 @@ fi
 echo "📦 Python version: $($PYTHON_CMD --version)"
 echo "📦 pip version: $($PIP_CMD --version)"
 
-# Change to Python client directory
-cd "$(dirname "$0")/../clients/python"
+# Change to Python server SDK directory
+cd "$(dirname "$0")/../server-sdks/python"
 
 echo ""
 echo "📦 Installing dependencies..."
@@ -63,7 +63,7 @@ echo "🧪 Running tests with coverage..."
 pytest --cov=. --cov-report=xml --cov-report=html
 
 echo ""
-echo "✅ Python tests completed successfully!"
+echo "✅ Python server SDK tests completed successfully!"
 
 # Display coverage info
 if [ -f "coverage.xml" ]; then

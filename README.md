@@ -1,16 +1,16 @@
-# GroupVAN API Client Libraries
+# GroupVAN SDK Libraries
 
-[![Python CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/python.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/python.yml)
-[![Node.js CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/nodejs.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/nodejs.yml)
-[![PHP CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/php.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/php.yml)
-[![.NET CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/csharp.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/csharp.yml)
-[![Documentation](https://github.com/federatedops/groupvan-api-client/actions/workflows/docs.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/docs.yml)
+[![Python CI](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/python.yml/badge.svg)](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/python.yml)
+[![Node.js CI](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/nodejs.yml/badge.svg)](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/nodejs.yml)
+[![PHP CI](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/php.yml/badge.svg)](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/php.yml)
+[![.NET CI](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/csharp.yml/badge.svg)](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/csharp.yml)
+[![Documentation](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/docs.yml/badge.svg)](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/docs.yml)
 
-Official client libraries for authenticating with GroupVAN V3 APIs using JWT tokens with RSA256 asymmetric cryptography.
+Official SDK libraries for authenticating with GroupVAN V3 APIs using JWT tokens with RSA256 asymmetric cryptography.
 
 ## Overview
 
-These client libraries provide a secure and standardized way to authenticate with GroupVAN's V3 APIs. All libraries implement the same authentication pattern using RSA256 (RS256) algorithm for enhanced security through asymmetric cryptography.
+These SDK libraries provide a secure and standardized way to authenticate with GroupVAN's V3 APIs. All libraries implement the same authentication pattern using RSA256 (RS256) algorithm for enhanced security through asymmetric cryptography.
 
 ## Security Model
 
@@ -19,55 +19,67 @@ These client libraries provide a secure and standardized way to authenticate wit
 - **Short-lived Tokens**: Default 5-minute expiration for enhanced security
 - **Key Rotation Support**: Multiple keys can be active simultaneously
 
-## Available Client Libraries
+## Available SDK Libraries
+
+### Server-Side SDKs
+
+For backend applications and server environments:
 
 | Language | Directory | Package Manager | Version | Documentation |
 |----------|-----------|----------------|---------|---------------|
-| Python | [`clients/python/`](./clients/python) | pip | ![PyPI](https://img.shields.io/pypi/v/groupvan-client) | [README](./clients/python/README.md) |
-| Node.js | [`clients/nodejs/`](./clients/nodejs) | npm | ![npm](https://img.shields.io/npm/v/@groupvan/client) | [README](./clients/nodejs/README.md) |
-| PHP | [`clients/php/`](./clients/php) | composer | ![Packagist](https://img.shields.io/packagist/v/groupvan/client) | [README](./clients/php/README.md) |
-| C#/.NET | [`clients/csharp/`](./clients/csharp) | NuGet | ![NuGet](https://img.shields.io/nuget/v/GroupVAN.Client) | [README](./clients/csharp/README.md) |
+| Python | [`server-sdks/python/`](./server-sdks/python) | pip | ![PyPI](https://img.shields.io/pypi/v/groupvan-server-sdk) | [README](./server-sdks/python/README.md) |
+| Node.js | [`server-sdks/nodejs/`](./server-sdks/nodejs) | npm | ![npm](https://img.shields.io/npm/v/@groupvan/server-sdk) | [README](./server-sdks/nodejs/README.md) |
+| PHP | [`server-sdks/php/`](./server-sdks/php) | composer | ![Packagist](https://img.shields.io/packagist/v/groupvan/server-sdk) | [README](./server-sdks/php/README.md) |
+| C#/.NET | [`server-sdks/csharp/`](./server-sdks/csharp) | NuGet | ![NuGet](https://img.shields.io/nuget/v/GroupVAN.ServerSDK) | [README](./server-sdks/csharp/README.md) |
+
+### Web/Browser SDKs
+
+For frontend applications and browser environments:
+
+| Language | Directory | Package Manager | Installation | Documentation |
+|----------|-----------|----------------|--------------|---------------|
+| Dart/Flutter | [`web-sdks/dart/`](./web-sdks/dart) | pub | `git: {url: ..., path: web-sdks/dart}` | [README](./web-sdks/dart/README.md) |
 
 ## Quick Start
 
-### 1. Install the Client Library
+### 1. Install the SDK Library
 
 #### Python
 ```bash
-pip install groupvan-client
+pip install groupvan-server-sdk
 ```
 
 #### Node.js
 ```bash
-npm install @groupvan/client
+npm install @groupvan/server-sdk
 ```
 
 #### PHP
 ```bash
-composer require groupvan/client
+composer require groupvan/server-sdk
 ```
 
 #### C#/.NET
 ```bash
-dotnet add package GroupVAN.Client
+dotnet add package GroupVAN.ServerSDK
 ```
 
 ### 2. Generate RSA Key Pair
 
-Each client library includes utilities to generate RSA key pairs:
+Each SDK library includes utilities to generate RSA key pairs:
 
 ```bash
 # Python
-python -m groupvan_client.keygen
+python -m groupvan_server_sdk.keygen
 
 # Node.js
-npx @groupvan/client keygen
+npx @groupvan/server-sdk keygen
 
 # PHP
-vendor/bin/groupvan-keygen
+vendor/bin/groupvan-server-keygen
 
 # C#
-dotnet groupvan keygen
+dotnet groupvan-server keygen
 ```
 
 ### 3. Register Your Public Key
@@ -78,10 +90,14 @@ Share your RSA public key with GroupVAN to register your developer credentials. 
 
 See language-specific documentation for detailed usage:
 
-- [Python Documentation](./clients/python/README.md)
-- [Node.js Documentation](./clients/nodejs/README.md)
-- [PHP Documentation](./clients/php/README.md)
-- [C#/.NET Documentation](./clients/csharp/README.md)
+**Server SDKs:**
+- [Python Documentation](./server-sdks/python/README.md)
+- [Node.js Documentation](./server-sdks/nodejs/README.md)
+- [PHP Documentation](./server-sdks/php/README.md)
+- [C#/.NET Documentation](./server-sdks/csharp/README.md)
+
+**Web SDKs:**
+- [Dart/Flutter Documentation](./web-sdks/dart/README.md)
 
 ## Examples
 
@@ -112,7 +128,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 ## Support
 
 - **Documentation**: [https://api.groupvan.com/docs](https://api.groupvan.com/docs)
-- **Issues**: [GitHub Issues](https://github.com/groupvan/groupvan-api-client/issues)
+- **Issues**: [GitHub Issues](https://github.com/federatedops/GroupVAN-SDK/issues)
 - **Support**: Contact your GroupVAN Integration Specialist
 
 ## License
@@ -121,7 +137,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Versioning
 
-We use [Semantic Versioning](https://semver.org/). For the versions available, see the [tags on this repository](https://github.com/groupvan/groupvan-api-client/tags).
+We use [Semantic Versioning](https://semver.org/). For the versions available, see the [tags on this repository](https://github.com/federatedops/GroupVAN-SDK/tags).
 
 ## Changelog
 
