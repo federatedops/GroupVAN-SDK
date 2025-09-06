@@ -39,8 +39,9 @@ The GroupVAN API Client libraries provide a secure and standardized way to authe
 
 <div class="code-example" markdown="1">
 
-| Language | Package | Version | Documentation |
+| Platform | Package | Version | Documentation |
 |:---------|:--------|:--------|:--------------|
+| **Flutter/Dart** | `groupvan` | ![Pub Version](https://img.shields.io/pub/v/groupvan) | [Dart SDK](dart/) |
 | **Python** | `groupvan-client` | ![PyPI](https://img.shields.io/pypi/v/groupvan-client) | [Python Docs](python/) |
 | **Node.js** | `@groupvan/client` | ![npm](https://img.shields.io/npm/v/@groupvan/client) | [Node.js Docs](nodejs/) |
 | **PHP** | `groupvan/client` | ![Packagist](https://img.shields.io/packagist/v/groupvan/client) | [PHP Docs](php/) |
@@ -49,6 +50,12 @@ The GroupVAN API Client libraries provide a secure and standardized way to authe
 </div>
 
 ## Quick Installation
+
+### Flutter/Dart
+```yaml
+dependencies:
+  groupvan: ^0.0.1
+```
 
 ### Python
 ```bash
@@ -127,7 +134,28 @@ All tokens are signed using RSA private keys and verified with RSA public keys, 
 
 ## Example Usage
 
-### Python
+### Flutter/Dart (Complete API Client)
+```dart
+import 'package:groupvan/groupvan.dart';
+
+void main() async {
+  // Initialize SDK
+  await GroupVAN.initialize(isProduction: false);
+
+  // Authenticate
+  await GroupVAN.instance.auth.signInWithPassword(
+    username: 'your-username',
+    password: 'your-password',
+    developerId: 'your-developer-id',
+  );
+
+  // Use complete API
+  final vehicles = await GroupVAN.instance.client.vehicles.getUserVehicles();
+  final catalogs = await GroupVAN.instance.client.catalogs.getCatalogs();
+}
+```
+
+### Python (Authentication Only)
 ```python
 from groupvan_client import GroupVANClient
 
@@ -141,7 +169,7 @@ token = client.generate_token()
 response = client.make_api_call("/api/v3/endpoint", token)
 ```
 
-### Node.js
+### Node.js (Authentication Only)
 ```javascript
 const { GroupVANClient } = require('@groupvan/client');
 

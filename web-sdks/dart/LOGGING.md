@@ -5,7 +5,7 @@ The GroupVAN Web SDK uses the official Dart [`logging`](https://pub.dev/packages
 ## Quick Start
 
 ```dart
-import 'package:groupvan_web_sdk/groupvan_api.dart';
+import 'package:groupvan/groupvan.dart';
 import 'package:logging/logging.dart';
 
 void main() async {
