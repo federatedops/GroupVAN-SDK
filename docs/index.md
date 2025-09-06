@@ -14,17 +14,17 @@ permalink: /
 Secure, easy-to-use client libraries for GroupVAN V3 API authentication.
 {: .fs-6 .fw-300 .hero-subtitle }
 
-[![Python CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/python.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/python.yml)
-[![Node.js CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/nodejs.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/nodejs.yml)
-[![PHP CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/php.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/php.yml)
-[![.NET CI](https://github.com/federatedops/groupvan-api-client/actions/workflows/csharp.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/csharp.yml)
-[![Documentation](https://github.com/federatedops/groupvan-api-client/actions/workflows/docs.yml/badge.svg)](https://github.com/federatedops/groupvan-api-client/actions/workflows/docs.yml)
+[![Python CI](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/python.yml/badge.svg)](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/python.yml)
+[![Node.js CI](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/nodejs.yml/badge.svg)](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/nodejs.yml)
+[![PHP CI](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/php.yml/badge.svg)](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/php.yml)
+[![.NET CI](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/csharp.yml/badge.svg)](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/csharp.yml)
+[![Documentation](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/docs.yml/badge.svg)](https://github.com/federatedops/GroupVAN-SDK/actions/workflows/docs.yml)
 {: .text-center }
 
 <div class="hero-buttons" markdown="1">
 
 [Get Started](quickstart){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
-[View on GitHub](https://github.com/federatedops/groupvan-api-client){: .btn .fs-5 .mb-4 .mb-md-0 }
+[View on GitHub](https://github.com/federatedops/GroupVAN-SDK){: .btn .fs-5 .mb-4 .mb-md-0 }
 
 </div>
 </div>
@@ -158,13 +158,13 @@ const response = await client.makeApiCall('/api/v3/endpoint', token);
 ## Support
 
 - 📖 **[API Documentation](https://api.groupvan.com/docs)** - Full API reference
-- 🐛 **[Issue Tracker](https://github.com/federatedops/groupvan-api-client/issues)** - Report bugs or request features
+- 🐛 **[Issue Tracker](https://github.com/federatedops/GroupVAN-SDK/issues)** - Report bugs or request features
 - 👥 **Integration Specialist** - Contact your GroupVAN Integration Specialist for support
 - 🔒 **[Security](security)** - Best practices and vulnerability reporting
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](https://github.com/federatedops/groupvan-api-client/blob/main/CONTRIBUTING.md) for details on:
+We welcome contributions! Please see our [Contributing Guide](https://github.com/federatedops/GroupVAN-SDK/blob/main/CONTRIBUTING.md) for details on:
 - Code style guidelines
 - Testing requirements
 - Pull request process
@@ -172,4 +172,4 @@ We welcome contributions! Please see our [Contributing Guide](https://github.com
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/federatedops/groupvan-api-client/blob/main/LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/federatedops/GroupVAN-SDK/blob/main/LICENSE) file for details.

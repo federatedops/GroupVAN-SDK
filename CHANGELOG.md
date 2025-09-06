@@ -34,4 +34,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added secure key storage recommendations
 - Implemented 5-minute token expiration by default
 
-[1.0.0]: https://github.com/federatedops/groupvan-api-client/releases/tag/v1.0.0
+[1.0.0]: https://github.com/federatedops/GroupVAN-SDK/releases/tag/v1.0.0

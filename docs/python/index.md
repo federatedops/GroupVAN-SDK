@@ -28,8 +28,8 @@ pip install groupvan-client
 ### Install from Source
 
 ```bash
-git clone https://github.com/federatedops/groupvan-api-client.git
-cd groupvan-api-client/clients/python
+git clone https://github.com/federatedops/GroupVAN-SDK.git
+cd GroupVAN-SDK/clients/python
 pip install -e .
 ```
 
@@ -525,7 +525,7 @@ token = client.generate_token()
 
 ## Resources
 
-- [Source Code](https://github.com/federatedops/groupvan-api-client/tree/main/clients/python)
+- [Source Code](https://github.com/federatedops/GroupVAN-SDK/tree/main/clients/python)
 - [PyPI Package](https://pypi.org/project/groupvan-client)
-- [Example Scripts](https://github.com/federatedops/groupvan-api-client/tree/main/examples/python)
-- [Issue Tracker](https://github.com/federatedops/groupvan-api-client/issues)
+- [Example Scripts](https://github.com/federatedops/GroupVAN-SDK/tree/main/examples/python)
+- [Issue Tracker](https://github.com/federatedops/GroupVAN-SDK/issues)

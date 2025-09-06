@@ -185,6 +185,6 @@ public class MyService
 
 ## Resources
 
-- [Source Code](https://github.com/federatedops/groupvan-api-client/tree/main/clients/csharp)
+- [Source Code](https://github.com/federatedops/GroupVAN-SDK/tree/main/clients/csharp)
 - [NuGet Package](https://www.nuget.org/packages/GroupVAN.Client)
-- [Examples](https://github.com/federatedops/groupvan-api-client/tree/main/examples/csharp)
+- [Examples](https://github.com/federatedops/GroupVAN-SDK/tree/main/examples/csharp)

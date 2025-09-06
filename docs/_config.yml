@@ -1,8 +1,8 @@
-# Jekyll configuration for GroupVAN API Client Documentation
+# Jekyll configuration for GroupVAN SDK Documentation
 
-title: GroupVAN API Client
-description: Official client libraries for authenticating with GroupVAN V3 APIs
-baseurl: "/groupvan-api-client"
+title: GroupVAN SDK
+description: Official SDK libraries for authenticating with GroupVAN V3 APIs
+baseurl: "/GroupVAN-SDK"
 url: "https://federatedops.github.io"
 
 # Theme configuration
@@ -23,7 +23,7 @@ search:
 # Aux links for top navigation
 aux_links:
   "GitHub Repository":
-    - "https://github.com/federatedops/groupvan-api-client"
+    - "https://github.com/federatedops/GroupVAN-SDK"
   "GroupVAN API Docs":
     - "https://api.groupvan.com/docs"
 
@@ -31,7 +31,7 @@ aux_links:
 aux_links_new_tab: true
 
 # Footer content
-footer_content: "Copyright &copy; 2025 GroupVAN. Distributed under the <a href=\"https://github.com/federatedops/groupvan-api-client/blob/main/LICENSE\">MIT License</a>."
+footer_content: "Copyright &copy; 2025 GroupVAN. Distributed under the <a href=\"https://github.com/federatedops/GroupVAN-SDK/blob/main/LICENSE\">MIT License</a>."
 
 # Footer last edited timestamp
 last_edit_timestamp: true
@@ -40,7 +40,7 @@ last_edit_time_format: "%b %e %Y at %I:%M %p"
 # GitHub repository for "Edit this page on GitHub" links
 gh_edit_link: true
 gh_edit_link_text: "Edit this page on GitHub"
-gh_edit_repository: "https://github.com/federatedops/groupvan-api-client"
+gh_edit_repository: "https://github.com/federatedops/GroupVAN-SDK"
 gh_edit_branch: "main"
 gh_edit_source: docs
 gh_edit_view_mode: "tree"

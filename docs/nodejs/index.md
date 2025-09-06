@@ -162,6 +162,6 @@ const token: string = client.generateToken(tokenOptions);
 
 ## Resources
 
-- [Source Code](https://github.com/federatedops/groupvan-api-client/tree/main/clients/nodejs)
+- [Source Code](https://github.com/federatedops/GroupVAN-SDK/tree/main/clients/nodejs)
 - [npm Package](https://www.npmjs.com/package/@groupvan/client)
-- [Examples](https://github.com/federatedops/groupvan-api-client/tree/main/examples/nodejs)
+- [Examples](https://github.com/federatedops/GroupVAN-SDK/tree/main/examples/nodejs)

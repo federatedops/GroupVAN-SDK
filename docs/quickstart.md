@@ -314,7 +314,7 @@ try {
   - [PHP Documentation](php/)
   - [C# Documentation](csharp/)
 - 🔒 Review [Security Best Practices](security)
-- 🧪 Check out [Example Applications](https://github.com/federatedops/groupvan-api-client/tree/main/examples)
+- 🧪 Check out [Example Applications](https://github.com/federatedops/GroupVAN-SDK/tree/main/examples)
 - 📖 Read the full [API Documentation](https://api.groupvan.com/docs)
 
 ## Getting Help
@@ -322,6 +322,6 @@ try {
 If you encounter any issues:
 
 1. Check the [Troubleshooting Guide](troubleshooting)
-2. Search [existing issues](https://github.com/federatedops/groupvan-api-client/issues)
+2. Search [existing issues](https://github.com/federatedops/GroupVAN-SDK/issues)
 3. Contact your GroupVAN Integration Specialist
-4. [Open a new issue](https://github.com/federatedops/groupvan-api-client/issues/new) on GitHub
+4. [Open a new issue](https://github.com/federatedops/GroupVAN-SDK/issues/new) on GitHub

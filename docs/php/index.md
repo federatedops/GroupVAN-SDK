@@ -115,6 +115,6 @@ try {
 
 ## Resources
 
-- [Source Code](https://github.com/federatedops/groupvan-api-client/tree/main/clients/php)
+- [Source Code](https://github.com/federatedops/GroupVAN-SDK/tree/main/clients/php)
 - [Packagist Package](https://packagist.org/packages/groupvan/client)
-- [Examples](https://github.com/federatedops/groupvan-api-client/tree/main/examples/php)
+- [Examples](https://github.com/federatedops/GroupVAN-SDK/tree/main/examples/php)

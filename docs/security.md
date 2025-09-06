@@ -318,4 +318,4 @@ token = client.generate_token()  # Default 5 minutes
 - [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
 - [NIST Key Management Guidelines](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-57pt1r5.pdf)
 - [JWT Best Practices](https://datatracker.ietf.org/doc/html/rfc8725)
-- [GroupVAN Security Policy](https://github.com/federatedops/groupvan-api-client/blob/main/SECURITY.md)
+- [GroupVAN Security Policy](https://github.com/federatedops/GroupVAN-SDK/blob/main/SECURITY.md)

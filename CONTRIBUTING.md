@@ -27,9 +27,9 @@ Pull requests are the best way to propose changes to the codebase. We actively w
 
 In short, when you submit code changes, your submissions are understood to be under the same [MIT License](LICENSE) that covers the project. Feel free to contact the maintainers if that's a concern.
 
-## Report bugs using Github's [issues](https://github.com/groupvan/groupvan-api-client/issues)
+## Report bugs using Github's [issues](https://github.com/groupvan/GroupVAN-SDK/issues)
 
-We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/groupvan/groupvan-api-client/issues/new); it's that easy!
+We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/groupvan/GroupVAN-SDK/issues/new); it's that easy!
 
 ## Write bug reports with detail, background, and sample code
 
@@ -156,7 +156,7 @@ All tests are automatically run on GitHub Actions when you push changes or open 
 - **PHP**: 8.1 (LTS), 8.2, 8.3
 - **C#/.NET**: .NET 6.0, 7.0, 8.0
 
-Check the status of your builds at the [Actions tab](https://github.com/federatedops/groupvan-api-client/actions).
+Check the status of your builds at the [Actions tab](https://github.com/federatedops/GroupVAN-SDK/actions).
 
 ## Code Style
 
