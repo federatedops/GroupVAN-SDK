@@ -320,7 +320,7 @@ class GroupVanHttpClient {
         headers: response.requestOptions.headers.cast<String, String>(),
         body: response.requestOptions.data,
         timestamp: startTime,
-        timeout: Duration(milliseconds: (response.requestOptions.sendTimeout ?? 30000) as int),
+        timeout: response.requestOptions.sendTimeout ?? const Duration(seconds: 30),
         retryAttempt: response.requestOptions.extra['retry_count'] ?? 0,
         correlationId: correlationId,
       ),

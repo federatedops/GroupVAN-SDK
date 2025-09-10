@@ -83,9 +83,43 @@ class SecureTokenStorage implements TokenStorage {
          ),
          lOptions: linuxOptions ?? const LinuxOptions(),
          wOptions: windowsOptions ?? const WindowsOptions(),
-         webOptions: webOptions ?? const WebOptions(),
+         webOptions: webOptions ?? const WebOptions(
+           dbName: 'groupvan_tokens_db',
+           publicKey: 'groupvan_storage_key',
+         ),
          mOptions: macOsOptions ?? const MacOsOptions(),
        );
+
+  /// Create web-optimized secure token storage
+  factory SecureTokenStorage.forWeb() {
+    return SecureTokenStorage(
+      webOptions: const WebOptions(
+        dbName: 'groupvan_auth_tokens',
+        publicKey: 'groupvan_web_storage_key',
+      ),
+    );
+  }
+
+  /// Create platform-optimized secure token storage
+  /// Automatically configures best options for each platform
+  factory SecureTokenStorage.platformOptimized() {
+    return SecureTokenStorage(
+      // Enhanced Android options
+      androidOptions: const AndroidOptions(
+        encryptedSharedPreferences: true,
+      ),
+      // Enhanced iOS options
+      iosOptions: const IOSOptions(
+        accessibility: KeychainAccessibility.first_unlock_this_device,
+      ),
+      // Web-optimized options
+      webOptions: const WebOptions(
+        dbName: 'groupvan_auth_tokens',
+        publicKey: 'groupvan_web_storage_key',
+      ),
+      // Other platforms use defaults
+    );
+  }
 
   @override
   Future<void> storeTokens({
@@ -93,11 +127,14 @@ class SecureTokenStorage implements TokenStorage {
     required String refreshToken,
   }) async {
     try {
+      GroupVanLogger.auth.warning('DEBUG: SecureTokenStorage - Attempting to write tokens to secure storage...');
       await Future.wait([
         _secureStorage.write(key: _accessTokenKey, value: accessToken),
         _secureStorage.write(key: _refreshTokenKey, value: refreshToken),
       ]);
+      GroupVanLogger.auth.warning('DEBUG: SecureTokenStorage - Tokens written to secure storage successfully');
     } catch (e) {
+      GroupVanLogger.auth.severe('DEBUG: SecureTokenStorage - Failed to store tokens: $e');
       throw ConfigurationException(
         'Failed to store tokens securely: $e',
         context: {'operation': 'storeTokens'},
@@ -108,16 +145,22 @@ class SecureTokenStorage implements TokenStorage {
   @override
   Future<Map<String, String?>> getTokens() async {
     try {
+      GroupVanLogger.auth.warning('DEBUG: SecureTokenStorage - Attempting to read tokens from secure storage...');
       final results = await Future.wait([
         _secureStorage.read(key: _accessTokenKey),
         _secureStorage.read(key: _refreshTokenKey),
       ]);
       
-      return {
+      final tokens = {
         'accessToken': results[0],
         'refreshToken': results[1],
       };
+      
+      GroupVanLogger.auth.warning('DEBUG: SecureTokenStorage - Retrieved tokens: accessToken=${tokens['accessToken']?.substring(0, 10) ?? 'null'}..., refreshToken=${tokens['refreshToken']?.substring(0, 10) ?? 'null'}...');
+      
+      return tokens;
     } catch (e) {
+      GroupVanLogger.auth.severe('DEBUG: SecureTokenStorage - Failed to retrieve tokens: $e');
       throw ConfigurationException(
         'Failed to retrieve tokens from secure storage: $e',
         context: {'operation': 'getTokens'},
@@ -190,32 +233,49 @@ class AuthManager {
   /// Current user ID from token claims
   String? get userId => _currentStatus.claims?.userId;
 
-  /// Current developer ID from token claims
-  String? get developerId => _currentStatus.claims?.developerId;
-
   AuthManager({
     required GroupVanHttpClient httpClient,
     TokenStorage? tokenStorage,
   })  : _httpClient = httpClient,
         _tokenStorage = tokenStorage ?? MemoryTokenStorage(),
-        _statusController = StreamController<AuthStatus>.broadcast();
+        _statusController = StreamController<AuthStatus>.broadcast() {
+    // Emit initial state immediately so StreamBuilder doesn't wait
+    _statusController.add(_currentStatus);
+  }
 
   /// Initialize authentication manager
   /// 
   /// Attempts to restore authentication state from stored tokens
+  /// Gracefully handles errors and continues with unauthenticated state
   Future<void> initialize() async {
+    GroupVanLogger.auth.warning('DEBUG: Starting authentication initialization...');
+    
     try {
+      GroupVanLogger.auth.warning('DEBUG: Attempting to retrieve stored tokens...');
       final tokens = await _tokenStorage.getTokens();
+      
+      GroupVanLogger.auth.warning('DEBUG: Token retrieval result - accessToken: ${tokens['accessToken']?.substring(0, 10) ?? 'null'}..., refreshToken: ${tokens['refreshToken']?.substring(0, 10) ?? 'null'}...');
+      
       if (tokens['accessToken'] != null && tokens['refreshToken'] != null) {
+        GroupVanLogger.auth.warning('DEBUG: Both tokens found, attempting to validate and restore...');
         await _validateAndRestoreTokens(
           tokens['accessToken']!,
           tokens['refreshToken']!,
         );
+        GroupVanLogger.auth.warning('DEBUG: Token validation and restoration completed');
+      } else {
+        // No stored tokens, start with unauthenticated state
+        GroupVanLogger.auth.warning('DEBUG: No stored tokens found, setting unauthenticated state');
+        await _updateStatus(const AuthStatus.unauthenticated());
       }
     } catch (e) {
-      GroupVanLogger.auth.warning('Failed to restore authentication state: $e');
+      // Log warning but don't throw - gracefully continue as unauthenticated
+      GroupVanLogger.auth.warning('DEBUG: Failed to restore authentication state: $e');
+      GroupVanLogger.auth.warning('DEBUG: Stack trace: ${StackTrace.current}');
       await _updateStatus(const AuthStatus.unauthenticated());
     }
+    
+    GroupVanLogger.auth.warning('DEBUG: Authentication initialization completed with status: ${_currentStatus.state}');
   }
 
   /// Authenticate with username and password
@@ -223,6 +283,7 @@ class AuthManager {
     required String username,
     required String password,
     required String developerId,
+    required String integration,
   }) async {
     await _updateStatus(const AuthStatus.authenticating());
 
@@ -231,6 +292,7 @@ class AuthManager {
         username: username,
         password: password,
         developerId: developerId,
+        integration: integration,
       );
 
       final response = await _httpClient.post<Map<String, dynamic>>(
@@ -242,10 +304,12 @@ class AuthManager {
       final tokenResponse = TokenResponse.fromJson(response.data);
       
       // Store tokens securely
+      GroupVanLogger.auth.warning('DEBUG: Storing tokens after successful login...');
       await _tokenStorage.storeTokens(
         accessToken: tokenResponse.accessToken,
         refreshToken: tokenResponse.refreshToken,
       );
+      GroupVanLogger.auth.warning('DEBUG: Tokens stored successfully');
 
       // Update authentication status
       final claims = _decodeToken(tokenResponse.accessToken);
@@ -381,17 +445,23 @@ class AuthManager {
   /// Validate and restore tokens from storage
   Future<void> _validateAndRestoreTokens(String accessToken, String refreshToken) async {
     try {
+      GroupVanLogger.auth.warning('DEBUG: Decoding access token...');
       final claims = _decodeToken(accessToken);
+      
+      GroupVanLogger.auth.warning('DEBUG: Token claims - userId: ${claims.userId}, expiration: ${DateTime.fromMillisecondsSinceEpoch(claims.expiration * 1000)}, isExpired: ${claims.isExpired}');
       
       // Check if token is expired
       if (claims.isExpired) {
+        GroupVanLogger.auth.warning('DEBUG: Token is expired, attempting refresh...');
         // Try to refresh
         await _tokenStorage.storeTokens(
           accessToken: accessToken,
           refreshToken: refreshToken,
         );
         await this.refreshToken();
+        GroupVanLogger.auth.warning('DEBUG: Token refresh completed');
       } else {
+        GroupVanLogger.auth.warning('DEBUG: Token is still valid, restoring authenticated state...');
         // Token is still valid
         await _updateStatus(AuthStatus.authenticated(
           accessToken: accessToken,
@@ -399,9 +469,11 @@ class AuthManager {
           claims: claims,
         ));
         _scheduleTokenRefresh(claims);
+        GroupVanLogger.auth.warning('DEBUG: Authenticated state restored successfully');
       }
     } catch (e) {
-      GroupVanLogger.auth.warning('Token validation failed: $e');
+      GroupVanLogger.auth.warning('DEBUG: Token validation failed: $e');
+      GroupVanLogger.auth.warning('DEBUG: Clearing authentication state due to validation failure');
       await _clearAuthenticationState();
     }
   }
@@ -447,7 +519,11 @@ class AuthManager {
     _refreshTimer?.cancel();
     
     // Schedule refresh 2 minutes before expiration
-    final refreshTime = claims.timeUntilExpiration - const Duration(minutes: 2);
+    final timeUntilExpiration = claims.timeUntilExpiration;
+    const refreshBuffer = Duration(minutes: 2);
+    final refreshTime = Duration(
+      milliseconds: timeUntilExpiration.inMilliseconds - refreshBuffer.inMilliseconds,
+    );
     
     if (refreshTime.inMilliseconds > 0) {
       _refreshTimer = Timer(refreshTime, () async {

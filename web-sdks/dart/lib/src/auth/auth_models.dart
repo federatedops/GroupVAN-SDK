@@ -23,10 +23,14 @@ class LoginRequest extends Equatable {
   @JsonKey(name: 'developer_id')
   final String developerId;
 
+  /// Integration name for authentication
+  final String integration;
+
   const LoginRequest({
     required this.username,
     required this.password,
     required this.developerId,
+    required this.integration,
   });
 
   factory LoginRequest.fromJson(Map<String, dynamic> json) => 
@@ -35,7 +39,7 @@ class LoginRequest extends Equatable {
   Map<String, dynamic> toJson() => _$LoginRequestToJson(this);
 
   @override
-  List<Object?> get props => [username, password, developerId];
+  List<Object?> get props => [username, password, developerId, integration];
 }
 
 /// Token response from authentication endpoints
@@ -116,10 +120,6 @@ class TokenClaims extends Equatable {
   @JsonKey(name: 'sub')
   final String userId;
 
-  /// Developer ID from the token  
-  @JsonKey(name: 'developer_id')
-  final String developerId;
-
   /// Token type (access/refresh)
   @JsonKey(name: 'type', defaultValue: 'access')
   final String type;
@@ -136,22 +136,16 @@ class TokenClaims extends Equatable {
   @JsonKey(name: 'jti')
   final String jti;
 
-  /// Integration name if present
-  @JsonKey(name: 'integration')
-  final String? integration;
-
   /// Member ID if present
   @JsonKey(name: 'member')
   final String? member;
 
   const TokenClaims({
     required this.userId,
-    required this.developerId,
     required this.issuedAt,
     required this.expiration,
     required this.jti,
     this.type = 'access',
-    this.integration,
     this.member,
   });
 
@@ -183,12 +177,10 @@ class TokenClaims extends Equatable {
   @override
   List<Object?> get props => [
         userId,
-        developerId,
         type,
         issuedAt,
         expiration,
         jti,
-        integration,
         member,
       ];
 }

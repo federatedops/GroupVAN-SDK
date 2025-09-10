@@ -10,6 +10,7 @@ LoginRequest _$LoginRequestFromJson(Map<String, dynamic> json) => LoginRequest(
   username: json['username'] as String,
   password: json['password'] as String,
   developerId: json['developer_id'] as String,
+  integration: json['integration'] as String,
 );
 
 Map<String, dynamic> _$LoginRequestToJson(LoginRequest instance) =>
@@ -17,6 +18,7 @@ Map<String, dynamic> _$LoginRequestToJson(LoginRequest instance) =>
       'username': instance.username,
       'password': instance.password,
       'developer_id': instance.developerId,
+      'integration': instance.integration,
     };
 
 TokenResponse _$TokenResponseFromJson(Map<String, dynamic> json) =>
@@ -50,23 +52,19 @@ Map<String, dynamic> _$LogoutRequestToJson(LogoutRequest instance) =>
 
 TokenClaims _$TokenClaimsFromJson(Map<String, dynamic> json) => TokenClaims(
   userId: json['sub'] as String,
-  developerId: json['developer_id'] as String,
   issuedAt: (json['iat'] as num).toInt(),
   expiration: (json['exp'] as num).toInt(),
   jti: json['jti'] as String,
   type: json['type'] as String? ?? 'access',
-  integration: json['integration'] as String?,
   member: json['member'] as String?,
 );
 
 Map<String, dynamic> _$TokenClaimsToJson(TokenClaims instance) =>
     <String, dynamic>{
       'sub': instance.userId,
-      'developer_id': instance.developerId,
       'type': instance.type,
       'iat': instance.issuedAt,
       'exp': instance.expiration,
       'jti': instance.jti,
-      'integration': instance.integration,
       'member': instance.member,
     };

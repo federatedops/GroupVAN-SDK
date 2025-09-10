@@ -6,6 +6,7 @@ library client;
 
 import 'dart:async';
 
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import 'auth/auth_manager.dart';
@@ -29,6 +30,9 @@ class GroupVanClientConfig {
   /// Token storage implementation
   final TokenStorage? tokenStorage;
 
+  /// Developer ID for this SDK instance
+  final String? developerId;
+
   /// Enable automatic token refresh
   final bool autoRefreshTokens;
 
@@ -42,6 +46,7 @@ class GroupVanClientConfig {
     this.baseUrl = 'https://api.staging.groupvan.com',
     HttpClientConfig? httpClientConfig,
     this.tokenStorage,
+    this.developerId,
     this.autoRefreshTokens = true,
     this.enableLogging = true,
     this.enableCaching = true,
@@ -51,6 +56,7 @@ class GroupVanClientConfig {
   /// Create production configuration (uses secure storage by default)
   factory GroupVanClientConfig.production({
     TokenStorage? tokenStorage,
+    String? developerId,
     bool autoRefreshTokens = true,
     bool enableLogging = false,
     bool enableCaching = true,
@@ -61,7 +67,8 @@ class GroupVanClientConfig {
         baseUrl: 'https://api.groupvan.com',
         enableLogging: false,
       ),
-      tokenStorage: tokenStorage ?? SecureTokenStorage(),
+      tokenStorage: tokenStorage ?? SecureTokenStorage.platformOptimized(),
+      developerId: developerId,
       autoRefreshTokens: autoRefreshTokens,
       enableLogging: enableLogging,
       enableCaching: enableCaching,
@@ -71,6 +78,7 @@ class GroupVanClientConfig {
   /// Create staging configuration (uses secure storage by default)
   factory GroupVanClientConfig.staging({
     TokenStorage? tokenStorage,
+    String? developerId,
     bool autoRefreshTokens = true,
     bool enableLogging = true,
     bool enableCaching = true,
@@ -81,7 +89,8 @@ class GroupVanClientConfig {
         baseUrl: 'https://api.staging.groupvan.com',
         enableLogging: true,
       ),
-      tokenStorage: tokenStorage ?? SecureTokenStorage(),
+      tokenStorage: tokenStorage ?? SecureTokenStorage.platformOptimized(),
+      developerId: developerId,
       autoRefreshTokens: autoRefreshTokens,
       enableLogging: enableLogging,
       enableCaching: enableCaching,
@@ -124,29 +133,42 @@ class GroupVanClient {
   /// Current user ID (if authenticated)
   String? get userId => _authManager.currentStatus.claims?.userId;
 
-  /// Current developer ID (if authenticated)
-  String? get developerId => _authManager.currentStatus.claims?.developerId;
+  /// Current developer ID from configuration
+  String? get developerId => _config.developerId;
 
   /// Initialize the client
   /// 
   /// This sets up the HTTP client, authentication manager, and API clients.
   /// Must be called before using any API methods.
   Future<void> initialize() async {
+    // Initialize logger first if logging is enabled
+    if (_config.enableLogging) {
+      GroupVanLogger.initialize(level: Level.ALL, enableConsoleOutput: true);
+    }
+    
+    GroupVanLogger.sdk.warning('DEBUG: Starting GroupVAN SDK Client initialization...');
+    GroupVanLogger.sdk.warning('DEBUG: Token storage type: ${_config.tokenStorage.runtimeType}');
+    
     // Initialize HTTP client
     _httpClient = GroupVanHttpClient(_config.httpClientConfig);
+    GroupVanLogger.sdk.warning('DEBUG: HTTP client initialized');
 
     // Initialize authentication manager
     _authManager = AuthManager(
       httpClient: _httpClient,
       tokenStorage: _config.tokenStorage,
     );
+    GroupVanLogger.sdk.warning('DEBUG: Authentication manager created');
 
     // Initialize API clients
     _vehiclesClient = VehiclesClient(httpClient, _authManager);
     _catalogsClient = CatalogsClient(httpClient, _authManager);
+    GroupVanLogger.sdk.warning('DEBUG: API clients initialized');
 
     // Initialize authentication manager (restore tokens if available)
+    GroupVanLogger.sdk.warning('DEBUG: Calling auth manager initialize...');
     await _authManager.initialize();
+    GroupVanLogger.sdk.warning('DEBUG: Auth manager initialization completed');
 
     GroupVanLogger.sdk.info('GroupVAN SDK Client initialized');
   }
@@ -749,6 +771,9 @@ class GroupVAN {
     /// API base URL (defaults to production)
     String? baseUrl,
     
+    /// Developer ID for this SDK instance
+    String? developerId,
+    
     /// Enable request/response logging (default: false for production)
     bool? enableLogging,
     
@@ -778,12 +803,14 @@ class GroupVAN {
     final config = isProduction
         ? GroupVanClientConfig.production(
             tokenStorage: tokenStorage,
+            developerId: developerId,
             autoRefreshTokens: autoRefreshTokens ?? true,
             enableLogging: enableLogging ?? false,
             enableCaching: enableCaching ?? true,
           )
         : GroupVanClientConfig.staging(
             tokenStorage: tokenStorage,
+            developerId: developerId,
             autoRefreshTokens: autoRefreshTokens ?? true,
             enableLogging: enableLogging ?? true,
             enableCaching: enableCaching ?? true,
@@ -799,6 +826,7 @@ class GroupVAN {
               enableCaching: enableCaching ?? true,
             ),
             tokenStorage: tokenStorage,
+            developerId: developerId,
             autoRefreshTokens: autoRefreshTokens ?? true,
             enableLogging: enableLogging ?? !isProduction,
             enableCaching: enableCaching ?? true,
@@ -818,7 +846,7 @@ class GroupVAN {
   GroupVANClient get client => GroupVANClient._(_client);
 
   /// Quick access to authentication (deprecated - use client.auth instead)
-  GroupVANAuth get auth => GroupVANAuth._(_client.auth);
+  GroupVANAuth get auth => GroupVANAuth._(_client.auth, _client);
 
   /// Quick access to vehicles API (deprecated - use client.vehicles instead)
   GroupVANVehicles get vehicles => GroupVANVehicles._(_client.vehicles);
@@ -842,19 +870,26 @@ class GroupVAN {
 /// Namespaced authentication methods with clean API design
 class GroupVANAuth {
   final AuthManager _authManager;
+  final GroupVanClient _client;
 
-  const GroupVANAuth._(this._authManager);
+  const GroupVANAuth._(this._authManager, this._client);
 
   /// Sign in with username and password
   Future<auth_models.AuthStatus> signInWithPassword({
     required String username,
     required String password,
-    required String developerId,
+    required String integration,
   }) async {
+    final developerId = _client.developerId;
+    if (developerId == null) {
+      throw StateError('Developer ID not configured. Please initialize GroupVAN SDK with a developerId.');
+    }
+    
     await _authManager.login(
       username: username,
       password: password,
       developerId: developerId,
+      integration: integration,
     );
     return _authManager.currentStatus;
   }
@@ -903,12 +938,12 @@ class GroupVANAuth {
       return null;
     }
     
-    return AuthUser.fromClaims(status.claims!);
+    return AuthUser.fromClaims(status.claims!, developerId: _client.developerId);
   }
 
   /// Stream of authentication state changes
   Stream<AuthState> get onAuthStateChange {
-    return _authManager.statusStream.map((status) => AuthState._fromStatus(status));
+    return _authManager.statusStream.map((status) => AuthState._fromStatus(status, developerId: _client.developerId));
   }
 
   /// Current authentication session
@@ -916,7 +951,7 @@ class GroupVANAuth {
     final status = _authManager.currentStatus;
     if (!status.isAuthenticated) return null;
     
-    return AuthSession.fromAuthStatus(status);
+    return AuthSession.fromAuthStatus(status, developerId: _client.developerId);
   }
 }
 
@@ -1030,7 +1065,7 @@ class GroupVANClient {
   const GroupVANClient._(this._client);
 
   /// Authentication methods
-  GroupVANAuth get auth => GroupVANAuth._(_client.auth);
+  GroupVANAuth get auth => GroupVANAuth._(_client.auth, _client);
 
   /// Vehicle operations
   GroupVANVehicles get vehicles => GroupVANVehicles._(_client.vehicles);
@@ -1043,21 +1078,18 @@ class GroupVANClient {
 @immutable
 class AuthUser {
   final String userId;
-  final String developerId;
-  final String? integration;
+  final String? developerId;
   final String? member;
 
   const AuthUser({
     required this.userId,
-    required this.developerId,
-    this.integration,
+    this.developerId,
     this.member,
   });
 
-  factory AuthUser.fromClaims(auth_models.TokenClaims claims) => AuthUser(
+  factory AuthUser.fromClaims(auth_models.TokenClaims claims, {String? developerId}) => AuthUser(
         userId: claims.userId,
-        developerId: claims.developerId,
-        integration: claims.integration,
+        developerId: developerId,
         member: claims.member,
       );
 
@@ -1080,13 +1112,13 @@ class AuthSession {
     required this.user,
   });
 
-  factory AuthSession.fromAuthStatus(auth_models.AuthStatus status) => AuthSession(
+  factory AuthSession.fromAuthStatus(auth_models.AuthStatus status, {String? developerId}) => AuthSession(
         accessToken: status.accessToken!,
         refreshToken: status.refreshToken!,
         expiresAt: status.claims != null 
             ? DateTime.fromMillisecondsSinceEpoch(status.claims!.expiration * 1000)
             : null,
-        user: AuthUser.fromClaims(status.claims!),
+        user: AuthUser.fromClaims(status.claims!, developerId: developerId),
       );
 
   /// Whether the session is expired
@@ -1113,13 +1145,13 @@ class AuthState {
 
   const AuthState._(this.event, this.user, this.session);
 
-  factory AuthState._fromStatus(auth_models.AuthStatus status) {
+  factory AuthState._fromStatus(auth_models.AuthStatus status, {String? developerId}) {
     AuthUser? user;
     AuthSession? session;
 
     if (status.isAuthenticated && status.claims != null) {
-      user = AuthUser.fromClaims(status.claims!);
-      session = AuthSession.fromAuthStatus(status);
+      user = AuthUser.fromClaims(status.claims!, developerId: developerId);
+      session = AuthSession.fromAuthStatus(status, developerId: developerId);
     }
 
     AuthChangeEvent event;
