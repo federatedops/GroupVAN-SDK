@@ -1,5 +1,5 @@
 /// GroupVAN SDK Client
-/// 
+///
 /// Main client implementation with singleton pattern for global access.
 /// Provides both direct client usage and elegant singleton initialization.
 library client;
@@ -50,8 +50,9 @@ class GroupVanClientConfig {
     this.autoRefreshTokens = true,
     this.enableLogging = true,
     this.enableCaching = true,
-  }) : httpClientConfig = httpClientConfig ?? 
-         const HttpClientConfig(baseUrl: 'https://api.staging.groupvan.com');
+  }) : httpClientConfig =
+           httpClientConfig ??
+           const HttpClientConfig(baseUrl: 'https://api.staging.groupvan.com');
 
   /// Create production configuration (uses secure storage by default)
   factory GroupVanClientConfig.production({
@@ -99,7 +100,7 @@ class GroupVanClientConfig {
 }
 
 /// Main GroupVAN SDK Client
-/// 
+///
 /// Provides a comprehensive, type-safe interface to the GroupVAN V3 API with:
 /// - Automatic JWT authentication and token refresh
 /// - Input validation and error handling
@@ -137,7 +138,7 @@ class GroupVanClient {
   String? get developerId => _config.developerId;
 
   /// Initialize the client
-  /// 
+  ///
   /// This sets up the HTTP client, authentication manager, and API clients.
   /// Must be called before using any API methods.
   Future<void> initialize() async {
@@ -145,10 +146,14 @@ class GroupVanClient {
     if (_config.enableLogging) {
       GroupVanLogger.initialize(level: Level.ALL, enableConsoleOutput: true);
     }
-    
-    GroupVanLogger.sdk.warning('DEBUG: Starting GroupVAN SDK Client initialization...');
-    GroupVanLogger.sdk.warning('DEBUG: Token storage type: ${_config.tokenStorage.runtimeType}');
-    
+
+    GroupVanLogger.sdk.warning(
+      'DEBUG: Starting GroupVAN SDK Client initialization...',
+    );
+    GroupVanLogger.sdk.warning(
+      'DEBUG: Token storage type: ${_config.tokenStorage.runtimeType}',
+    );
+
     // Initialize HTTP client
     _httpClient = GroupVanHttpClient(_config.httpClientConfig);
     GroupVanLogger.sdk.warning('DEBUG: HTTP client initialized');
@@ -278,8 +283,11 @@ class VehiclesClient extends ApiClient {
       return Success(groups);
     } catch (e) {
       GroupVanLogger.vehicles.severe('Failed to get vehicle groups: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('Failed to get vehicle groups: $e'));
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get vehicle groups: $e'),
+      );
     }
   }
 
@@ -310,8 +318,11 @@ class VehiclesClient extends ApiClient {
       return Success(vehicles);
     } catch (e) {
       GroupVanLogger.vehicles.severe('Failed to get user vehicles: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('Failed to get user vehicles: $e'));
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get user vehicles: $e'),
+      );
     }
   }
 
@@ -327,12 +338,14 @@ class VehiclesClient extends ApiClient {
       if (page < 1) {
         throw ValidationException(
           'Page must be greater than 0',
-          errors: [ValidationError(
-            field: 'page',
-            message: 'Page must be greater than 0',
-            value: page,
-            rule: 'min',
-          )],
+          errors: [
+            ValidationError(
+              field: 'page',
+              message: 'Page must be greater than 0',
+              value: page,
+              rule: 'min',
+            ),
+          ],
         );
       }
     } catch (e) {
@@ -340,11 +353,8 @@ class VehiclesClient extends ApiClient {
     }
 
     try {
-      final queryParams = <String, dynamic>{
-        'query': query,
-        'page': page,
-      };
-      
+      final queryParams = <String, dynamic>{'query': query, 'page': page};
+
       if (groupId != null) {
         queryParams['group_id'] = groupId;
       }
@@ -359,8 +369,11 @@ class VehiclesClient extends ApiClient {
       return Success(searchResponse);
     } catch (e) {
       GroupVanLogger.vehicles.severe('Vehicle search failed: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('Vehicle search failed: $e'));
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Vehicle search failed: $e'),
+      );
     }
   }
 
@@ -391,8 +404,9 @@ class VehiclesClient extends ApiClient {
       return Success(vehicles);
     } catch (e) {
       GroupVanLogger.vehicles.severe('VIN search failed: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('VIN search failed: $e'));
+      return Failure(
+        e is GroupVanException ? e : NetworkException('VIN search failed: $e'),
+      );
     }
   }
 
@@ -423,8 +437,11 @@ class VehiclesClient extends ApiClient {
       return Success(vehicles);
     } catch (e) {
       GroupVanLogger.vehicles.severe('License plate search failed: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('License plate search failed: $e'));
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('License plate search failed: $e'),
+      );
     }
   }
 
@@ -443,8 +460,11 @@ class VehiclesClient extends ApiClient {
       return Success(filterResponse);
     } catch (e) {
       GroupVanLogger.vehicles.severe('Vehicle filtering failed: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('Vehicle filtering failed: $e'));
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Vehicle filtering failed: $e'),
+      );
     }
   }
 
@@ -466,8 +486,11 @@ class VehiclesClient extends ApiClient {
       return Success(vehicles);
     } catch (e) {
       GroupVanLogger.vehicles.severe('Failed to get engine data: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('Failed to get engine data: $e'));
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get engine data: $e'),
+      );
     }
   }
 
@@ -486,8 +509,11 @@ class VehiclesClient extends ApiClient {
       return Success(fleets);
     } catch (e) {
       GroupVanLogger.vehicles.severe('Failed to get fleets: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('Failed to get fleets: $e'));
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get fleets: $e'),
+      );
     }
   }
 
@@ -500,12 +526,14 @@ class VehiclesClient extends ApiClient {
       if (fleetId.trim().isEmpty) {
         throw ValidationException(
           'Fleet ID cannot be empty',
-          errors: [ValidationError(
-            field: 'fleet_id',
-            message: 'Fleet ID cannot be empty',
-            value: fleetId,
-            rule: 'required',
-          )],
+          errors: [
+            ValidationError(
+              field: 'fleet_id',
+              message: 'Fleet ID cannot be empty',
+              value: fleetId,
+              rule: 'required',
+            ),
+          ],
         );
       }
     } catch (e) {
@@ -525,8 +553,11 @@ class VehiclesClient extends ApiClient {
       return Success(vehicles);
     } catch (e) {
       GroupVanLogger.vehicles.severe('Failed to get fleet vehicles: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('Failed to get fleet vehicles: $e'));
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get fleet vehicles: $e'),
+      );
     }
   }
 
@@ -557,8 +588,11 @@ class VehiclesClient extends ApiClient {
       return Success(vehicles);
     } catch (e) {
       GroupVanLogger.vehicles.severe('Failed to get account vehicles: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('Failed to get account vehicles: $e'));
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get account vehicles: $e'),
+      );
     }
   }
 }
@@ -582,8 +616,11 @@ class CatalogsClient extends ApiClient {
       return Success(catalogs);
     } catch (e) {
       GroupVanLogger.catalogs.severe('Failed to get catalogs: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('Failed to get catalogs: $e'));
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get catalogs: $e'),
+      );
     }
   }
 
@@ -606,8 +643,11 @@ class CatalogsClient extends ApiClient {
       return Success(categories);
     } catch (e) {
       GroupVanLogger.catalogs.severe('Failed to get vehicle categories: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('Failed to get vehicle categories: $e'));
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get vehicle categories: $e'),
+      );
     }
   }
 
@@ -628,8 +668,11 @@ class CatalogsClient extends ApiClient {
       return Success(categories);
     } catch (e) {
       GroupVanLogger.catalogs.severe('Failed to get supply categories: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('Failed to get supply categories: $e'));
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get supply categories: $e'),
+      );
     }
   }
 
@@ -643,12 +686,14 @@ class CatalogsClient extends ApiClient {
       if (applicationIds.isEmpty) {
         throw ValidationException(
           'Application IDs cannot be empty',
-          errors: [ValidationError(
-            field: 'application_ids',
-            message: 'Application IDs cannot be empty',
-            value: applicationIds,
-            rule: 'required',
-          )],
+          errors: [
+            ValidationError(
+              field: 'application_ids',
+              message: 'Application IDs cannot be empty',
+              value: applicationIds,
+              rule: 'required',
+            ),
+          ],
         );
       }
     } catch (e) {
@@ -659,7 +704,7 @@ class CatalogsClient extends ApiClient {
       final queryParams = <String, dynamic>{
         'application_ids': applicationIds.join(','),
       };
-      
+
       if (languageCode != null) {
         queryParams['language_code'] = languageCode;
       }
@@ -671,32 +716,37 @@ class CatalogsClient extends ApiClient {
       );
 
       final assets = response.data
-          .map((item) => ApplicationAsset.fromJson(item as Map<String, dynamic>))
+          .map(
+            (item) => ApplicationAsset.fromJson(item as Map<String, dynamic>),
+          )
           .toList();
 
       return Success(assets);
     } catch (e) {
       GroupVanLogger.catalogs.severe('Failed to get application assets: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('Failed to get application assets: $e'));
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get application assets: $e'),
+      );
     }
   }
 
   /// Get cart details with validation
-  Future<Result<List<CartItem>>> getCart({
-    required String cartId,
-  }) async {
+  Future<Result<List<CartItem>>> getCart({required String cartId}) async {
     // Validate cart ID
     try {
       if (cartId.trim().isEmpty) {
         throw ValidationException(
           'Cart ID cannot be empty',
-          errors: [ValidationError(
-            field: 'cart_id',
-            message: 'Cart ID cannot be empty',
-            value: cartId,
-            rule: 'required',
-          )],
+          errors: [
+            ValidationError(
+              field: 'cart_id',
+              message: 'Cart ID cannot be empty',
+              value: cartId,
+              rule: 'required',
+            ),
+          ],
         );
       }
     } catch (e) {
@@ -716,8 +766,9 @@ class CatalogsClient extends ApiClient {
       return Success(cartItems);
     } catch (e) {
       GroupVanLogger.catalogs.severe('Failed to get cart: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('Failed to get cart: $e'));
+      return Failure(
+        e is GroupVanException ? e : NetworkException('Failed to get cart: $e'),
+      );
     }
   }
 
@@ -737,8 +788,11 @@ class CatalogsClient extends ApiClient {
       return Success(productListing);
     } catch (e) {
       GroupVanLogger.catalogs.severe('Failed to get products: $e');
-      return Failure(e is GroupVanException ? e : 
-        NetworkException('Failed to get products: $e'));
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get products: $e'),
+      );
     }
   }
 }
@@ -752,43 +806,43 @@ class GroupVAN {
   GroupVAN._();
 
   /// Get the singleton instance
-  /// 
+  ///
   /// Throws [StateError] if not initialized
   static GroupVAN get instance {
     if (_instance == null || !_instance!._isInitialized) {
       throw StateError(
-        'GroupVAN must be initialized before use. Call GroupVAN.initialize() first.'
+        'GroupVAN must be initialized before use. Call GroupVAN.initialize() first.',
       );
     }
     return _instance!;
   }
 
   /// Initialize GroupVAN SDK
-  /// 
+  ///
   /// This must be called before using any GroupVAN functionality.
   /// Returns the same instance on subsequent calls.
   static Future<GroupVAN> initialize({
     /// API base URL (defaults to production)
     String? baseUrl,
-    
+
     /// Developer ID for this SDK instance
     String? developerId,
-    
+
     /// Enable request/response logging (default: false for production)
     bool? enableLogging,
-    
+
     /// Enable response caching (default: true)
     bool? enableCaching,
-    
+
     /// Enable automatic token refresh (default: true)
     bool? autoRefreshTokens,
-    
+
     /// Custom token storage implementation
     TokenStorage? tokenStorage,
-    
+
     /// HTTP client configuration
     HttpClientConfig? httpClientConfig,
-    
+
     /// Whether this is a production environment
     bool isProduction = true,
   }) async {
@@ -819,12 +873,22 @@ class GroupVAN {
     // Override base URL if provided
     final finalConfig = baseUrl != null || httpClientConfig != null
         ? GroupVanClientConfig(
-            baseUrl: baseUrl ?? (isProduction ? 'https://api.groupvan.com' : 'https://api.staging.groupvan.com'),
-            httpClientConfig: httpClientConfig ?? HttpClientConfig(
-              baseUrl: baseUrl ?? (isProduction ? 'https://api.groupvan.com' : 'https://api.staging.groupvan.com'),
-              enableLogging: enableLogging ?? !isProduction,
-              enableCaching: enableCaching ?? true,
-            ),
+            baseUrl:
+                baseUrl ??
+                (isProduction
+                    ? 'https://api.groupvan.com'
+                    : 'https://api.staging.groupvan.com'),
+            httpClientConfig:
+                httpClientConfig ??
+                HttpClientConfig(
+                  baseUrl:
+                      baseUrl ??
+                      (isProduction
+                          ? 'https://api.groupvan.com'
+                          : 'https://api.staging.groupvan.com'),
+                  enableLogging: enableLogging ?? !isProduction,
+                  enableCaching: enableCaching ?? true,
+                ),
             tokenStorage: tokenStorage,
             developerId: developerId,
             autoRefreshTokens: autoRefreshTokens ?? true,
@@ -882,9 +946,11 @@ class GroupVANAuth {
   }) async {
     final developerId = _client.developerId;
     if (developerId == null) {
-      throw StateError('Developer ID not configured. Please initialize GroupVAN SDK with a developerId.');
+      throw StateError(
+        'Developer ID not configured. Please initialize GroupVAN SDK with a developerId.',
+      );
     }
-    
+
     await _authManager.login(
       username: username,
       password: password,
@@ -901,7 +967,9 @@ class GroupVANAuth {
     required String developerId,
   }) async {
     // TODO: Implement OTP authentication
-    throw UnimplementedError('OTP authentication will be implemented in future versions');
+    throw UnimplementedError(
+      'OTP authentication will be implemented in future versions',
+    );
   }
 
   /// Sign in with Apple ID (Future implementation)
@@ -909,7 +977,9 @@ class GroupVANAuth {
     required String developerId,
   }) async {
     // TODO: Implement Apple Sign-In
-    throw UnimplementedError('Apple Sign-In will be implemented in future versions');
+    throw UnimplementedError(
+      'Apple Sign-In will be implemented in future versions',
+    );
   }
 
   /// Sign in with Google (Future implementation)
@@ -917,7 +987,9 @@ class GroupVANAuth {
     required String developerId,
   }) async {
     // TODO: Implement Google Sign-In
-    throw UnimplementedError('Google Sign-In will be implemented in future versions');
+    throw UnimplementedError(
+      'Google Sign-In will be implemented in future versions',
+    );
   }
 
   /// Sign out current user
@@ -937,20 +1009,28 @@ class GroupVANAuth {
     if (!status.isAuthenticated || status.claims == null) {
       return null;
     }
-    
-    return AuthUser.fromClaims(status.claims!, developerId: _client.developerId);
+
+    return AuthUser.fromClaims(
+      status.claims!,
+      developerId: _client.developerId,
+    );
   }
 
   /// Stream of authentication state changes
   Stream<AuthState> get onAuthStateChange {
-    return _authManager.statusStream.map((status) => AuthState._fromStatus(status, developerId: _client.developerId));
+    // The underlying statusStream now emits the current auth status immediately
+    // to new subscribers, so listeners receive an initial value without waiting.
+    return _authManager.statusStream.map(
+      (status) =>
+          AuthState._fromStatus(status, developerId: _client.developerId),
+    );
   }
 
   /// Current authentication session
   AuthSession? get currentSession {
     final status = _authManager.currentStatus;
     if (!status.isAuthenticated) return null;
-    
+
     return AuthSession.fromAuthStatus(status, developerId: _client.developerId);
   }
 }
@@ -975,7 +1055,8 @@ class GroupVANVehicles {
   }) => _client.searchVehicles(query: query, groupId: groupId, page: page);
 
   /// Search by VIN
-  Future<Result<List<Vehicle>?>> searchByVin(String vin) => _client.searchByVin(vin);
+  Future<Result<List<Vehicle>?>> searchByVin(String vin) =>
+      _client.searchByVin(vin);
 
   /// Search by license plate
   Future<Result<List<Vehicle>>> searchByPlate({
@@ -1000,9 +1081,8 @@ class GroupVANVehicles {
   Future<Result<List<Fleet>>> getFleets() => _client.getFleets();
 
   /// Get fleet vehicles
-  Future<Result<List<Vehicle>>> getFleetVehicles({
-    required String fleetId,
-  }) => _client.getFleetVehicles(fleetId: fleetId);
+  Future<Result<List<Vehicle>>> getFleetVehicles({required String fleetId}) =>
+      _client.getFleetVehicles(fleetId: fleetId);
 
   /// Get account vehicles
   Future<Result<List<Vehicle>>> getAccountVehicles({
@@ -1026,10 +1106,10 @@ class GroupVANCatalogs {
     required int engineIndex,
     String? sessionId,
   }) => _client.getVehicleCategories(
-        catalogId: catalogId,
-        engineIndex: engineIndex,
-        sessionId: sessionId,
-      );
+    catalogId: catalogId,
+    engineIndex: engineIndex,
+    sessionId: sessionId,
+  );
 
   /// Get supply categories
   Future<Result<List<SupplyCategory>>> getSupplyCategories({
@@ -1041,14 +1121,13 @@ class GroupVANCatalogs {
     required List<int> applicationIds,
     String? languageCode,
   }) => _client.getApplicationAssets(
-        applicationIds: applicationIds,
-        languageCode: languageCode,
-      );
+    applicationIds: applicationIds,
+    languageCode: languageCode,
+  );
 
   /// Get cart details
-  Future<Result<List<CartItem>>> getCart({
-    required String cartId,
-  }) => _client.getCart(cartId: cartId);
+  Future<Result<List<CartItem>>> getCart({required String cartId}) =>
+      _client.getCart(cartId: cartId);
 
   /// Get product listings
   Future<Result<ProductListingResponse>> getProducts({
@@ -1070,7 +1149,7 @@ class GroupVANClient {
   /// Vehicle operations
   GroupVANVehicles get vehicles => GroupVANVehicles._(_client.vehicles);
 
-  /// Catalog operations  
+  /// Catalog operations
   GroupVANCatalogs get catalogs => GroupVANCatalogs._(_client.catalogs);
 }
 
@@ -1081,17 +1160,16 @@ class AuthUser {
   final String? developerId;
   final String? member;
 
-  const AuthUser({
-    required this.userId,
-    this.developerId,
-    this.member,
-  });
+  const AuthUser({required this.userId, this.developerId, this.member});
 
-  factory AuthUser.fromClaims(auth_models.TokenClaims claims, {String? developerId}) => AuthUser(
-        userId: claims.userId,
-        developerId: developerId,
-        member: claims.member,
-      );
+  factory AuthUser.fromClaims(
+    auth_models.TokenClaims claims, {
+    String? developerId,
+  }) => AuthUser(
+    userId: claims.userId,
+    developerId: developerId,
+    member: claims.member,
+  );
 
   @override
   String toString() => 'AuthUser(userId: $userId, developerId: $developerId)';
@@ -1112,29 +1190,28 @@ class AuthSession {
     required this.user,
   });
 
-  factory AuthSession.fromAuthStatus(auth_models.AuthStatus status, {String? developerId}) => AuthSession(
-        accessToken: status.accessToken!,
-        refreshToken: status.refreshToken!,
-        expiresAt: status.claims != null 
-            ? DateTime.fromMillisecondsSinceEpoch(status.claims!.expiration * 1000)
-            : null,
-        user: AuthUser.fromClaims(status.claims!, developerId: developerId),
-      );
+  factory AuthSession.fromAuthStatus(
+    auth_models.AuthStatus status, {
+    String? developerId,
+  }) => AuthSession(
+    accessToken: status.accessToken!,
+    refreshToken: status.refreshToken!,
+    expiresAt: status.claims != null
+        ? DateTime.fromMillisecondsSinceEpoch(status.claims!.expiration * 1000)
+        : null,
+    user: AuthUser.fromClaims(status.claims!, developerId: developerId),
+  );
 
   /// Whether the session is expired
   bool get isExpired => expiresAt?.isBefore(DateTime.now()) ?? false;
 
   @override
-  String toString() => 'AuthSession(user: ${user.userId}, expiresAt: $expiresAt)';
+  String toString() =>
+      'AuthSession(user: ${user.userId}, expiresAt: $expiresAt)';
 }
 
 /// Authentication state change events
-enum AuthChangeEvent {
-  signedIn,
-  signedOut,
-  tokenRefreshed,
-  passwordRecovery,
-}
+enum AuthChangeEvent { signedIn, signedOut, tokenRefreshed, passwordRecovery }
 
 /// Authentication state for stream listening
 @immutable
@@ -1145,7 +1222,10 @@ class AuthState {
 
   const AuthState._(this.event, this.user, this.session);
 
-  factory AuthState._fromStatus(auth_models.AuthStatus status, {String? developerId}) {
+  factory AuthState._fromStatus(
+    auth_models.AuthStatus status, {
+    String? developerId,
+  }) {
     AuthUser? user;
     AuthSession? session;
 
