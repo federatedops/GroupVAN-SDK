@@ -2,19 +2,10 @@
 class LoginRequest {
   final String username;
   final String password;
-  final String integration;
 
-  const LoginRequest({
-    required this.username,
-    required this.password,
-    required this.integration,
-  });
+  const LoginRequest({required this.username, required this.password});
 
-  Map<String, dynamic> toJson() => {
-    'username': username,
-    'password': password,
-    'integration': integration,
-  };
+  Map<String, dynamic> toJson() => {'username': username, 'password': password};
 }
 
 /// V3 Login request with client ID
@@ -24,7 +15,6 @@ class V3LoginRequest extends LoginRequest {
   const V3LoginRequest({
     required super.username,
     required super.password,
-    required super.integration,
     required this.clientId,
   });
 
