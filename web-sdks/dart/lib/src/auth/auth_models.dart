@@ -1,5 +1,5 @@
 /// Authentication models for GroupVAN SDK
-/// 
+///
 /// Models the JWT-based authentication system used by GroupVAN API.
 /// Supports access tokens, refresh tokens, and automatic token management.
 library auth_models;
@@ -13,33 +13,29 @@ part 'auth_models.g.dart';
 /// Login request model
 @JsonSerializable()
 class LoginRequest extends Equatable {
-  /// Username for authentication
-  final String username;
+  /// Email for authentication
+  final String email;
 
-  /// Password for authentication  
+  /// Password for authentication
   final String password;
 
-  /// Developer ID assigned by GroupVAN
-  @JsonKey(name: 'developer_id')
-  final String developerId;
-
-  /// Integration name for authentication
-  final String integration;
+  /// Client ID assigned by GroupVAN
+  @JsonKey(name: 'client_id')
+  final String clientId;
 
   const LoginRequest({
-    required this.username,
+    required this.email,
     required this.password,
-    required this.developerId,
-    required this.integration,
+    required this.clientId,
   });
 
-  factory LoginRequest.fromJson(Map<String, dynamic> json) => 
+  factory LoginRequest.fromJson(Map<String, dynamic> json) =>
       _$LoginRequestFromJson(json);
 
   Map<String, dynamic> toJson() => _$LoginRequestToJson(this);
 
   @override
-  List<Object?> get props => [username, password, developerId, integration];
+  List<Object?> get props => [email, password, clientId];
 }
 
 /// Token response from authentication endpoints
@@ -68,7 +64,7 @@ class TokenResponse extends Equatable {
     this.tokenType = 'Bearer',
   });
 
-  factory TokenResponse.fromJson(Map<String, dynamic> json) => 
+  factory TokenResponse.fromJson(Map<String, dynamic> json) =>
       _$TokenResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$TokenResponseToJson(this);
@@ -86,7 +82,7 @@ class RefreshTokenRequest extends Equatable {
 
   const RefreshTokenRequest({required this.refreshToken});
 
-  factory RefreshTokenRequest.fromJson(Map<String, dynamic> json) => 
+  factory RefreshTokenRequest.fromJson(Map<String, dynamic> json) =>
       _$RefreshTokenRequestFromJson(json);
 
   Map<String, dynamic> toJson() => _$RefreshTokenRequestToJson(this);
@@ -95,7 +91,7 @@ class RefreshTokenRequest extends Equatable {
   List<Object?> get props => [refreshToken];
 }
 
-/// Logout request  
+/// Logout request
 @JsonSerializable()
 class LogoutRequest extends Equatable {
   /// Refresh token to blacklist
@@ -104,7 +100,7 @@ class LogoutRequest extends Equatable {
 
   const LogoutRequest({required this.refreshToken});
 
-  factory LogoutRequest.fromJson(Map<String, dynamic> json) => 
+  factory LogoutRequest.fromJson(Map<String, dynamic> json) =>
       _$LogoutRequestFromJson(json);
 
   Map<String, dynamic> toJson() => _$LogoutRequestToJson(this);
@@ -149,24 +145,29 @@ class TokenClaims extends Equatable {
     this.member,
   });
 
-  factory TokenClaims.fromJson(Map<String, dynamic> json) => 
+  factory TokenClaims.fromJson(Map<String, dynamic> json) =>
       _$TokenClaimsFromJson(json);
 
   Map<String, dynamic> toJson() => _$TokenClaimsToJson(this);
 
   /// Whether the token is expired
-  bool get isExpired => DateTime.now().millisecondsSinceEpoch > expiration * 1000;
+  bool get isExpired =>
+      DateTime.now().millisecondsSinceEpoch > expiration * 1000;
 
   /// Whether the token will expire within the given duration
   bool willExpireWithin(Duration duration) {
-    final expirationTime = DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
+    final expirationTime = DateTime.fromMillisecondsSinceEpoch(
+      expiration * 1000,
+    );
     final threshold = DateTime.now().add(duration);
     return expirationTime.isBefore(threshold);
   }
 
   /// Time until token expires
   Duration get timeUntilExpiration {
-    final expirationTime = DateTime.fromMillisecondsSinceEpoch(expiration * 1000);
+    final expirationTime = DateTime.fromMillisecondsSinceEpoch(
+      expiration * 1000,
+    );
     final now = DateTime.now();
     if (expirationTime.isBefore(now)) {
       return Duration.zero;
@@ -175,28 +176,26 @@ class TokenClaims extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-        userId,
-        type,
-        issuedAt,
-        expiration,
-        jti,
-        member,
-      ];
+  List<Object?> get props => [userId, type, issuedAt, expiration, jti, member];
 }
 
 /// Authentication state
 enum AuthState {
   /// Not authenticated
   unauthenticated,
+
   /// Currently authenticating
   authenticating,
+
   /// Authenticated with valid tokens
   authenticated,
+
   /// Token refresh in progress
   refreshing,
+
   /// Authentication expired
   expired,
+
   /// Authentication failed
   failed,
 }
@@ -237,23 +236,23 @@ class AuthStatus extends Equatable {
 
   /// Create unauthenticated status
   const AuthStatus.unauthenticated()
-      : state = AuthState.unauthenticated,
-        accessToken = null,
-        refreshToken = null,
-        claims = null,
-        error = null,
-        authenticatedAt = null,
-        refreshedAt = null;
+    : state = AuthState.unauthenticated,
+      accessToken = null,
+      refreshToken = null,
+      claims = null,
+      error = null,
+      authenticatedAt = null,
+      refreshedAt = null;
 
-  /// Create authenticating status  
+  /// Create authenticating status
   const AuthStatus.authenticating()
-      : state = AuthState.authenticating,
-        accessToken = null,
-        refreshToken = null,
-        claims = null,
-        error = null,
-        authenticatedAt = null,
-        refreshedAt = null;
+    : state = AuthState.authenticating,
+      accessToken = null,
+      refreshToken = null,
+      claims = null,
+      error = null,
+      authenticatedAt = null,
+      refreshedAt = null;
 
   /// Create authenticated status
   AuthStatus.authenticated({
@@ -261,12 +260,12 @@ class AuthStatus extends Equatable {
     required String refreshToken,
     required TokenClaims claims,
   }) : state = AuthState.authenticated,
-        accessToken = accessToken,
-        refreshToken = refreshToken,
-        claims = claims,
-        error = null,
-        authenticatedAt = DateTime.now(),
-        refreshedAt = null;
+       accessToken = accessToken,
+       refreshToken = refreshToken,
+       claims = claims,
+       error = null,
+       authenticatedAt = DateTime.now(),
+       refreshedAt = null;
 
   /// Create refreshing status
   AuthStatus.refreshing({
@@ -275,12 +274,12 @@ class AuthStatus extends Equatable {
     required TokenClaims claims,
     required DateTime authenticatedAt,
   }) : state = AuthState.refreshing,
-        accessToken = accessToken,
-        refreshToken = refreshToken,
-        claims = claims,
-        error = null,
-        authenticatedAt = authenticatedAt,
-        refreshedAt = null;
+       accessToken = accessToken,
+       refreshToken = refreshToken,
+       claims = claims,
+       error = null,
+       authenticatedAt = authenticatedAt,
+       refreshedAt = null;
 
   /// Create expired status
   AuthStatus.expired({
@@ -290,23 +289,22 @@ class AuthStatus extends Equatable {
     required DateTime authenticatedAt,
     DateTime? refreshedAt,
   }) : state = AuthState.expired,
-        accessToken = accessToken,
-        refreshToken = refreshToken,
-        claims = null,
-        error = error,
-        authenticatedAt = authenticatedAt,
-        refreshedAt = refreshedAt;
+       accessToken = accessToken,
+       refreshToken = refreshToken,
+       claims = null,
+       error = error,
+       authenticatedAt = authenticatedAt,
+       refreshedAt = refreshedAt;
 
   /// Create failed status
-  AuthStatus.failed({
-    required String error,
-  }) : state = AuthState.failed,
-        accessToken = null,
-        refreshToken = null,
-        claims = null,
-        error = error,
-        authenticatedAt = null,
-        refreshedAt = null;
+  AuthStatus.failed({required String error})
+    : state = AuthState.failed,
+      accessToken = null,
+      refreshToken = null,
+      claims = null,
+      error = error,
+      authenticatedAt = null,
+      refreshedAt = null;
 
   /// Whether currently authenticated
   bool get isAuthenticated => state == AuthState.authenticated;
@@ -315,7 +313,8 @@ class AuthStatus extends Equatable {
   bool get hasTokens => accessToken != null && refreshToken != null;
 
   /// Whether authentication is in progress
-  bool get isLoading => state == AuthState.authenticating || state == AuthState.refreshing;
+  bool get isLoading =>
+      state == AuthState.authenticating || state == AuthState.refreshing;
 
   /// Whether access token needs refresh
   bool get needsRefresh {
@@ -346,14 +345,14 @@ class AuthStatus extends Equatable {
 
   @override
   List<Object?> get props => [
-        state,
-        accessToken,
-        refreshToken,
-        claims,
-        error,
-        authenticatedAt,
-        refreshedAt,
-      ];
+    state,
+    accessToken,
+    refreshToken,
+    claims,
+    error,
+    authenticatedAt,
+    refreshedAt,
+  ];
 
   @override
   String toString() {

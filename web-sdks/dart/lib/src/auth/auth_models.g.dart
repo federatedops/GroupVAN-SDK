@@ -7,18 +7,16 @@ part of 'auth_models.dart';
 // **************************************************************************
 
 LoginRequest _$LoginRequestFromJson(Map<String, dynamic> json) => LoginRequest(
-  username: json['username'] as String,
+  email: json['email'] as String,
   password: json['password'] as String,
-  developerId: json['developer_id'] as String,
-  integration: json['integration'] as String,
+  clientId: json['client_id'] as String,
 );
 
 Map<String, dynamic> _$LoginRequestToJson(LoginRequest instance) =>
     <String, dynamic>{
-      'username': instance.username,
+      'username': instance.email,
       'password': instance.password,
-      'developer_id': instance.developerId,
-      'integration': instance.integration,
+      'client_id': instance.clientId,
     };
 
 TokenResponse _$TokenResponseFromJson(Map<String, dynamic> json) =>

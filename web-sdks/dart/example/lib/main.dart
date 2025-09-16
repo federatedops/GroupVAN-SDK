@@ -6,7 +6,7 @@ void main() async {
   await GroupVAN.initialize(
     isProduction: false,
     enableLogging: true,
-    developerId: 'd7cfc9fb-355a-45fb-8321-296335b2c736',
+    clientId: 'd7cfc9fb-355a-45fb-8321-296335b2c736',
   );
   runApp(const MainApp());
 }
@@ -34,9 +34,8 @@ class LoginDemoScreen extends StatefulWidget {
 }
 
 class _LoginDemoScreenState extends State<LoginDemoScreen> {
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _integrationController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   String? _errorMessage;
@@ -52,9 +51,8 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
-    _integrationController.dispose();
     super.dispose();
   }
 
@@ -68,9 +66,8 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
 
     try {
       await groupvan.auth.signInWithPassword(
-        username: _usernameController.text.trim(),
+        email: _emailController.text.trim(),
         password: _passwordController.text,
-        integration: _integrationController.text.trim(),
       );
     } catch (e) {
       setState(() {
@@ -155,12 +152,8 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
                           ),
                           if (isAuthenticated) ...[
                             _buildStatusRow(
-                              'User ID:',
-                              authState?.user?.userId ?? 'N/A',
-                            ),
-                            _buildStatusRow(
-                              'Developer ID:',
-                              authState?.user?.developerId ?? 'N/A',
+                              'Client ID:',
+                              authState?.user?.clientId ?? 'N/A',
                             ),
                             _buildStatusRow(
                               'Member:',
@@ -199,15 +192,15 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
 
                           if (!isAuthenticated) ...[
                             TextFormField(
-                              controller: _usernameController,
+                              controller: _emailController,
                               decoration: const InputDecoration(
-                                labelText: 'Username',
+                                labelText: 'Email',
                                 border: OutlineInputBorder(),
                                 prefixIcon: Icon(Icons.person),
                               ),
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter username';
+                                  return 'Please enter email';
                                 }
                                 return null;
                               },
@@ -225,24 +218,6 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter password';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 12),
-
-                            TextFormField(
-                              controller: _integrationController,
-                              decoration: const InputDecoration(
-                                labelText: 'Integration',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(
-                                  Icons.integration_instructions,
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter integration';
                                 }
                                 return null;
                               },

@@ -30,8 +30,8 @@ class GroupVanClientConfig {
   /// Token storage implementation
   final TokenStorage? tokenStorage;
 
-  /// Developer ID for this SDK instance
-  final String? developerId;
+  /// Client ID for this SDK instance
+  final String? clientId;
 
   /// Enable automatic token refresh
   final bool autoRefreshTokens;
@@ -46,7 +46,7 @@ class GroupVanClientConfig {
     this.baseUrl = 'https://api.staging.groupvan.com',
     HttpClientConfig? httpClientConfig,
     this.tokenStorage,
-    this.developerId,
+    this.clientId,
     this.autoRefreshTokens = true,
     this.enableLogging = true,
     this.enableCaching = true,
@@ -57,7 +57,7 @@ class GroupVanClientConfig {
   /// Create production configuration (uses secure storage by default)
   factory GroupVanClientConfig.production({
     TokenStorage? tokenStorage,
-    String? developerId,
+    String? clientId,
     bool autoRefreshTokens = true,
     bool enableLogging = false,
     bool enableCaching = true,
@@ -69,7 +69,7 @@ class GroupVanClientConfig {
         enableLogging: false,
       ),
       tokenStorage: tokenStorage ?? SecureTokenStorage.platformOptimized(),
-      developerId: developerId,
+      clientId: clientId,
       autoRefreshTokens: autoRefreshTokens,
       enableLogging: enableLogging,
       enableCaching: enableCaching,
@@ -79,7 +79,7 @@ class GroupVanClientConfig {
   /// Create staging configuration (uses secure storage by default)
   factory GroupVanClientConfig.staging({
     TokenStorage? tokenStorage,
-    String? developerId,
+    String? clientId,
     bool autoRefreshTokens = true,
     bool enableLogging = true,
     bool enableCaching = true,
@@ -91,7 +91,7 @@ class GroupVanClientConfig {
         enableLogging: true,
       ),
       tokenStorage: tokenStorage ?? SecureTokenStorage.platformOptimized(),
-      developerId: developerId,
+      clientId: clientId,
       autoRefreshTokens: autoRefreshTokens,
       enableLogging: enableLogging,
       enableCaching: enableCaching,
@@ -134,8 +134,8 @@ class GroupVanClient {
   /// Current user ID (if authenticated)
   String? get userId => _authManager.currentStatus.claims?.userId;
 
-  /// Current developer ID from configuration
-  String? get developerId => _config.developerId;
+  /// Current client ID from configuration
+  String? get clientId => _config.clientId;
 
   /// Initialize the client
   ///
@@ -825,8 +825,8 @@ class GroupVAN {
     /// API base URL (defaults to production)
     String? baseUrl,
 
-    /// Developer ID for this SDK instance
-    String? developerId,
+    /// Client ID for this SDK instance
+    String? clientId,
 
     /// Enable request/response logging (default: false for production)
     bool? enableLogging,
@@ -857,14 +857,14 @@ class GroupVAN {
     final config = isProduction
         ? GroupVanClientConfig.production(
             tokenStorage: tokenStorage,
-            developerId: developerId,
+            clientId: clientId,
             autoRefreshTokens: autoRefreshTokens ?? true,
             enableLogging: enableLogging ?? false,
             enableCaching: enableCaching ?? true,
           )
         : GroupVanClientConfig.staging(
             tokenStorage: tokenStorage,
-            developerId: developerId,
+            clientId: clientId,
             autoRefreshTokens: autoRefreshTokens ?? true,
             enableLogging: enableLogging ?? true,
             enableCaching: enableCaching ?? true,
@@ -890,7 +890,7 @@ class GroupVAN {
                   enableCaching: enableCaching ?? true,
                 ),
             tokenStorage: tokenStorage,
-            developerId: developerId,
+            clientId: clientId,
             autoRefreshTokens: autoRefreshTokens ?? true,
             enableLogging: enableLogging ?? !isProduction,
             enableCaching: enableCaching ?? true,
@@ -940,22 +940,20 @@ class GroupVANAuth {
 
   /// Sign in with username and password
   Future<auth_models.AuthStatus> signInWithPassword({
-    required String username,
+    required String email,
     required String password,
-    required String integration,
   }) async {
-    final developerId = _client.developerId;
-    if (developerId == null) {
+    final clientId = _client.clientId;
+    if (clientId == null) {
       throw StateError(
-        'Developer ID not configured. Please initialize GroupVAN SDK with a developerId.',
+        'Client ID not configured. Please initialize GroupVAN SDK with a clientId.',
       );
     }
 
     await _authManager.login(
-      username: username,
+      email: email,
       password: password,
-      developerId: developerId,
-      integration: integration,
+      clientId: clientId,
     );
     return _authManager.currentStatus;
   }
@@ -964,7 +962,7 @@ class GroupVANAuth {
   Future<auth_models.AuthStatus> signInWithOtp({
     String? email,
     String? phone,
-    required String developerId,
+    required String clientId,
   }) async {
     // TODO: Implement OTP authentication
     throw UnimplementedError(
@@ -974,7 +972,7 @@ class GroupVANAuth {
 
   /// Sign in with Apple ID (Future implementation)
   Future<auth_models.AuthStatus> signInWithApple({
-    required String developerId,
+    required String clientId,
   }) async {
     // TODO: Implement Apple Sign-In
     throw UnimplementedError(
@@ -984,7 +982,7 @@ class GroupVANAuth {
 
   /// Sign in with Google (Future implementation)
   Future<auth_models.AuthStatus> signInWithGoogle({
-    required String developerId,
+    required String clientId,
   }) async {
     // TODO: Implement Google Sign-In
     throw UnimplementedError(
@@ -1010,10 +1008,7 @@ class GroupVANAuth {
       return null;
     }
 
-    return AuthUser.fromClaims(
-      status.claims!,
-      developerId: _client.developerId,
-    );
+    return AuthUser.fromClaims(status.claims!, clientId: _client.clientId);
   }
 
   /// Stream of authentication state changes
@@ -1021,8 +1016,7 @@ class GroupVANAuth {
     // The underlying statusStream now emits the current auth status immediately
     // to new subscribers, so listeners receive an initial value without waiting.
     return _authManager.statusStream.map(
-      (status) =>
-          AuthState._fromStatus(status, developerId: _client.developerId),
+      (status) => AuthState._fromStatus(status, clientId: _client.clientId),
     );
   }
 
@@ -1031,7 +1025,7 @@ class GroupVANAuth {
     final status = _authManager.currentStatus;
     if (!status.isAuthenticated) return null;
 
-    return AuthSession.fromAuthStatus(status, developerId: _client.developerId);
+    return AuthSession.fromAuthStatus(status, clientId: _client.clientId);
   }
 }
 
@@ -1157,22 +1151,22 @@ class GroupVANClient {
 @immutable
 class AuthUser {
   final String userId;
-  final String? developerId;
+  final String? clientId;
   final String? member;
 
-  const AuthUser({required this.userId, this.developerId, this.member});
+  const AuthUser({required this.userId, this.clientId, this.member});
 
   factory AuthUser.fromClaims(
     auth_models.TokenClaims claims, {
-    String? developerId,
+    String? clientId,
   }) => AuthUser(
     userId: claims.userId,
-    developerId: developerId,
+    clientId: clientId,
     member: claims.member,
   );
 
   @override
-  String toString() => 'AuthUser(userId: $userId, developerId: $developerId)';
+  String toString() => 'AuthUser(userId: $userId, clientId: $clientId)';
 }
 
 /// Authentication session information
@@ -1192,14 +1186,14 @@ class AuthSession {
 
   factory AuthSession.fromAuthStatus(
     auth_models.AuthStatus status, {
-    String? developerId,
+    String? clientId,
   }) => AuthSession(
     accessToken: status.accessToken!,
     refreshToken: status.refreshToken!,
     expiresAt: status.claims != null
         ? DateTime.fromMillisecondsSinceEpoch(status.claims!.expiration * 1000)
         : null,
-    user: AuthUser.fromClaims(status.claims!, developerId: developerId),
+    user: AuthUser.fromClaims(status.claims!, clientId: clientId),
   );
 
   /// Whether the session is expired
@@ -1224,14 +1218,14 @@ class AuthState {
 
   factory AuthState._fromStatus(
     auth_models.AuthStatus status, {
-    String? developerId,
+    String? clientId,
   }) {
     AuthUser? user;
     AuthSession? session;
 
     if (status.isAuthenticated && status.claims != null) {
-      user = AuthUser.fromClaims(status.claims!, developerId: developerId);
-      session = AuthSession.fromAuthStatus(status, developerId: developerId);
+      user = AuthUser.fromClaims(status.claims!, clientId: clientId);
+      session = AuthSession.fromAuthStatus(status, clientId: clientId);
     }
 
     AuthChangeEvent event;

@@ -319,19 +319,17 @@ class AuthManager {
 
   /// Authenticate with username and password
   Future<void> login({
-    required String username,
+    required String email,
     required String password,
-    required String developerId,
-    required String integration,
+    required String clientId,
   }) async {
     await _updateStatus(const AuthStatus.authenticating());
 
     try {
       final request = LoginRequest(
-        username: username,
+        email: email,
         password: password,
-        developerId: developerId,
-        integration: integration,
+        clientId: clientId,
       );
 
       final response = await _httpClient.post<Map<String, dynamic>>(
