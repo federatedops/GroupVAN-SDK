@@ -6,7 +6,7 @@ void main() async {
   await GroupVAN.initialize(
     isProduction: false,
     enableLogging: true,
-    clientId: 'd7cfc9fb-355a-45fb-8321-296335b2c736',
+    clientId: 'fe826111-1dd6-4ea4-b25a-54a757f909eb',
   );
   runApp(const MainApp());
 }
@@ -161,8 +161,13 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
                             ),
                             if (authState?.session?.accessToken != null)
                               _buildStatusRow(
-                                'Token Preview:',
+                                'Access Token Preview:',
                                 '${authState!.session!.accessToken.substring(0, 10)}...${authState.session!.accessToken.substring(authState.session!.accessToken.length - 10)}',
+                              ),
+                            if (authState?.session?.refreshToken != null)
+                              _buildStatusRow(
+                                'Refresh Token Preview:',
+                                '${authState!.session!.refreshToken.substring(0, 10)}...${authState.session!.refreshToken.substring(authState.session!.refreshToken.length - 10)}',
                               ),
                             if (authState?.session?.expiresAt != null)
                               _buildStatusRow(

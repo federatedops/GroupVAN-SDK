@@ -9,15 +9,10 @@ part of 'auth_models.dart';
 LoginRequest _$LoginRequestFromJson(Map<String, dynamic> json) => LoginRequest(
   email: json['email'] as String,
   password: json['password'] as String,
-  clientId: json['client_id'] as String,
 );
 
 Map<String, dynamic> _$LoginRequestToJson(LoginRequest instance) =>
-    <String, dynamic>{
-      'username': instance.email,
-      'password': instance.password,
-      'client_id': instance.clientId,
-    };
+    <String, dynamic>{'email': instance.email, 'password': instance.password};
 
 TokenResponse _$TokenResponseFromJson(Map<String, dynamic> json) =>
     TokenResponse(

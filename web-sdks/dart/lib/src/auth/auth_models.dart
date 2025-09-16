@@ -19,15 +19,7 @@ class LoginRequest extends Equatable {
   /// Password for authentication
   final String password;
 
-  /// Client ID assigned by GroupVAN
-  @JsonKey(name: 'client_id')
-  final String clientId;
-
-  const LoginRequest({
-    required this.email,
-    required this.password,
-    required this.clientId,
-  });
+  const LoginRequest({required this.email, required this.password});
 
   factory LoginRequest.fromJson(Map<String, dynamic> json) =>
       _$LoginRequestFromJson(json);
@@ -35,7 +27,7 @@ class LoginRequest extends Equatable {
   Map<String, dynamic> toJson() => _$LoginRequestToJson(this);
 
   @override
-  List<Object?> get props => [email, password, clientId];
+  List<Object?> get props => [email, password];
 }
 
 /// Token response from authentication endpoints

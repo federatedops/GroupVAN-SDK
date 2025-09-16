@@ -7,6 +7,7 @@ library auth_manager;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dio/dio.dart' show Options;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../core/exceptions.dart';
@@ -326,16 +327,14 @@ class AuthManager {
     await _updateStatus(const AuthStatus.authenticating());
 
     try {
-      final request = LoginRequest(
-        email: email,
-        password: password,
-        clientId: clientId,
-      );
+      final request = LoginRequest(email: email, password: password);
+      print(request.toJson());
 
       final response = await _httpClient.post<Map<String, dynamic>>(
         '/auth/login',
         data: request.toJson(),
         decoder: (data) => data as Map<String, dynamic>,
+        options: Options(headers: {'gv-client-id': clientId}),
       );
 
       final tokenResponse = TokenResponse.fromJson(response.data);
@@ -464,6 +463,11 @@ class AuthManager {
           '/auth/logout',
           data: request.toJson(),
           decoder: (data) => data as Map<String, dynamic>,
+          options: Options(
+            headers: {
+              'Authorization': 'Bearer ${currentTokens['accessToken']}',
+            },
+          ),
         );
       }
     } catch (e) {
