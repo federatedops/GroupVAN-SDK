@@ -328,7 +328,6 @@ class AuthManager {
 
     try {
       final request = LoginRequest(email: email, password: password);
-      print(request.toJson());
 
       final response = await _httpClient.post<Map<String, dynamic>>(
         '/auth/login',
@@ -391,8 +390,6 @@ class AuthManager {
           errorType: AuthErrorType.missingToken,
         );
       }
-
-      await _updateStatus(_currentStatus.copyWith(state: AuthState.refreshing));
 
       final request = RefreshTokenRequest(
         refreshToken: currentTokens['refreshToken']!,
@@ -595,10 +592,10 @@ class AuthManager {
       milliseconds:
           timeUntilExpiration.inMilliseconds - refreshBuffer.inMilliseconds,
     );
-
     if (refreshTime.inMilliseconds > 0) {
       _refreshTimer = Timer(refreshTime, () async {
         try {
+          GroupVanLogger.auth.info('Attempting to refresh token');
           await refreshToken();
         } catch (e) {
           GroupVanLogger.auth.severe('Automatic token refresh failed: $e');
