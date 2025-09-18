@@ -99,6 +99,20 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
     }
   }
 
+  Future<void> _loginWithGoogle() async {
+    try {
+      await groupvan.auth.signInWithGoogle();
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -292,6 +306,22 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
                                   : Text(isAuthenticated ? 'Logout' : 'Login'),
                             ),
                           ),
+
+                          if (!isAuthenticated) ...[
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 50,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: _loginWithGoogle,
+                                child: Text('Login with Google'),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

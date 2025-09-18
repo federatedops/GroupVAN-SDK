@@ -172,7 +172,7 @@ class GroupVanClient {
 
     // Initialize authentication manager (restore tokens if available)
     GroupVanLogger.sdk.warning('DEBUG: Calling auth manager initialize...');
-    await _authManager.initialize();
+    await _authManager.initialize(clientId!);
     GroupVanLogger.sdk.warning('DEBUG: Auth manager initialization completed');
 
     GroupVanLogger.sdk.info('GroupVAN SDK Client initialized');
@@ -981,13 +981,16 @@ class GroupVANAuth {
   }
 
   /// Sign in with Google (Future implementation)
-  Future<auth_models.AuthStatus> signInWithGoogle({
-    required String clientId,
-  }) async {
-    // TODO: Implement Google Sign-In
-    throw UnimplementedError(
-      'Google Sign-In will be implemented in future versions',
-    );
+  Future<auth_models.AuthStatus> signInWithGoogle() async {
+    final clientId = _client.clientId;
+    if (clientId == null) {
+      throw StateError(
+        'Client ID not configured. Please initialize GroupVAN SDK with a clientId.',
+      );
+    }
+    _authManager.loginWithGoogle();
+
+    return _authManager.currentStatus;
   }
 
   /// Sign out current user

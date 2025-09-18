@@ -7,6 +7,7 @@ library auth_manager;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:web/web.dart';
 import 'package:dio/dio.dart' show Options;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -157,6 +158,7 @@ class SecureTokenStorage implements TokenStorage {
       GroupVanLogger.auth.warning(
         'DEBUG: SecureTokenStorage - Attempting to read tokens from secure storage...',
       );
+
       final results = await Future.wait([
         _secureStorage.read(key: _accessTokenKey),
         _secureStorage.read(key: _refreshTokenKey),
@@ -173,10 +175,7 @@ class SecureTokenStorage implements TokenStorage {
       GroupVanLogger.auth.severe(
         'DEBUG: SecureTokenStorage - Failed to retrieve tokens: $e',
       );
-      throw ConfigurationException(
-        'Failed to retrieve tokens from secure storage: $e',
-        context: {'operation': 'getTokens'},
-      );
+      return {'accessToken': null, 'refreshToken': null};
     }
   }
 
@@ -271,7 +270,7 @@ class AuthManager {
   ///
   /// Attempts to restore authentication state from stored tokens
   /// Gracefully handles errors and continues with unauthenticated state
-  Future<void> initialize() async {
+  Future<void> initialize(String clientId) async {
     GroupVanLogger.auth.warning(
       'DEBUG: Starting authentication initialization...',
     );
@@ -302,14 +301,23 @@ class AuthManager {
         GroupVanLogger.auth.warning(
           'DEBUG: No stored tokens found, setting unauthenticated state',
         );
-        await _updateStatus(const AuthStatus.unauthenticated());
+
+        final uri = Uri.parse(window.location.href);
+        final code = uri.queryParameters['code'];
+        final state = uri.queryParameters['state'];
+        final provider = uri.queryParameters['provider'];
+        if (code != null && state != null && provider != null) {
+          await _handleProviderCallback(provider, code, state, clientId);
+        } else {
+          await _updateStatus(const AuthStatus.unauthenticated());
+        }
       }
     } catch (e) {
       // Log warning but don't throw - gracefully continue as unauthenticated
       GroupVanLogger.auth.warning(
         'DEBUG: Failed to restore authentication state: $e',
       );
-      GroupVanLogger.auth.warning('DEBUG: Stack trace: ${StackTrace.current}');
+      //GroupVanLogger.auth.warning('DEBUG: Stack trace: ${StackTrace.current}');
       await _updateStatus(const AuthStatus.unauthenticated());
     }
 
@@ -318,7 +326,6 @@ class AuthManager {
     );
   }
 
-  /// Authenticate with username and password
   Future<void> login({
     required String email,
     required String password,
@@ -338,38 +345,64 @@ class AuthManager {
 
       final tokenResponse = TokenResponse.fromJson(response.data);
 
-      // Store tokens securely
-      GroupVanLogger.auth.warning(
-        'DEBUG: Storing tokens after successful login...',
-      );
-      await _tokenStorage.storeTokens(
-        accessToken: tokenResponse.accessToken,
-        refreshToken: tokenResponse.refreshToken,
-      );
-      GroupVanLogger.auth.warning('DEBUG: Tokens stored successfully');
-
-      // Update authentication status
-      final claims = _decodeToken(tokenResponse.accessToken);
-      await _updateStatus(
-        AuthStatus.authenticated(
-          accessToken: tokenResponse.accessToken,
-          refreshToken: tokenResponse.refreshToken,
-          claims: claims,
-        ),
-      );
-
-      // Schedule automatic refresh
-      _scheduleTokenRefresh(claims);
-
-      GroupVanLogger.auth.info(
-        'Successfully authenticated user: ${claims.userId}',
-      );
+      await _handleTokenResponse(tokenResponse);
     } catch (e) {
       final error = 'Login failed: ${e.toString()}';
       GroupVanLogger.auth.severe(error);
       await _updateStatus(AuthStatus.failed(error: error));
       rethrow;
     }
+  }
+
+  void loginWithGoogle() {
+    window.location.href =
+        '${_httpClient.baseUrl}/auth/google/login?catalog_uri=${_httpClient.origin}';
+  }
+
+  Future<void> _handleProviderCallback(
+    String provider,
+    String code,
+    String state,
+    String clientId,
+  ) async {
+    try {
+      GroupVanLogger.auth.info('DEBUG: Handling provider callback: $provider');
+      final response = await _httpClient.get<Map<String, dynamic>>(
+        '/auth/$provider/callback?code=$code&state=$state&catalog_uri=${_httpClient.origin}',
+        options: Options(headers: {'gv-client-id': clientId}),
+      );
+      final tokenResponse = TokenResponse.fromJson(response.data);
+      await _handleTokenResponse(tokenResponse);
+    } catch (e) {
+      GroupVanLogger.auth.severe('Failed to handle provider callback: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> _handleTokenResponse(TokenResponse tokenResponse) async {
+    GroupVanLogger.auth.warning(
+      'DEBUG: Storing tokens after successful login...',
+    );
+    await _tokenStorage.storeTokens(
+      accessToken: tokenResponse.accessToken,
+      refreshToken: tokenResponse.refreshToken,
+    );
+    GroupVanLogger.auth.warning('DEBUG: Tokens stored successfully');
+
+    // Update authentication status
+    final claims = _decodeToken(tokenResponse.accessToken);
+    await _updateStatus(
+      AuthStatus.authenticated(
+        accessToken: tokenResponse.accessToken,
+        refreshToken: tokenResponse.refreshToken,
+        claims: claims,
+      ),
+    );
+    // Schedule automatic refresh
+    _scheduleTokenRefresh(claims);
+    GroupVanLogger.auth.warning(
+      'DEBUG: Successfully authenticated user: ${claims.userId}',
+    );
   }
 
   /// Refresh access token using refresh token
