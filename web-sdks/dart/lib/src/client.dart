@@ -996,7 +996,6 @@ class GroupVANAuth {
         'Client ID not configured. Please initialize GroupVAN SDK with a clientId.',
       );
     }
-
     await _authManager.linkFedLinkAccount(
       clientId: clientId,
       email: email,

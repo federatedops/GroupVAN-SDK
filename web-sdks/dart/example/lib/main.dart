@@ -3,6 +3,7 @@ import 'package:groupvan/groupvan.dart';
 import 'package:groupvan_sdk_example_app/link_provider_page.dart';
 
 import 'auth_status.dart';
+import 'link_account_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,6 +59,12 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
     super.dispose();
   }
 
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -71,7 +78,9 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
         password: _passwordController.text,
       );
     } catch (e) {
-      print(e);
+      _showError(
+        "Failed to login: The provided email or password is incorrect.",
+      );
     } finally {
       setState(() {
         _isLoading = false;
@@ -300,6 +309,25 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
                         ),
                         onPressed: _loginWithGoogle,
                         child: Text('Login with Google'),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueGrey,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => LinkAccountPage(),
+                            ),
+                          );
+                        },
+                        child: Text('Link FedLink Account'),
                       ),
                     ),
                   ],

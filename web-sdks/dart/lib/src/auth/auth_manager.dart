@@ -400,7 +400,7 @@ class AuthManager {
     bool fromProvider = false,
   }) async {
     try {
-      await _httpClient.post<Map<String, dynamic>>(
+      final response = await _httpClient.post<Map<String, dynamic>>(
         '/auth/migrate/email',
         data: {
           'email': email,
@@ -410,6 +410,12 @@ class AuthManager {
         },
         options: Options(headers: {'gv-client-id': clientId}),
       );
+      if (!response.data['success']) {
+        throw AuthenticationException(
+          response.data['message'],
+          errorType: AuthErrorType.invalidCredentials,
+        );
+      }
     } catch (e) {
       GroupVanLogger.auth.severe('Failed to link FedLink account: $e');
       rethrow;
