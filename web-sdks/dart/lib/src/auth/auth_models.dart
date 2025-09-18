@@ -210,6 +210,9 @@ class AuthStatus extends Equatable {
   /// Last authentication error if any
   final String? error;
 
+  /// Additional metadata for the current state (e.g., error context)
+  final Map<String, dynamic>? metadata;
+
   /// Timestamp of last successful authentication
   final DateTime? authenticatedAt;
 
@@ -222,6 +225,7 @@ class AuthStatus extends Equatable {
     this.refreshToken,
     this.claims,
     this.error,
+    this.metadata,
     this.authenticatedAt,
     this.refreshedAt,
   });
@@ -233,6 +237,7 @@ class AuthStatus extends Equatable {
       refreshToken = null,
       claims = null,
       error = null,
+      metadata = null,
       authenticatedAt = null,
       refreshedAt = null;
 
@@ -243,6 +248,7 @@ class AuthStatus extends Equatable {
       refreshToken = null,
       claims = null,
       error = null,
+      metadata = null,
       authenticatedAt = null,
       refreshedAt = null;
 
@@ -256,6 +262,7 @@ class AuthStatus extends Equatable {
        refreshToken = refreshToken,
        claims = claims,
        error = null,
+       metadata = null,
        authenticatedAt = DateTime.now(),
        refreshedAt = null;
 
@@ -270,6 +277,7 @@ class AuthStatus extends Equatable {
        refreshToken = refreshToken,
        claims = claims,
        error = null,
+       metadata = null,
        authenticatedAt = authenticatedAt,
        refreshedAt = null;
 
@@ -285,16 +293,18 @@ class AuthStatus extends Equatable {
        refreshToken = refreshToken,
        claims = null,
        error = error,
+       metadata = null,
        authenticatedAt = authenticatedAt,
        refreshedAt = refreshedAt;
 
   /// Create failed status
-  AuthStatus.failed({required String error})
+  AuthStatus.failed({required String error, Map<String, dynamic>? metadata})
     : state = AuthState.failed,
       accessToken = null,
       refreshToken = null,
       claims = null,
       error = error,
+      metadata = metadata,
       authenticatedAt = null,
       refreshedAt = null;
 
@@ -321,6 +331,7 @@ class AuthStatus extends Equatable {
     String? refreshToken,
     TokenClaims? claims,
     String? error,
+    Map<String, dynamic>? metadata,
     DateTime? authenticatedAt,
     DateTime? refreshedAt,
   }) {
@@ -330,6 +341,7 @@ class AuthStatus extends Equatable {
       refreshToken: refreshToken ?? this.refreshToken,
       claims: claims ?? this.claims,
       error: error ?? this.error,
+      metadata: metadata ?? this.metadata,
       authenticatedAt: authenticatedAt ?? this.authenticatedAt,
       refreshedAt: refreshedAt ?? this.refreshedAt,
     );
@@ -342,6 +354,7 @@ class AuthStatus extends Equatable {
     refreshToken,
     claims,
     error,
+    metadata,
     authenticatedAt,
     refreshedAt,
   ];

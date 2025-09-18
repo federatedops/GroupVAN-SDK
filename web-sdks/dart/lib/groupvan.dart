@@ -1,20 +1,50 @@
 library groupvan;
 
 // Main SDK Interface - Only singleton pattern allowed
-export 'src/client.dart' show GroupVAN, GroupVANClient, GroupVANAuth, GroupVANVehicles, GroupVANCatalogs, AuthUser, AuthSession, AuthChangeEvent;
+export 'src/client.dart'
+    show
+        GroupVAN,
+        GroupVANClient,
+        GroupVANAuth,
+        GroupVANVehicles,
+        GroupVANCatalogs,
+        AuthUser,
+        AuthSession,
+        AuthChangeEvent,
+        AuthState;
 
 // Token storage (for custom implementations)
-export 'src/auth/auth_manager.dart' show TokenStorage, SecureTokenStorage, MemoryTokenStorage;
+export 'src/auth/auth_manager.dart'
+    show TokenStorage, SecureTokenStorage, MemoryTokenStorage;
 
 // Essential types and exceptions for error handling
 export 'src/core/exceptions.dart';
 export 'src/core/response.dart' show Result;
 
 // Public models that developers need
-export 'src/models/models.dart' show 
-  Vehicle, VehicleGroup, VehicleSearchResponse, VehicleCategory,
-  Catalog, SupplyCategory, SupplySubcategory, ApplicationAsset, 
-  ApplicationAssetsRequest, CartItem, PartTypeRequest, PriceRange,
-  ProductFilters, ProductListingRequest, Product, ProductListingResponse,
-  VehicleFilterRequest, VehicleFilterResponse, VehicleFilterOption,
-  Fleet, EngineSearchRequest, VehicleSearchRequest, VinSearchRequest, PlateSearchRequest;
+export 'src/models/models.dart'
+    show
+        Vehicle,
+        VehicleGroup,
+        VehicleSearchResponse,
+        VehicleCategory,
+        Catalog,
+        SupplyCategory,
+        SupplySubcategory,
+        ApplicationAsset,
+        ApplicationAssetsRequest,
+        CartItem,
+        PartTypeRequest,
+        PriceRange,
+        ProductFilters,
+        ProductListingRequest,
+        Product,
+        ProductListingResponse,
+        VehicleFilterRequest,
+        VehicleFilterResponse,
+        VehicleFilterOption,
+        Fleet,
+        EngineSearchRequest,
+        VehicleSearchRequest,
+        VinSearchRequest,
+        PlateSearchRequest;

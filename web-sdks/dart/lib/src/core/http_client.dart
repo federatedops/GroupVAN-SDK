@@ -383,6 +383,18 @@ class GroupVanHttpClient {
         final statusCode = e.response?.statusCode ?? 0;
         final responseData = e.response?.data?.toString();
 
+        if (statusCode == 400 && responseData != null) {
+          Map<String, dynamic> responseJson = e.response!.data;
+          if (responseJson['title'] == 'User not found') {
+            final email = responseJson['detail'].split(' ')[1];
+            return AuthenticationException(
+              'FedLink account must be linked to sign in.',
+              errorType: AuthErrorType.accountNotLinked,
+              context: {'correlation_id': correlationId, 'email': email},
+            );
+          }
+        }
+
         // Handle authentication errors
         if (statusCode == 401) {
           return AuthenticationException(

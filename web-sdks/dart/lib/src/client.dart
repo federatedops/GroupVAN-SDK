@@ -981,14 +981,63 @@ class GroupVANAuth {
   }
 
   /// Sign in with Google (Future implementation)
-  Future<auth_models.AuthStatus> signInWithGoogle() async {
+  void signInWithGoogle() {
+    _authManager.loginWithGoogle();
+  }
+
+  Future<auth_models.AuthStatus> linkFedLinkAccount({
+    required String email,
+    required String username,
+    required String password,
+  }) async {
     final clientId = _client.clientId;
     if (clientId == null) {
       throw StateError(
         'Client ID not configured. Please initialize GroupVAN SDK with a clientId.',
       );
     }
-    _authManager.loginWithGoogle();
+
+    await _authManager.linkFedLinkAccount(
+      clientId: clientId,
+      email: email,
+      username: username,
+      password: password,
+    );
+    return _authManager.currentStatus;
+  }
+
+  Future<auth_models.AuthStatus> linkFedLinkAccountWithProvider({
+    required String username,
+    required String password,
+  }) async {
+    final clientId = _client.clientId;
+    if (clientId == null) {
+      throw StateError(
+        'Client ID not configured. Please initialize GroupVAN SDK with a clientId.',
+      );
+    }
+    final metadata = _authManager.currentStatus.metadata;
+    final provider = metadata?['provider'];
+    final email = metadata?['email'];
+    if (provider == null || email == null) {
+      return _authManager.currentStatus;
+    }
+
+    await _authManager.linkFedLinkAccount(
+      email: email,
+      username: username,
+      password: password,
+      clientId: clientId,
+      fromProvider: true,
+    );
+
+    switch (provider) {
+      case 'google':
+        _authManager.loginWithGoogle();
+        break;
+      default:
+        throw Exception('Provider not supported');
+    }
 
     return _authManager.currentStatus;
   }
@@ -1208,7 +1257,13 @@ class AuthSession {
 }
 
 /// Authentication state change events
-enum AuthChangeEvent { signedIn, signedOut, tokenRefreshed, passwordRecovery }
+enum AuthChangeEvent {
+  signedIn,
+  signedOut,
+  tokenRefreshed,
+  error,
+  passwordRecovery,
+}
 
 /// Authentication state for stream listening
 @immutable
@@ -1216,8 +1271,16 @@ class AuthState {
   final AuthChangeEvent event;
   final AuthUser? user;
   final AuthSession? session;
+  final String? error;
+  final Map<String, dynamic>? errorDetails;
 
-  const AuthState._(this.event, this.user, this.session);
+  const AuthState._(
+    this.event,
+    this.user,
+    this.session, {
+    this.error,
+    this.errorDetails,
+  });
 
   factory AuthState._fromStatus(
     auth_models.AuthStatus status, {
@@ -1242,13 +1305,22 @@ class AuthState {
       case auth_models.AuthState.refreshing:
         event = AuthChangeEvent.tokenRefreshed;
         break;
+      case auth_models.AuthState.failed:
+        event = AuthChangeEvent.error;
+        break;
       default:
         event = AuthChangeEvent.signedOut;
     }
 
-    return AuthState._(event, user, session);
+    return AuthState._(
+      event,
+      user,
+      session,
+      error: status.error,
+      errorDetails: status.metadata,
+    );
   }
 
   @override
-  String toString() => 'AuthState(event: $event, user: $user)';
+  String toString() => 'AuthState(event: $event, user: $user, error: $error)';
 }

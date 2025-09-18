@@ -312,6 +312,9 @@ class AuthManager {
           await _updateStatus(const AuthStatus.unauthenticated());
         }
       }
+    } on AuthenticationException catch (e) {
+      if (e.errorType == AuthErrorType.accountNotLinked) {}
+      await _updateStatus(const AuthStatus.unauthenticated());
     } catch (e) {
       // Log warning but don't throw - gracefully continue as unauthenticated
       GroupVanLogger.auth.warning(
@@ -373,8 +376,42 @@ class AuthManager {
       );
       final tokenResponse = TokenResponse.fromJson(response.data);
       await _handleTokenResponse(tokenResponse);
+    } on AuthenticationException catch (e) {
+      if (e.errorType == AuthErrorType.accountNotLinked) {
+        final metadata = e.context;
+        metadata?['provider'] = provider;
+        await _updateStatus(
+          AuthStatus.failed(error: 'account_not_linked', metadata: metadata),
+        );
+        return;
+      }
+      rethrow;
     } catch (e) {
       GroupVanLogger.auth.severe('Failed to handle provider callback: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> linkFedLinkAccount({
+    required String email,
+    required String username,
+    required String password,
+    required String clientId,
+    bool fromProvider = false,
+  }) async {
+    try {
+      await _httpClient.post<Map<String, dynamic>>(
+        '/auth/migrate/email',
+        data: {
+          'email': email,
+          'username': username,
+          'password': password,
+          'from_provider': fromProvider,
+        },
+        options: Options(headers: {'gv-client-id': clientId}),
+      );
+    } catch (e) {
+      GroupVanLogger.auth.severe('Failed to link FedLink account: $e');
       rethrow;
     }
   }
