@@ -484,27 +484,10 @@ class AuthManager {
         decoder: (data) => data as Map<String, dynamic>,
       );
 
+      final user = User.fromJson(response.data['user']);
       final tokenResponse = TokenResponse.fromJson(response.data);
 
-      // Preserve existing userInfo if present; backend may or may not return user on refresh
-      await _tokenStorage.storeTokens(
-        accessToken: tokenResponse.accessToken,
-        refreshToken: tokenResponse.refreshToken,
-      );
-
-      // Update authentication status
-      final claims = _decodeToken(tokenResponse.accessToken);
-      await _updateStatus(
-        AuthStatus.authenticated(
-          accessToken: tokenResponse.accessToken,
-          refreshToken: tokenResponse.refreshToken,
-          claims: claims,
-          userInfo: _currentStatus.userInfo,
-        ),
-      );
-
-      // Reschedule automatic refresh
-      _scheduleTokenRefresh(claims);
+      await _handleTokenResponse(tokenResponse, user: user);
 
       GroupVanLogger.auth.info('Successfully refreshed tokens');
       _refreshCompleter!.complete();
@@ -591,36 +574,12 @@ class AuthManager {
         'DEBUG: Token claims - userId: ${claims.userId}, expiration: ${DateTime.fromMillisecondsSinceEpoch(claims.expiration * 1000)}, isExpired: ${claims.isExpired}',
       );
 
-      // Check if token is expired
-      if (claims.isExpired) {
-        GroupVanLogger.auth.warning(
-          'DEBUG: Token is expired, attempting refresh...',
-        );
-        // Try to refresh
-        await _tokenStorage.storeTokens(
-          accessToken: accessToken,
-          refreshToken: refreshToken,
-        );
-        await this.refreshToken();
-        GroupVanLogger.auth.warning('DEBUG: Token refresh completed');
-      } else {
-        GroupVanLogger.auth.warning(
-          'DEBUG: Token is still valid, restoring authenticated state...',
-        );
-        // Token is still valid
-        await _updateStatus(
-          AuthStatus.authenticated(
-            accessToken: accessToken,
-            refreshToken: refreshToken,
-            claims: claims,
-            userInfo: _currentStatus.userInfo,
-          ),
-        );
-        _scheduleTokenRefresh(claims);
-        GroupVanLogger.auth.warning(
-          'DEBUG: Authenticated state restored successfully',
-        );
-      }
+      await _tokenStorage.storeTokens(
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+      );
+      await this.refreshToken();
+      GroupVanLogger.auth.warning('DEBUG: Token refresh completed');
     } catch (e) {
       GroupVanLogger.auth.warning('DEBUG: Token validation failed: $e');
       GroupVanLogger.auth.warning(

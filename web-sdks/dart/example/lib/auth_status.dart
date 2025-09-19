@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:groupvan/groupvan.dart';
 
 class AuthStatus extends StatelessWidget {
-  const AuthStatus({super.key, this.authState});
-
-  final AuthState? authState;
+  const AuthStatus({super.key});
 
   @override
   Widget build(BuildContext context) {
+    AuthSession? session = GroupVAN.instance.auth.currentSession;
+    User? user = GroupVAN.instance.auth.currentUser;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -20,33 +21,26 @@ class AuthStatus extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             _buildStatusRow('Status:', 'Authenticated'),
-
-            if (authState?.user != null) ...[
-              _buildStatusRow('Email:', authState?.user?.email ?? 'N/A'),
-              _buildStatusRow('Name:', authState?.user?.name ?? 'N/A'),
-              _buildStatusRow(
-                'Created At:',
-                authState?.user?.createdAt.toString() ?? 'N/A',
-              ),
-              _buildStatusRow('Picture:', authState?.user?.picture ?? 'N/A'),
-              _buildStatusRow('Member ID:', authState?.user?.memberId ?? 'N/A'),
+            if (user != null) ...[
+              _buildStatusRow('Email:', user.email),
+              _buildStatusRow('Name:', user.name),
+              _buildStatusRow('Created At:', user.createdAt.toString()),
+              _buildStatusRow('Picture:', user.picture ?? 'N/A'),
+              _buildStatusRow('Member ID:', user.memberId ?? 'N/A'),
             ],
 
-            if (authState?.session?.accessToken != null)
+            if (session?.accessToken != null)
               _buildStatusRow(
                 'Access Token Preview:',
-                '${authState!.session!.accessToken.substring(0, 10)}...${authState!.session!.accessToken.substring(authState!.session!.accessToken.length - 10)}',
+                '${session!.accessToken.substring(0, 10)}...${session.accessToken.substring(session!.accessToken.length - 10)}',
               ),
-            if (authState?.session?.refreshToken != null)
+            if (session?.refreshToken != null)
               _buildStatusRow(
                 'Refresh Token Preview:',
-                '${authState!.session!.refreshToken.substring(0, 10)}...${authState!.session!.refreshToken.substring(authState!.session!.refreshToken.length - 10)}',
+                '${session!.refreshToken.substring(0, 10)}...${session.refreshToken.substring(session!.refreshToken.length - 10)}',
               ),
-            if (authState?.session?.expiresAt != null)
-              _buildStatusRow(
-                'Expires:',
-                authState!.session!.expiresAt.toString(),
-              ),
+            if (session?.expiresAt != null)
+              _buildStatusRow('Expires:', session!.expiresAt.toString()),
           ],
         ),
       ),

@@ -140,7 +140,7 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
               return LinkProviderPage(email: email, provider: provider);
             }
           } else if (authState?.event == AuthChangeEvent.signedIn) {
-            return _authenticatedPage(authState);
+            return _authenticatedPage();
           }
 
           return _loginPage();
@@ -149,7 +149,7 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
     );
   }
 
-  Widget _authenticatedPage(AuthState? authState) {
+  Widget _authenticatedPage() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Form(
@@ -159,7 +159,7 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
           children: [
             const SizedBox(height: 24),
 
-            AuthStatus(authState: authState),
+            AuthStatus(),
 
             Card(
               child: Padding(
