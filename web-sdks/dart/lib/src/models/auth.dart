@@ -2,37 +2,24 @@
 class LoginRequest {
   final String username;
   final String password;
-  final String integration;
 
-  const LoginRequest({
-    required this.username,
-    required this.password,
-    required this.integration,
-  });
+  const LoginRequest({required this.username, required this.password});
 
-  Map<String, dynamic> toJson() => {
-    'username': username,
-    'password': password,
-    'integration': integration,
-  };
+  Map<String, dynamic> toJson() => {'username': username, 'password': password};
 }
 
-/// V3 Login request with developer ID
+/// V3 Login request with client ID
 class V3LoginRequest extends LoginRequest {
-  final String developerId;
+  final String clientId;
 
   const V3LoginRequest({
     required super.username,
     required super.password,
-    required super.integration,
-    required this.developerId,
+    required this.clientId,
   });
 
   @override
-  Map<String, dynamic> toJson() => {
-    ...super.toJson(),
-    'developer_id': developerId,
-  };
+  Map<String, dynamic> toJson() => {...super.toJson(), 'client_id': clientId};
 }
 
 /// Token response from login/refresh endpoints
@@ -70,9 +57,7 @@ class RefreshTokenRequest {
 
   const RefreshTokenRequest({required this.refreshToken});
 
-  Map<String, dynamic> toJson() => {
-    'refresh_token': refreshToken,
-  };
+  Map<String, dynamic> toJson() => {'refresh_token': refreshToken};
 }
 
 /// Logout request
@@ -81,9 +66,7 @@ class LogoutRequest {
 
   const LogoutRequest({required this.refreshToken});
 
-  Map<String, dynamic> toJson() => {
-    'refresh_token': refreshToken,
-  };
+  Map<String, dynamic> toJson() => {'refresh_token': refreshToken};
 }
 
 /// Vehicle lookup types for catalog token
@@ -161,11 +144,8 @@ class CatalogTokenResponse {
 
   const CatalogTokenResponse({required this.accessToken});
 
-  factory CatalogTokenResponse.fromJson(Map<String, dynamic> json) => CatalogTokenResponse(
-    accessToken: json['access_token'],
-  );
+  factory CatalogTokenResponse.fromJson(Map<String, dynamic> json) =>
+      CatalogTokenResponse(accessToken: json['access_token']);
 
-  Map<String, dynamic> toJson() => {
-    'access_token': accessToken,
-  };
+  Map<String, dynamic> toJson() => {'access_token': accessToken};
 }

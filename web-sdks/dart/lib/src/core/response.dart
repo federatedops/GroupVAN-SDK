@@ -1,5 +1,5 @@
 /// Enhanced response system for GroupVAN SDK
-/// 
+///
 /// Provides comprehensive response handling with metadata, caching,
 /// and type-safe data access following Flutter/Dart best practices.
 library response;
@@ -196,9 +196,9 @@ class PaginatedResponse<T> extends GroupVanResponse<List<T>> {
     required this.page,
     required this.limit,
     required this.totalCount,
-  })  : totalPages = (totalCount / limit).ceil(),
-        hasNextPage = (page * limit) < totalCount,
-        hasPreviousPage = page > 1;
+  }) : totalPages = (totalCount / limit).ceil(),
+       hasNextPage = (page * limit) < totalCount,
+       hasPreviousPage = page > 1;
 
   @override
   String toString() {
@@ -263,7 +263,7 @@ class ResponseBuilder<T> {
     }
 
     return GroupVanResponse<T>(
-      data: _data!,
+      data: _data as T,
       statusCode: _statusCode!,
       headers: _headers!,
       requestMetadata: _requestMetadata!,
@@ -331,8 +331,9 @@ sealed class Result<T> {
 
 /// Success result
 final class Success<T> extends Result<T> {
+  @override
   final T value;
-  
+
   const Success(this.value);
 
   @override
@@ -350,8 +351,9 @@ final class Success<T> extends Result<T> {
 
 /// Failure result
 final class Failure<T> extends Result<T> {
+  @override
   final Exception error;
-  
+
   const Failure(this.error);
 
   @override

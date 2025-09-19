@@ -1,9 +1,12 @@
 /// Professional HTTP client implementation using Dio
-/// 
+///
 /// Provides enterprise-grade HTTP functionality with interceptors,
 /// retry logic, caching, and comprehensive error handling.
 library http_client;
 
+import 'dart:convert';
+
+import 'package:web/web.dart' hide Response;
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:uuid/uuid.dart';
@@ -95,7 +98,7 @@ class GroupVanHttpClient {
   late final Dio _dio;
   final HttpClientConfig _config;
   final Uuid _uuid = const Uuid();
-  
+
   /// Cache store for HTTP responses
   CacheStore? _cacheStore;
 
@@ -105,18 +108,23 @@ class GroupVanHttpClient {
 
   /// Initialize Dio with all interceptors and configuration
   void _initializeDio() {
-    _dio = Dio(BaseOptions(
-      baseUrl: _config.baseUrl,
-      connectTimeout: _config.connectTimeout,
-      receiveTimeout: _config.receiveTimeout,
-      sendTimeout: _config.timeout,
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        if (_config.token != null) 'Authorization': 'Bearer ${_config.token}',
-        ..._config.defaultHeaders,
-      },
-    ));
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: _config.baseUrl,
+        connectTimeout: _config.connectTimeout,
+        receiveTimeout: _config.receiveTimeout,
+        sendTimeout: _config.timeout,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          if (_config.token != null) 'Authorization': 'Bearer ${_config.token}',
+          ..._config.defaultHeaders,
+        },
+      ),
+    );
+
+    // Sanitize sendTimeout for requests without a body (esp. required on Web)
+    _dio.interceptors.add(SendTimeoutSanitizerInterceptor());
 
     // Add authentication interceptor
     _dio.interceptors.add(AuthInterceptor(_config.token));
@@ -146,7 +154,7 @@ class GroupVanHttpClient {
     final cacheOptions = CacheOptions(
       store: _cacheStore ?? MemCacheStore(),
       policy: CachePolicy.request,
-      hitCacheOnErrorExcept: [401, 403],
+      // hitCacheOnErrorExcept removed for compatibility
       maxStale: const Duration(days: 7),
       priority: CachePriority.normal,
       cipher: null,
@@ -155,6 +163,10 @@ class GroupVanHttpClient {
 
     _dio.interceptors.add(DioCacheInterceptor(options: cacheOptions));
   }
+
+  String get baseUrl => _config.baseUrl;
+
+  String get origin => window.location.origin;
 
   /// Make a GET request
   Future<GroupVanResponse<T>> get<T>(
@@ -171,7 +183,8 @@ class GroupVanHttpClient {
       final response = await _dio.get<dynamic>(
         path,
         queryParameters: queryParameters,
-        options: options?.copyWith(extra: {'correlation_id': correlationId}) ??
+        options:
+            options?.copyWith(extra: {'correlation_id': correlationId}) ??
             Options(extra: {'correlation_id': correlationId}),
         cancelToken: cancelToken,
       );
@@ -204,7 +217,8 @@ class GroupVanHttpClient {
         path,
         data: data,
         queryParameters: queryParameters,
-        options: options?.copyWith(extra: {'correlation_id': correlationId}) ??
+        options:
+            options?.copyWith(extra: {'correlation_id': correlationId}) ??
             Options(extra: {'correlation_id': correlationId}),
         cancelToken: cancelToken,
       );
@@ -237,7 +251,8 @@ class GroupVanHttpClient {
         path,
         data: data,
         queryParameters: queryParameters,
-        options: options?.copyWith(extra: {'correlation_id': correlationId}) ??
+        options:
+            options?.copyWith(extra: {'correlation_id': correlationId}) ??
             Options(extra: {'correlation_id': correlationId}),
         cancelToken: cancelToken,
       );
@@ -270,7 +285,8 @@ class GroupVanHttpClient {
         path,
         data: data,
         queryParameters: queryParameters,
-        options: options?.copyWith(extra: {'correlation_id': correlationId}) ??
+        options:
+            options?.copyWith(extra: {'correlation_id': correlationId}) ??
             Options(extra: {'correlation_id': correlationId}),
         cancelToken: cancelToken,
       );
@@ -297,30 +313,39 @@ class GroupVanHttpClient {
     final duration = endTime.difference(startTime);
 
     // Decode data using provided decoder or return as-is
-    final T data = decoder != null ? decoder(response.data) : response.data as T;
+    final T data = decoder != null
+        ? decoder(response.data)
+        : response.data as T;
 
     // Extract session ID from headers
-    final sessionId = response.headers.value('gv-session-id') ??
+    final sessionId =
+        response.headers.value('gv-session-id') ??
         response.headers.value('GroupVAN-Session-ID') ??
         response.headers.value('groupvan-session-id') ??
         response.headers.value('session-id');
 
     // Check if response was cached
-    final fromCache = response.headers.value('cache-control')?.contains('hit') ?? false;
+    final fromCache =
+        response.headers.value('cache-control')?.contains('hit') ?? false;
     final cacheDate = response.headers.value('date');
-    final cacheTimestamp = cacheDate != null ? DateTime.tryParse(cacheDate) : null;
+    final cacheTimestamp = cacheDate != null
+        ? DateTime.tryParse(cacheDate)
+        : null;
 
     return GroupVanResponse<T>(
       data: data,
       statusCode: response.statusCode ?? 0,
-      headers: response.headers.map.map((key, value) => MapEntry(key, value.join(', '))),
+      headers: response.headers.map.map(
+        (key, value) => MapEntry(key, value.join(', ')),
+      ),
       requestMetadata: RequestMetadata(
         method: response.requestOptions.method,
         url: response.realUri.toString(),
         headers: response.requestOptions.headers.cast<String, String>(),
         body: response.requestOptions.data,
         timestamp: startTime,
-        timeout: response.requestOptions.sendTimeout ?? const Duration(seconds: 30),
+        timeout:
+            response.requestOptions.sendTimeout ?? const Duration(seconds: 30),
         retryAttempt: response.requestOptions.extra['retry_count'] ?? 0,
         correlationId: correlationId,
       ),
@@ -358,6 +383,18 @@ class GroupVanHttpClient {
         final statusCode = e.response?.statusCode ?? 0;
         final responseData = e.response?.data?.toString();
 
+        if (statusCode == 400 && responseData != null) {
+          Map<String, dynamic> responseJson = e.response!.data;
+          if (responseJson['title'] == 'User not found') {
+            final email = responseJson['detail'].split(' ')[1];
+            return AuthenticationException(
+              'FedLink account must be linked to sign in.',
+              errorType: AuthErrorType.accountNotLinked,
+              context: {'correlation_id': correlationId, 'email': email},
+            );
+          }
+        }
+
         // Handle authentication errors
         if (statusCode == 401) {
           return AuthenticationException(
@@ -381,7 +418,9 @@ class GroupVanHttpClient {
           final retryAfter = e.response?.headers.value('retry-after');
           return RateLimitException(
             'Rate limit exceeded: ${e.message}',
-            retryAfterSeconds: retryAfter != null ? int.tryParse(retryAfter) : null,
+            retryAfterSeconds: retryAfter != null
+                ? int.tryParse(retryAfter)
+                : null,
             context: {'correlation_id': correlationId},
           );
         }
@@ -435,6 +474,22 @@ class GroupVanHttpClient {
   }
 }
 
+/// Send-timeout sanitizer to avoid using sendTimeout on requests without a body
+class SendTimeoutSanitizerInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    final method = options.method.toUpperCase();
+    final hasNoBody = options.data == null;
+
+    if (hasNoBody &&
+        (method == 'GET' || method == 'HEAD' || method == 'OPTIONS')) {
+      options.sendTimeout = null;
+    }
+
+    handler.next(options);
+  }
+}
+
 /// Authentication interceptor
 class AuthInterceptor extends Interceptor {
   String? _token;
@@ -473,12 +528,13 @@ class RetryInterceptor extends Interceptor {
     if (_shouldRetry(err) && retryCount < maxRetries) {
       // Calculate delay with exponential backoff
       final delay = Duration(
-        milliseconds: (baseDelay.inMilliseconds * 
-                      (1 << retryCount) * backoffMultiplier).round(),
+        milliseconds:
+            (baseDelay.inMilliseconds * (1 << retryCount) * backoffMultiplier)
+                .round(),
       );
 
       GroupVanLogger.apiClient.info(
-        'Retrying request ${retryCount + 1}/$maxRetries after ${delay.inMilliseconds}ms'
+        'Retrying request ${retryCount + 1}/$maxRetries after ${delay.inMilliseconds}ms',
       );
 
       await Future.delayed(delay);
@@ -501,12 +557,12 @@ class RetryInterceptor extends Interceptor {
   bool _shouldRetry(DioException error) {
     // Retry on network errors and 5xx server errors
     return error.type == DioExceptionType.connectionTimeout ||
-           error.type == DioExceptionType.sendTimeout ||
-           error.type == DioExceptionType.receiveTimeout ||
-           error.type == DioExceptionType.connectionError ||
-           (error.response?.statusCode != null && 
+        error.type == DioExceptionType.sendTimeout ||
+        error.type == DioExceptionType.receiveTimeout ||
+        error.type == DioExceptionType.connectionError ||
+        (error.response?.statusCode != null &&
             error.response!.statusCode! >= 500) ||
-           error.response?.statusCode == 429; // Rate limit
+        error.response?.statusCode == 429; // Rate limit
   }
 }
 
@@ -516,35 +572,37 @@ class LoggingInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final correlationId = options.extra['correlation_id'] ?? 'unknown';
     GroupVanLogger.apiClient.fine(
-      '[$correlationId] ${options.method} ${options.uri}'
+      '[$correlationId] ${options.method} ${options.uri}',
     );
-    
+
     if (options.data != null) {
       GroupVanLogger.apiClient.finest(
-        '[$correlationId] Request body: ${options.data}'
+        '[$correlationId] Request body: ${options.data}',
       );
     }
-    
+
     handler.next(options);
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    final correlationId = response.requestOptions.extra['correlation_id'] ?? 'unknown';
+    final correlationId =
+        response.requestOptions.extra['correlation_id'] ?? 'unknown';
     GroupVanLogger.apiClient.fine(
-      '[$correlationId] Response: ${response.statusCode} (${response.data?.toString().length ?? 0} bytes)'
+      '[$correlationId] Response: ${response.statusCode} (${response.data?.toString().length ?? 0} bytes)',
     );
-    
+
     handler.next(response);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    final correlationId = err.requestOptions.extra['correlation_id'] ?? 'unknown';
+    final correlationId =
+        err.requestOptions.extra['correlation_id'] ?? 'unknown';
     GroupVanLogger.apiClient.warning(
-      '[$correlationId] Error: ${err.type} - ${err.message}'
+      '[$correlationId] Error: ${err.type} - ${err.message}',
     );
-    
+
     handler.next(err);
   }
 }
@@ -561,10 +619,10 @@ class CorrelationInterceptor extends Interceptor {
     if (!options.extra.containsKey('correlation_id')) {
       options.extra['correlation_id'] = _uuid.v4();
     }
-    
+
     // Add correlation ID to headers
     options.headers['X-Correlation-ID'] = options.extra['correlation_id'];
-    
+
     handler.next(options);
   }
 }
@@ -574,11 +632,12 @@ class ErrorHandlingInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     // Log error details
-    final correlationId = err.requestOptions.extra['correlation_id'] ?? 'unknown';
+    final correlationId =
+        err.requestOptions.extra['correlation_id'] ?? 'unknown';
     GroupVanLogger.apiClient.severe(
-      '[$correlationId] HTTP Error: ${err.type} - ${err.message}'
+      '[$correlationId] HTTP Error: ${err.type} - ${err.message}',
     );
-    
+
     handler.next(err);
   }
 }

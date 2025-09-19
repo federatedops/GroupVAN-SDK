@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:groupvan/groupvan.dart';
+import 'package:groupvan_sdk_example_app/link_provider_page.dart';
+
+import 'auth_status.dart';
+import 'link_account_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GroupVAN.initialize(
     isProduction: false,
     enableLogging: true,
-    developerId: 'd7cfc9fb-355a-45fb-8321-296335b2c736',
+    clientId: 'fe826111-1dd6-4ea4-b25a-54a757f909eb',
   );
   runApp(const MainApp());
 }
@@ -34,12 +38,10 @@ class LoginDemoScreen extends StatefulWidget {
 }
 
 class _LoginDemoScreenState extends State<LoginDemoScreen> {
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _integrationController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  String? _errorMessage;
   bool _isLoading = false;
 
   late final GroupVANClient groupvan;
@@ -52,10 +54,15 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
-    _integrationController.dispose();
     super.dispose();
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
   }
 
   Future<void> _login() async {
@@ -63,19 +70,17 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
 
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
     });
 
     try {
       await groupvan.auth.signInWithPassword(
-        username: _usernameController.text.trim(),
+        email: _emailController.text.trim(),
         password: _passwordController.text,
-        integration: _integrationController.text.trim(),
       );
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-      });
+      _showError(
+        "Failed to login: The provided email or password is incorrect.",
+      );
     } finally {
       setState(() {
         _isLoading = false;
@@ -91,15 +96,22 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
     try {
       await groupvan.auth.signOut();
       _passwordController.clear();
-    } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-      });
+    } catch (_) {
     } finally {
       setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    setState(() {
+      _isLoading = true;
+    });
+    groupvan.auth.signInWithGoogle();
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
@@ -109,13 +121,9 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
         title: const Text('GroupVAN SDK Demo'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: StreamBuilder(
+      body: StreamBuilder<AuthState>(
         stream: groupvan.auth.onAuthStateChange,
         builder: (context, snapshot) {
-          print(
-            'DEBUG: StreamBuilder - connectionState: ${snapshot.connectionState}, hasData: ${snapshot.hasData}, data: ${snapshot.data}',
-          );
-
           // Show loading while waiting for stream
           if (snapshot.connectionState == ConnectionState.waiting &&
               !snapshot.hasData) {
@@ -123,225 +131,211 @@ class _LoginDemoScreenState extends State<LoginDemoScreen> {
           }
 
           final authState = snapshot.data;
-          final isAuthenticated = authState?.session != null;
-          print(
-            'DEBUG: isAuthenticated: $isAuthenticated, session: ${authState?.session}',
-          );
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Auth Status Section
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Authentication Status',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 8),
-                          _buildStatusRow(
-                            'Status:',
-                            isAuthenticated
-                                ? 'Authenticated'
-                                : 'Not Authenticated',
-                          ),
-                          if (isAuthenticated) ...[
-                            _buildStatusRow(
-                              'User ID:',
-                              authState?.user?.userId ?? 'N/A',
-                            ),
-                            _buildStatusRow(
-                              'Developer ID:',
-                              authState?.user?.developerId ?? 'N/A',
-                            ),
-                            _buildStatusRow(
-                              'Member:',
-                              authState?.user?.member ?? 'N/A',
-                            ),
-                            if (authState?.session?.accessToken != null)
-                              _buildStatusRow(
-                                'Token Preview:',
-                                '${authState!.session!.accessToken.substring(0, 10)}...${authState.session!.accessToken.substring(authState.session!.accessToken.length - 10)}',
-                              ),
-                            if (authState?.session?.expiresAt != null)
-                              _buildStatusRow(
-                                'Expires:',
-                                authState!.session!.expiresAt.toString(),
-                              ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
+          if (authState?.event == AuthChangeEvent.error &&
+              authState?.error == 'account_not_linked') {
+            final email = authState?.errorDetails?['email'];
+            final provider = authState?.errorDetails?['provider'];
+            if (email != null && provider != null) {
+              return LinkProviderPage(email: email, provider: provider);
+            }
+          } else if (authState?.event == AuthChangeEvent.signedIn) {
+            return _authenticatedPage(authState);
+          }
 
-                  const SizedBox(height: 24),
-
-                  // Login Form Section
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            isAuthenticated ? 'Authenticated User' : 'Login',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 16),
-
-                          if (!isAuthenticated) ...[
-                            TextFormField(
-                              controller: _usernameController,
-                              decoration: const InputDecoration(
-                                labelText: 'Username',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.person),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter username';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 12),
-
-                            TextFormField(
-                              controller: _passwordController,
-                              decoration: const InputDecoration(
-                                labelText: 'Password',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.lock),
-                              ),
-                              obscureText: true,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter password';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 12),
-
-                            TextFormField(
-                              controller: _integrationController,
-                              decoration: const InputDecoration(
-                                labelText: 'Integration',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(
-                                  Icons.integration_instructions,
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter integration';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-
-                          if (_errorMessage != null) ...[
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.red.shade50,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.red.shade300),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.error, color: Colors.red.shade700),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      _errorMessage!,
-                                      style: TextStyle(
-                                        color: Colors.red.shade700,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-
-                          SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed: _isLoading
-                                  ? null
-                                  : (isAuthenticated ? _logout : _login),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isAuthenticated
-                                    ? Colors.red
-                                    : Colors.blue,
-                                foregroundColor: Colors.white,
-                              ),
-                              child: _isLoading
-                                  ? const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                  Colors.white,
-                                                ),
-                                          ),
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text('Loading...'),
-                                      ],
-                                    )
-                                  : Text(isAuthenticated ? 'Logout' : 'Login'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
+          return _loginPage();
         },
       ),
     );
   }
 
-  Widget _buildStatusRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+  Widget _authenticatedPage(AuthState? authState) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 24),
+
+            AuthStatus(authState: authState),
+
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Authenticated User',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 16),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _logout,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: _isLoading
+                            ? const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text('Loading...'),
+                                ],
+                              )
+                            : const Text('Logout'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-          Expanded(
-            child: Text(value, style: const TextStyle(fontFamily: 'monospace')),
-          ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _loginPage() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const AuthStatus(),
+            const SizedBox(height: 24),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Login',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextFormField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.person),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter email';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+
+                    TextFormField(
+                      controller: _passwordController,
+                      decoration: const InputDecoration(
+                        labelText: 'Password',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.lock),
+                      ),
+                      obscureText: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter password';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _login,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: _isLoading
+                            ? const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text('Loading...'),
+                                ],
+                              )
+                            : Text('Login'),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: _loginWithGoogle,
+                        child: Text('Login with Google'),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueGrey,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => LinkAccountPage(),
+                            ),
+                          );
+                        },
+                        child: Text('Link FedLink Account'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

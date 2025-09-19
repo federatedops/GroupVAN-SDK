@@ -216,8 +216,7 @@ await GroupVAN.instance.auth.signInWithGoogle(
 final user = GroupVAN.instance.auth.currentUser;
 if (user != null) {
   print('User ID: ${user.userId}');
-  print('Developer ID: ${user.developerId}');
-  print('Integration: ${user.integration}');
+  print('Client ID: ${user.clientId}');
 }
 
 // Current session
