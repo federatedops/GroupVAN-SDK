@@ -797,6 +797,25 @@ class CatalogsClient extends ApiClient {
   }
 }
 
+class UserClient extends ApiClient {
+  const UserClient(super.httpClient, super.authManager);
+
+  Future<Result<UserDetails>> getUserDetails() async {
+    try {
+      final response = await get<Map<String, dynamic>>('/v3/user/details');
+      final userDetails = UserDetails.fromJson(response.data);
+      return Success(userDetails);
+    } catch (e) {
+      GroupVanLogger.auth.severe('Failed to get user details: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get user details: $e'),
+      );
+    }
+  }
+}
+
 /// Main GroupVAN SDK class with singleton pattern for global access
 class GroupVAN {
   static GroupVAN? _instance;
