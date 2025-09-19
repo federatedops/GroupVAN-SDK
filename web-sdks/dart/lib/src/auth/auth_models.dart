@@ -8,6 +8,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
+import '../models/auth.dart' show User;
 part 'auth_models.g.dart';
 
 /// Login request model
@@ -207,6 +208,8 @@ class AuthStatus extends Equatable {
   /// Decoded token claims if available
   final TokenClaims? claims;
 
+  final User? userInfo;
+
   /// Last authentication error if any
   final String? error;
 
@@ -224,6 +227,7 @@ class AuthStatus extends Equatable {
     this.accessToken,
     this.refreshToken,
     this.claims,
+    this.userInfo,
     this.error,
     this.metadata,
     this.authenticatedAt,
@@ -236,6 +240,7 @@ class AuthStatus extends Equatable {
       accessToken = null,
       refreshToken = null,
       claims = null,
+      userInfo = null,
       error = null,
       metadata = null,
       authenticatedAt = null,
@@ -247,6 +252,7 @@ class AuthStatus extends Equatable {
       accessToken = null,
       refreshToken = null,
       claims = null,
+      userInfo = null,
       error = null,
       metadata = null,
       authenticatedAt = null,
@@ -257,10 +263,12 @@ class AuthStatus extends Equatable {
     required String accessToken,
     required String refreshToken,
     required TokenClaims claims,
+    User? userInfo,
   }) : state = AuthState.authenticated,
        accessToken = accessToken,
        refreshToken = refreshToken,
        claims = claims,
+       userInfo = userInfo,
        error = null,
        metadata = null,
        authenticatedAt = DateTime.now(),
@@ -272,10 +280,12 @@ class AuthStatus extends Equatable {
     required String refreshToken,
     required TokenClaims claims,
     required DateTime authenticatedAt,
+    User? userInfo,
   }) : state = AuthState.refreshing,
        accessToken = accessToken,
        refreshToken = refreshToken,
        claims = claims,
+       userInfo = userInfo,
        error = null,
        metadata = null,
        authenticatedAt = authenticatedAt,
@@ -288,10 +298,12 @@ class AuthStatus extends Equatable {
     required String refreshToken,
     required DateTime authenticatedAt,
     DateTime? refreshedAt,
+    User? userInfo,
   }) : state = AuthState.expired,
        accessToken = accessToken,
        refreshToken = refreshToken,
        claims = null,
+       userInfo = userInfo,
        error = error,
        metadata = null,
        authenticatedAt = authenticatedAt,
@@ -303,6 +315,7 @@ class AuthStatus extends Equatable {
       accessToken = null,
       refreshToken = null,
       claims = null,
+      userInfo = null,
       error = error,
       metadata = metadata,
       authenticatedAt = null,
@@ -330,6 +343,7 @@ class AuthStatus extends Equatable {
     String? accessToken,
     String? refreshToken,
     TokenClaims? claims,
+    User? userInfo,
     String? error,
     Map<String, dynamic>? metadata,
     DateTime? authenticatedAt,
@@ -340,6 +354,7 @@ class AuthStatus extends Equatable {
       accessToken: accessToken ?? this.accessToken,
       refreshToken: refreshToken ?? this.refreshToken,
       claims: claims ?? this.claims,
+      userInfo: userInfo ?? this.userInfo,
       error: error ?? this.error,
       metadata: metadata ?? this.metadata,
       authenticatedAt: authenticatedAt ?? this.authenticatedAt,
@@ -353,6 +368,7 @@ class AuthStatus extends Equatable {
     accessToken,
     refreshToken,
     claims,
+    userInfo,
     error,
     metadata,
     authenticatedAt,

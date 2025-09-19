@@ -149,3 +149,39 @@ class CatalogTokenResponse {
 
   Map<String, dynamic> toJson() => {'access_token': accessToken};
 }
+
+class User {
+  final int id;
+  final String email;
+  final String name;
+  final DateTime createdAt;
+  final String? picture;
+  final String? memberId;
+
+  const User({
+    required this.id,
+    required this.email,
+    required this.name,
+    required this.createdAt,
+    this.picture,
+    this.memberId,
+  });
+
+  factory User.fromJson(Map<String, dynamic> json) => User(
+    id: json['id'],
+    email: json['email'],
+    name: json['name'],
+    createdAt: DateTime.parse(json['created_at']),
+    picture: json['picture'],
+    memberId: json['member_id'],
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'email': email,
+    'name': name,
+    'created_at': createdAt.toIso8601String(),
+    'picture': picture,
+    'member_id': memberId,
+  };
+}

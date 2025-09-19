@@ -15,6 +15,7 @@ import '../core/exceptions.dart';
 import '../core/http_client.dart';
 import '../logging.dart';
 import 'auth_models.dart';
+import '../models/auth.dart' show User;
 
 /// Token storage interface for different storage backends
 abstract class TokenStorage {
@@ -346,9 +347,10 @@ class AuthManager {
         options: Options(headers: {'gv-client-id': clientId}),
       );
 
+      final user = User.fromJson(response.data['user']);
       final tokenResponse = TokenResponse.fromJson(response.data);
 
-      await _handleTokenResponse(tokenResponse);
+      await _handleTokenResponse(tokenResponse, user: user);
     } catch (e) {
       final error = 'Login failed: ${e.toString()}';
       GroupVanLogger.auth.severe(error);
@@ -374,8 +376,9 @@ class AuthManager {
         '/auth/$provider/callback?code=$code&state=$state&catalog_uri=${_httpClient.origin}',
         options: Options(headers: {'gv-client-id': clientId}),
       );
+      final user = User.fromJson(response.data['user']);
       final tokenResponse = TokenResponse.fromJson(response.data);
-      await _handleTokenResponse(tokenResponse);
+      await _handleTokenResponse(tokenResponse, user: user);
     } on AuthenticationException catch (e) {
       if (e.errorType == AuthErrorType.accountNotLinked) {
         final metadata = e.context;
@@ -422,7 +425,10 @@ class AuthManager {
     }
   }
 
-  Future<void> _handleTokenResponse(TokenResponse tokenResponse) async {
+  Future<void> _handleTokenResponse(
+    TokenResponse tokenResponse, {
+    User? user,
+  }) async {
     GroupVanLogger.auth.warning(
       'DEBUG: Storing tokens after successful login...',
     );
@@ -439,6 +445,7 @@ class AuthManager {
         accessToken: tokenResponse.accessToken,
         refreshToken: tokenResponse.refreshToken,
         claims: claims,
+        userInfo: user ?? _currentStatus.userInfo,
       ),
     );
     // Schedule automatic refresh
@@ -479,7 +486,7 @@ class AuthManager {
 
       final tokenResponse = TokenResponse.fromJson(response.data);
 
-      // Store new tokens
+      // Preserve existing userInfo if present; backend may or may not return user on refresh
       await _tokenStorage.storeTokens(
         accessToken: tokenResponse.accessToken,
         refreshToken: tokenResponse.refreshToken,
@@ -492,6 +499,7 @@ class AuthManager {
           accessToken: tokenResponse.accessToken,
           refreshToken: tokenResponse.refreshToken,
           claims: claims,
+          userInfo: _currentStatus.userInfo,
         ),
       );
 
@@ -605,6 +613,7 @@ class AuthManager {
             accessToken: accessToken,
             refreshToken: refreshToken,
             claims: claims,
+            userInfo: _currentStatus.userInfo,
           ),
         );
         _scheduleTokenRefresh(claims);

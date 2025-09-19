@@ -1053,13 +1053,13 @@ class GroupVANAuth {
   }
 
   /// Get current user information
-  AuthUser? get currentUser {
+  User? get currentUser {
     final status = _authManager.currentStatus;
-    if (!status.isAuthenticated || status.claims == null) {
+    if (!status.isAuthenticated) {
       return null;
     }
 
-    return AuthUser.fromClaims(status.claims!, clientId: _client.clientId);
+    return status.userInfo;
   }
 
   /// Stream of authentication state changes
@@ -1226,7 +1226,7 @@ class AuthSession {
   final String accessToken;
   final String refreshToken;
   final DateTime? expiresAt;
-  final AuthUser user;
+  final User user;
 
   const AuthSession({
     required this.accessToken,
@@ -1244,15 +1244,14 @@ class AuthSession {
     expiresAt: status.claims != null
         ? DateTime.fromMillisecondsSinceEpoch(status.claims!.expiration * 1000)
         : null,
-    user: AuthUser.fromClaims(status.claims!, clientId: clientId),
+    user: status.userInfo!,
   );
 
   /// Whether the session is expired
   bool get isExpired => expiresAt?.isBefore(DateTime.now()) ?? false;
 
   @override
-  String toString() =>
-      'AuthSession(user: ${user.userId}, expiresAt: $expiresAt)';
+  String toString() => 'AuthSession(user: ${user.id}, expiresAt: $expiresAt)';
 }
 
 /// Authentication state change events
@@ -1268,7 +1267,7 @@ enum AuthChangeEvent {
 @immutable
 class AuthState {
   final AuthChangeEvent event;
-  final AuthUser? user;
+  final User? user;
   final AuthSession? session;
   final String? error;
   final Map<String, dynamic>? errorDetails;
@@ -1285,11 +1284,11 @@ class AuthState {
     auth_models.AuthStatus status, {
     String? clientId,
   }) {
-    AuthUser? user;
+    User? user;
     AuthSession? session;
 
-    if (status.isAuthenticated && status.claims != null) {
-      user = AuthUser.fromClaims(status.claims!, clientId: clientId);
+    if (status.isAuthenticated && status.userInfo != null) {
+      user = status.userInfo;
       session = AuthSession.fromAuthStatus(status, clientId: clientId);
     }
 
