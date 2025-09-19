@@ -47,4 +47,5 @@ export 'src/models/models.dart'
         EngineSearchRequest,
         VehicleSearchRequest,
         VinSearchRequest,
-        PlateSearchRequest;
+        PlateSearchRequest,
+        User;

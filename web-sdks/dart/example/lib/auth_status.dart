@@ -21,10 +21,17 @@ class AuthStatus extends StatelessWidget {
             const SizedBox(height: 8),
             _buildStatusRow('Status:', 'Authenticated'),
 
-            if (authState?.user != null)
-              _buildStatusRow('Client ID:', authState?.user?.clientId ?? 'N/A'),
-            if (authState?.user != null)
-              _buildStatusRow('Member:', authState?.user?.member ?? 'N/A'),
+            if (authState?.user != null) ...[
+              _buildStatusRow('Email:', authState?.user?.email ?? 'N/A'),
+              _buildStatusRow('Name:', authState?.user?.name ?? 'N/A'),
+              _buildStatusRow(
+                'Created At:',
+                authState?.user?.createdAt.toString() ?? 'N/A',
+              ),
+              _buildStatusRow('Picture:', authState?.user?.picture ?? 'N/A'),
+              _buildStatusRow('Member ID:', authState?.user?.memberId ?? 'N/A'),
+            ],
+
             if (authState?.session?.accessToken != null)
               _buildStatusRow(
                 'Access Token Preview:',
