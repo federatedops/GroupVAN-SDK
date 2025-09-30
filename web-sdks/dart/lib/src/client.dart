@@ -5,7 +5,9 @@
 library client;
 
 import 'dart:async';
+import 'dart:typed_data';
 
+import 'package:dio/dio.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
@@ -113,6 +115,7 @@ class GroupVanClient {
   late final AuthManager _authManager;
   late final VehiclesClient _vehiclesClient;
   late final CatalogsClient _catalogsClient;
+  late final ReportsClient _reportsClient;
 
   GroupVanClient(this._config);
 
@@ -127,6 +130,9 @@ class GroupVanClient {
 
   /// Catalogs API client
   CatalogsClient get catalogs => _catalogsClient;
+
+  /// Reports API client
+  ReportsClient get reports => _reportsClient;
 
   /// Current authentication status
   auth_models.AuthStatus get authStatus => _authManager.currentStatus;
@@ -168,6 +174,7 @@ class GroupVanClient {
     // Initialize API clients
     _vehiclesClient = VehiclesClient(httpClient, _authManager);
     _catalogsClient = CatalogsClient(httpClient, _authManager);
+    _reportsClient = ReportsClient(httpClient, _authManager);
     GroupVanLogger.sdk.warning('DEBUG: API clients initialized');
 
     // Initialize authentication manager (restore tokens if available)
@@ -797,6 +804,32 @@ class CatalogsClient extends ApiClient {
   }
 }
 
+class ReportsClient extends ApiClient {
+  const ReportsClient(super.httpClient, super.authManager);
+
+  Future<Result<void>> createReport({
+    required Uint8List screenshot,
+    String? message,
+  }) async {
+    try {
+      FormData formData = FormData.fromMap({
+        'screenshot': MultipartFile.fromBytes(screenshot),
+        'message': message,
+      });
+
+      await post('/v3/reports', data: formData);
+      return Success(null);
+    } catch (e) {
+      GroupVanLogger.reports.severe('Failed to create report: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to create report: $e'),
+      );
+    }
+  }
+}
+
 /// Main GroupVAN SDK class with singleton pattern for global access
 class GroupVAN {
   static GroupVAN? _instance;
@@ -917,6 +950,9 @@ class GroupVAN {
 
   /// Quick access to catalogs API (deprecated - use client.catalogs instead)
   GroupVANCatalogs get catalogs => GroupVANCatalogs._(_client.catalogs);
+
+  /// Quick access to reports API (deprecated - use client.reports instead)
+  GroupVANReports get reports => GroupVANReports._(_client.reports);
 
   /// Check if SDK is initialized
   bool get isInitialized => _isInitialized;
@@ -1181,6 +1217,16 @@ class GroupVANCatalogs {
   }) => _client.getProducts(request: request, sessionId: sessionId);
 }
 
+/// Namespaced reports API
+class GroupVANReports {
+  final ReportsClient _client;
+
+  const GroupVANReports._(this._client);
+
+  Future<void> createReport({required Uint8List screenshot, String? message}) =>
+      _client.createReport(screenshot: screenshot, message: message);
+}
+
 /// Convenient client interface for extraction and reuse (like Supabase pattern)
 @immutable
 class GroupVANClient {
@@ -1196,6 +1242,9 @@ class GroupVANClient {
 
   /// Catalog operations
   GroupVANCatalogs get catalogs => GroupVANCatalogs._(_client.catalogs);
+
+  /// Reports operations
+  GroupVANReports get reports => GroupVANReports._(_client.reports);
 }
 
 /// Authentication user information
