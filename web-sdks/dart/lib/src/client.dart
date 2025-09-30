@@ -252,6 +252,11 @@ abstract class ApiClient {
       path,
       queryParameters: queryParameters,
       decoder: decoder,
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer ${authManager.currentStatus.accessToken}',
+        },
+      ),
     );
   }
 
@@ -267,6 +272,11 @@ abstract class ApiClient {
       data: data,
       queryParameters: queryParameters,
       decoder: decoder,
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer ${authManager.currentStatus.accessToken}',
+        },
+      ),
     );
   }
 }
@@ -813,12 +823,15 @@ class ReportsClient extends ApiClient {
   }) async {
     try {
       FormData formData = FormData.fromMap({
-        'screenshot': MultipartFile.fromBytes(screenshot),
+        'screenshot': MultipartFile.fromBytes(
+          screenshot,
+          filename: 'screenshot.png',
+        ),
         'message': message,
       });
 
-      await post('/v3/reports', data: formData);
-      return Success(null);
+      await post('/v3/reports/', data: formData);
+      return const Success(null);
     } catch (e) {
       GroupVanLogger.reports.severe('Failed to create report: $e');
       return Failure(
