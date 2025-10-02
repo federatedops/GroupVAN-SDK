@@ -150,6 +150,46 @@ class CatalogTokenResponse {
   Map<String, dynamic> toJson() => {'access_token': accessToken};
 }
 
+class Location {
+  final String id;
+  final String name;
+  final String address;
+  final String city;
+  final String state;
+  final String zip;
+  final String phone;
+
+  const Location({
+    required this.id,
+    required this.name,
+    required this.address,
+    required this.city,
+    required this.state,
+    required this.zip,
+    required this.phone,
+  });
+
+  factory Location.fromJson(Map<String, dynamic> json) => Location(
+    id: json['id'],
+    name: json['name'],
+    address: json['address'],
+    city: json['city'],
+    state: json['state'],
+    zip: json['zip'],
+    phone: json['phone'],
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'address': address,
+    'city': city,
+    'state': state,
+    'zip': zip,
+    'phone': phone,
+  };
+}
+
 class User {
   final int id;
   final String email;
@@ -157,6 +197,7 @@ class User {
   final DateTime createdAt;
   final String? picture;
   final String? memberId;
+  final Location? location;
 
   const User({
     required this.id,
@@ -165,6 +206,7 @@ class User {
     required this.createdAt,
     this.picture,
     this.memberId,
+    this.location,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -174,6 +216,9 @@ class User {
     createdAt: DateTime.parse(json['created_at']),
     picture: json['picture'],
     memberId: json['member_id'],
+    location: json['location'] != null
+        ? Location.fromJson(json['location'])
+        : null,
   );
 
   Map<String, dynamic> toJson() => {
@@ -183,5 +228,6 @@ class User {
     'created_at': createdAt.toIso8601String(),
     'picture': picture,
     'member_id': memberId,
+    'location': location?.toJson(),
   };
 }
