@@ -198,12 +198,14 @@ class User {
   final String? picture;
   final String? memberId;
   final Location? location;
+  final List<String> roles;
 
   const User({
     required this.id,
     required this.email,
     required this.name,
     required this.createdAt,
+    required this.roles,
     this.picture,
     this.memberId,
     this.location,
@@ -214,6 +216,7 @@ class User {
     email: json['email'],
     name: json['name'],
     createdAt: DateTime.parse(json['created_at']),
+    roles: List<String>.from(json['roles'] as List),
     picture: json['picture'],
     memberId: json['member_id'],
     location: json['location'] != null
