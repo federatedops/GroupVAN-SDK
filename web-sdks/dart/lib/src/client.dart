@@ -89,7 +89,8 @@ class GroupVanClientConfig {
     return GroupVanClientConfig(
       baseUrl: 'https://api.staging.groupvan.com',
       httpClientConfig: const HttpClientConfig(
-        baseUrl: 'https://api.staging.groupvan.com',
+        baseUrl: 'http://localhost:5000',
+        //baseUrl: 'https://api.staging.groupvan.com',
         enableLogging: true,
       ),
       tokenStorage: tokenStorage ?? SecureTokenStorage.platformOptimized(),
@@ -1136,53 +1137,120 @@ class GroupVANVehicles {
   const GroupVANVehicles._(this._client);
 
   /// Get user vehicles
-  Future<Result<List<Vehicle>>> getUserVehicles({
+  Future<List<Vehicle>> getUserVehicles({
     int offset = 0,
     int limit = 20,
-  }) => _client.getUserVehicles(offset: offset, limit: limit);
+  }) async {
+    final result = await _client.getUserVehicles(offset: offset, limit: limit);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 
   /// Search vehicles
-  Future<Result<VehicleSearchResponse>> search({
+  Future<VehicleSearchResponse> search({
     required String query,
     int? groupId,
     int page = 1,
-  }) => _client.searchVehicles(query: query, groupId: groupId, page: page);
+  }) async {
+    final result = await _client.searchVehicles(
+      query: query,
+      groupId: groupId,
+      page: page,
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 
   /// Search by VIN
-  Future<Result<List<Vehicle>?>> searchByVin(String vin) =>
-      _client.searchByVin(vin);
+  Future<List<Vehicle>?> searchByVin(String vin) async {
+    final result = await _client.searchByVin(vin);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 
   /// Search by license plate
-  Future<Result<List<Vehicle>>> searchByPlate({
+  Future<List<Vehicle>> searchByPlate({
     required String plate,
     required String state,
-  }) => _client.searchByPlate(plate: plate, state: state);
+  }) async {
+    final result = await _client.searchByPlate(plate: plate, state: state);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 
   /// Get vehicle groups
-  Future<Result<List<VehicleGroup>>> getGroups() => _client.getVehicleGroups();
+  Future<List<VehicleGroup>> getGroups() async {
+    final result = await _client.getVehicleGroups();
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 
   /// Filter vehicles
-  Future<Result<VehicleFilterResponse>> filter({
+  Future<VehicleFilterResponse> filter({
     required VehicleFilterRequest request,
-  }) => _client.filterVehicles(request: request);
+  }) async {
+    Result<VehicleFilterResponse> result = await _client.filterVehicles(
+      request: request,
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 
   /// Get engines
-  Future<Result<List<Vehicle>>> getEngines({
+  Future<List<Vehicle>> getEngines({
     required EngineSearchRequest request,
-  }) => _client.getEngines(request: request);
+  }) async {
+    final result = await _client.getEngines(request: request);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 
   /// Get fleets
-  Future<Result<List<Fleet>>> getFleets() => _client.getFleets();
+  Future<List<Fleet>> getFleets() async {
+    final result = await _client.getFleets();
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 
   /// Get fleet vehicles
-  Future<Result<List<Vehicle>>> getFleetVehicles({required String fleetId}) =>
-      _client.getFleetVehicles(fleetId: fleetId);
+  Future<List<Vehicle>> getFleetVehicles({required String fleetId}) async {
+    final result = await _client.getFleetVehicles(fleetId: fleetId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 
   /// Get account vehicles
-  Future<Result<List<Vehicle>>> getAccountVehicles({
+  Future<List<Vehicle>> getAccountVehicles({
     int offset = 0,
     int limit = 20,
-  }) => _client.getAccountVehicles(offset: offset, limit: limit);
+  }) async {
+    final result = await _client.getAccountVehicles(
+      offset: offset,
+      limit: limit,
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 }
 
 /// Namespaced catalogs API
