@@ -1236,42 +1236,80 @@ class GroupVANCatalogs {
   const GroupVANCatalogs._(this._client);
 
   /// Get available catalogs
-  Future<Result<List<Catalog>>> getCatalogs() => _client.getCatalogs();
+  Future<List<Catalog>> getCatalogs() async {
+    final result = await _client.getCatalogs();
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 
   /// Get vehicle categories
-  Future<Result<List<VehicleCategory>>> getVehicleCategories({
+  Future<List<VehicleCategory>> getVehicleCategories({
     required int catalogId,
     required int engineIndex,
     String? sessionId,
-  }) => _client.getVehicleCategories(
-    catalogId: catalogId,
-    engineIndex: engineIndex,
-    sessionId: sessionId,
-  );
+  }) async {
+    final result = await _client.getVehicleCategories(
+      catalogId: catalogId,
+      engineIndex: engineIndex,
+      sessionId: sessionId,
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 
   /// Get supply categories
-  Future<Result<List<SupplyCategory>>> getSupplyCategories({
+  Future<List<SupplyCategory>> getSupplyCategories({
     required int catalogId,
-  }) => _client.getSupplyCategories(catalogId: catalogId);
+  }) async {
+    final result = await _client.getSupplyCategories(catalogId: catalogId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 
   /// Get application assets
-  Future<Result<List<ApplicationAsset>>> getApplicationAssets({
+  Future<List<ApplicationAsset>> getApplicationAssets({
     required List<int> applicationIds,
     String? languageCode,
-  }) => _client.getApplicationAssets(
-    applicationIds: applicationIds,
-    languageCode: languageCode,
-  );
+  }) async {
+    final result = await _client.getApplicationAssets(
+      applicationIds: applicationIds,
+      languageCode: languageCode,
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 
   /// Get cart details
-  Future<Result<List<CartItem>>> getCart({required String cartId}) =>
-      _client.getCart(cartId: cartId);
+  Future<List<CartItem>> getCart({required String cartId}) async {
+    final result = await _client.getCart(cartId: cartId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 
   /// Get product listings
-  Future<Result<ProductListingResponse>> getProducts({
+  Future<ProductListingResponse> getProducts({
     required ProductListingRequest request,
     String? sessionId,
-  }) => _client.getProducts(request: request, sessionId: sessionId);
+  }) async {
+    final result = await _client.getProducts(
+      request: request,
+      sessionId: sessionId,
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 }
 
 /// Namespaced reports API
