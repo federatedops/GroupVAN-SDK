@@ -4,23 +4,12 @@ class Catalog {
   final String name;
   final String type;
 
-  const Catalog({
-    required this.id,
-    required this.name,
-    required this.type,
-  });
+  const Catalog({required this.id, required this.name, required this.type});
 
-  factory Catalog.fromJson(Map<String, dynamic> json) => Catalog(
-    id: json['id'],
-    name: json['name'],
-    type: json['type'],
-  );
+  factory Catalog.fromJson(Map<String, dynamic> json) =>
+      Catalog(id: json['id'], name: json['name'], type: json['type']);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'type': type,
-  };
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'type': type};
 }
 
 /// Part type information used in categories
@@ -70,14 +59,15 @@ class VehicleCategory {
     required this.partTypes,
   });
 
-  factory VehicleCategory.fromJson(Map<String, dynamic> json) => VehicleCategory(
-    displayTier: json['display_tier'],
-    id: json['id'],
-    name: json['name'],
-    partTypes: (json['part_types'] as List<dynamic>)
-        .map((pt) => PartType.fromJson(pt as Map<String, dynamic>))
-        .toList(),
-  );
+  factory VehicleCategory.fromJson(Map<String, dynamic> json) =>
+      VehicleCategory(
+        displayTier: json['display_tier'],
+        id: json['id'],
+        name: json['name'],
+        partTypes: (json['part_types'] as List<dynamic>)
+            .map((pt) => PartType.fromJson(pt as Map<String, dynamic>))
+            .toList(),
+      );
 
   Map<String, dynamic> toJson() => {
     'display_tier': displayTier,
@@ -87,25 +77,29 @@ class VehicleCategory {
   };
 }
 
+class TopCategory {
+  final int id;
+  final String name;
+
+  const TopCategory({required this.id, required this.name});
+
+  factory TopCategory.fromJson(Map<String, dynamic> json) =>
+      TopCategory(id: json['id'], name: json['name']);
+
+  Map<String, dynamic> toJson() => {'id': id, 'name': name};
+}
+
 /// Supply subcategory information
 class SupplySubcategory {
   final int id;
   final String name;
 
-  const SupplySubcategory({
-    required this.id,
-    required this.name,
-  });
+  const SupplySubcategory({required this.id, required this.name});
 
-  factory SupplySubcategory.fromJson(Map<String, dynamic> json) => SupplySubcategory(
-    id: json['id'],
-    name: json['name'],
-  );
+  factory SupplySubcategory.fromJson(Map<String, dynamic> json) =>
+      SupplySubcategory(id: json['id'], name: json['name']);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-  };
+  Map<String, dynamic> toJson() => {'id': id, 'name': name};
 }
 
 /// Supply category information
@@ -149,12 +143,13 @@ class ApplicationAsset {
     required this.uri,
   });
 
-  factory ApplicationAsset.fromJson(Map<String, dynamic> json) => ApplicationAsset(
-    applicationId: json['application_id'],
-    type: json['type'],
-    language: json['language'],
-    uri: json['uri'],
-  );
+  factory ApplicationAsset.fromJson(Map<String, dynamic> json) =>
+      ApplicationAsset(
+        applicationId: json['application_id'],
+        type: json['type'],
+        language: json['language'],
+        uri: json['uri'],
+      );
 
   Map<String, dynamic> toJson() => {
     'application_id': applicationId,
@@ -238,15 +233,9 @@ class PartTypeRequest {
   final int id;
   final String name;
 
-  const PartTypeRequest({
-    required this.id,
-    required this.name,
-  });
+  const PartTypeRequest({required this.id, required this.name});
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-  };
+  Map<String, dynamic> toJson() => {'id': id, 'name': name};
 }
 
 /// Price range filter
@@ -254,15 +243,9 @@ class PriceRange {
   final double min;
   final double max;
 
-  const PriceRange({
-    required this.min,
-    required this.max,
-  });
+  const PriceRange({required this.min, required this.max});
 
-  Map<String, dynamic> toJson() => {
-    'min': min,
-    'max': max,
-  };
+  Map<String, dynamic> toJson() => {'min': min, 'max': max};
 }
 
 /// Product request filters
@@ -270,10 +253,7 @@ class ProductFilters {
   final List<int>? brandIds;
   final PriceRange? priceRange;
 
-  const ProductFilters({
-    this.brandIds,
-    this.priceRange,
-  });
+  const ProductFilters({this.brandIds, this.priceRange});
 
   Map<String, dynamic> toJson() => {
     if (brandIds != null) 'brand_ids': brandIds,
@@ -352,13 +332,14 @@ class ProductListingResponse {
     required this.page,
   });
 
-  factory ProductListingResponse.fromJson(Map<String, dynamic> json) => ProductListingResponse(
-    products: (json['products'] as List<dynamic>)
-        .map((p) => Product.fromJson(p as Map<String, dynamic>))
-        .toList(),
-    totalCount: json['total_count'],
-    page: json['page'],
-  );
+  factory ProductListingResponse.fromJson(Map<String, dynamic> json) =>
+      ProductListingResponse(
+        products: (json['products'] as List<dynamic>)
+            .map((p) => Product.fromJson(p as Map<String, dynamic>))
+            .toList(),
+        totalCount: json['total_count'],
+        page: json['page'],
+      );
 
   Map<String, dynamic> toJson() => {
     'products': products.map((p) => p.toJson()).toList(),
