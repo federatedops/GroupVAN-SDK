@@ -13,7 +13,7 @@ class PaginatedRequest {
 
 /// Vehicle model representing basic vehicle information
 class Vehicle {
-  final int vehicleId;
+  final int index;
   final int year;
   final String make;
   final String model;
@@ -23,10 +23,9 @@ class Vehicle {
   final int? previousVehicleId;
   final String? description;
   final int? fleetVehicleId;
-  final int? index;
 
   const Vehicle({
-    required this.vehicleId,
+    required this.index,
     required this.year,
     required this.make,
     required this.model,
@@ -36,11 +35,10 @@ class Vehicle {
     this.previousVehicleId,
     this.description,
     this.fleetVehicleId,
-    this.index,
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) => Vehicle(
-    vehicleId: json['vehicle_id'],
+    index: json['index'],
     year: json['year'],
     make: json['make'],
     model: json['model'],
@@ -50,11 +48,10 @@ class Vehicle {
     previousVehicleId: json['previous_vehicle_id'],
     description: json['description'],
     fleetVehicleId: json['fleet_vehicle_id'],
-    index: json['index'],
   );
 
   Map<String, dynamic> toJson() => {
-    if (vehicleId != null) 'vehicle_id': vehicleId,
+    'index': index,
     'year': year,
     'make': make,
     'model': model,
@@ -64,6 +61,5 @@ class Vehicle {
     if (previousVehicleId != null) 'previous_vehicle_id': previousVehicleId,
     if (description != null) 'description': description,
     if (fleetVehicleId != null) 'fleet_vehicle_id': fleetVehicleId,
-    if (index != null) 'index': index,
   };
 }
