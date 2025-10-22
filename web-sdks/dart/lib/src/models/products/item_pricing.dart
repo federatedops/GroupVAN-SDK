@@ -1,7 +1,7 @@
 import './item_pricing_location.dart';
 
-class ItemPricingModel {
-  const ItemPricingModel({
+class ItemPricing {
+  const ItemPricing({
     required this.comment,
     required this.id,
     required this.locations,
@@ -13,20 +13,20 @@ class ItemPricingModel {
   });
   final String comment;
   final String id;
-  final List<ItemPricingLocationModel> locations;
+  final List<ItemPricingLocation> locations;
   final String mfrCode;
   final String mfrDescription;
   final String? partDescription;
   final String partNumber;
   final int statusCode;
 
-  factory ItemPricingModel.fromJson(Map<String, dynamic> json) {
-    return ItemPricingModel(
+  factory ItemPricing.fromJson(Map<String, dynamic> json) {
+    return ItemPricing(
       comment: json['comment'],
       id: json['id'],
-      locations: List<ItemPricingLocationModel>.from(
+      locations: List<ItemPricingLocation>.from(
         json['locations'].map(
-          (location) => ItemPricingLocationModel.fromJson(location),
+          (location) => ItemPricingLocation.fromJson(location),
         ),
       ),
       mfrCode: json['mfr_code'],
@@ -38,8 +38,8 @@ class ItemPricingModel {
   }
 }
 
-class ItemPricingRequestModel {
-  const ItemPricingRequestModel({
+class ItemPricingRequest {
+  const ItemPricingRequest({
     required this.id,
     required this.mfrCode,
     required this.partNumber,

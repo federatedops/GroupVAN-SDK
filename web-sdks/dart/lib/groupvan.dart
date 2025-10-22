@@ -61,5 +61,5 @@ export 'src/models/models.dart'
         AssetModel,
         SpinAssetModel,
         SpinAssetResponse,
-        ItemPricingModel,
-        ItemPricingLocationModel;
+        ItemPricing,
+        ItemPricingLocation;

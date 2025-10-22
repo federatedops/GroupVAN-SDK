@@ -1,5 +1,5 @@
-class ItemPricingLocationModel {
-  const ItemPricingLocationModel({
+class ItemPricingLocation {
+  const ItemPricingLocation({
     required this.canOrder,
     required this.cost,
     required this.description,
@@ -25,8 +25,8 @@ class ItemPricingLocationModel {
   final int type;
   final double? core;
 
-  factory ItemPricingLocationModel.fromJson(Map<String, dynamic> json) {
-    return ItemPricingLocationModel(
+  factory ItemPricingLocation.fromJson(Map<String, dynamic> json) {
+    return ItemPricingLocation(
       canOrder: json['can_order'],
       cost: json['cost'],
       description: json['description'],
