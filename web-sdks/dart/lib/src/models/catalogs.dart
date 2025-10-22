@@ -1,3 +1,5 @@
+enum DisplayTier { primary, secondary }
+
 /// Catalog models for the V3 Catalogs API
 class Catalog {
   final int id;
@@ -14,7 +16,7 @@ class Catalog {
 
 /// Part type information used in categories
 class PartType {
-  final String displayTier;
+  final DisplayTier displayTier;
   final int id;
   final String name;
   final int popularityGroup;

@@ -38,6 +38,7 @@ export 'src/models/models.dart'
         ApplicationAsset,
         ApplicationAssetsRequest,
         CartItem,
+        DisplayTier,
         PartType,
         PartTypeRequest,
         PriceRange,
