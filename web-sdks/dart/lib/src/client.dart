@@ -89,8 +89,7 @@ class GroupVanClientConfig {
     return GroupVanClientConfig(
       baseUrl: 'https://api.staging.groupvan.com',
       httpClientConfig: const HttpClientConfig(
-        baseUrl: 'http://localhost:5000',
-        //baseUrl: 'https://api.staging.groupvan.com',
+        baseUrl: 'https://api.staging.groupvan.com',
         enableLogging: true,
       ),
       tokenStorage: tokenStorage ?? SecureTokenStorage.platformOptimized(),
