@@ -381,7 +381,7 @@ class ProductListing {
   final List<Brand> brands;
   final List<String> shadows;
   final int partTypeId;
-  final int partTypeName;
+  final String partTypeName;
   final List<AttributeFamily> attributeFamilies;
 
   const ProductListing({
