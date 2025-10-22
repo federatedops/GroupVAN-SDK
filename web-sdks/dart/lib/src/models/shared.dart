@@ -3,10 +3,7 @@ class PaginatedRequest {
   final int? offset;
   final int? limit;
 
-  const PaginatedRequest({
-    this.offset = 0,
-    this.limit = 20,
-  });
+  const PaginatedRequest({this.offset = 0, this.limit = 20});
 
   Map<String, dynamic> toJson() => {
     if (offset != null) 'offset': offset,
@@ -16,7 +13,7 @@ class PaginatedRequest {
 
 /// Vehicle model representing basic vehicle information
 class Vehicle {
-  final int? vehicleId;
+  final int vehicleId;
   final int year;
   final String make;
   final String model;
@@ -29,7 +26,7 @@ class Vehicle {
   final int? index;
 
   const Vehicle({
-    this.vehicleId,
+    required this.vehicleId,
     required this.year,
     required this.make,
     required this.model,
@@ -70,4 +67,3 @@ class Vehicle {
     if (index != null) 'index': index,
   };
 }
-
