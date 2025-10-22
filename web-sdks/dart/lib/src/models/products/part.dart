@@ -37,7 +37,7 @@ class Part implements Comparable {
     required this.productInfo,
     required this.interchange,
     required this.applications,
-    this.asset,
+    this.assets,
     this.pricing,
   });
 
@@ -73,6 +73,17 @@ class Part implements Comparable {
     if (partTypeNameCompare != 0) return partTypeNameCompare;
 
     return partNumber.compareTo(other.partNumber);
+  }
+
+  String perCarQuantity() {
+    for (final application in applications) {
+      for (final display in application.displays) {
+        if (display.name == 'Qty') {
+          return display.value;
+        }
+      }
+    }
+    return "1";
   }
 
   Color quantityAtLocationColor() {
