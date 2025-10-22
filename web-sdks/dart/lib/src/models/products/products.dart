@@ -1,4 +1,3 @@
-/// Export all product model classes for the GroupVAN Web SDK
 library products;
 
 export 'attribute.dart';

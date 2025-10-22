@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart' show Colors, Color;
 import 'part_application.dart';
+import './item_pricing.dart';
+import '../assets/asset.dart';
 
 class Part implements Comparable {
   final int sku;
@@ -17,7 +19,10 @@ class Part implements Comparable {
   final bool interchange;
   final List<PartApplication> applications;
 
-  const Part({
+  AssetModel? asset;
+  ItemPricingModel? pricing;
+
+  Part({
     required this.sku,
     required this.rank,
     required this.tier,
@@ -32,6 +37,8 @@ class Part implements Comparable {
     required this.productInfo,
     required this.interchange,
     required this.applications,
+    this.asset,
+    this.pricing,
   });
 
   factory Part.fromJson(Map<String, dynamic> json) => Part(
