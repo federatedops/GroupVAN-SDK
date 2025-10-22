@@ -56,13 +56,14 @@ class VehicleSearchResponse {
     required this.page,
   });
 
-  factory VehicleSearchResponse.fromJson(Map<String, dynamic> json) => VehicleSearchResponse(
-    vehicles: (json['vehicles'] as List<dynamic>)
-        .map((v) => Vehicle.fromJson(v as Map<String, dynamic>))
-        .toList(),
-    totalCount: json['total_count'],
-    page: json['page'],
-  );
+  factory VehicleSearchResponse.fromJson(Map<String, dynamic> json) =>
+      VehicleSearchResponse(
+        vehicles: (json['vehicles'] as List<dynamic>)
+            .map((v) => Vehicle.fromJson(v as Map<String, dynamic>))
+            .toList(),
+        totalCount: json['total_count'],
+        page: json['page'],
+      );
 }
 
 /// VIN search request
@@ -74,20 +75,14 @@ class VinSearchRequest {
   Map<String, dynamic> toJson() => {'vin': vin};
 }
 
-/// Plate search request  
+/// Plate search request
 class PlateSearchRequest {
   final String plate;
   final String state;
 
-  const PlateSearchRequest({
-    required this.plate,
-    required this.state,
-  });
+  const PlateSearchRequest({required this.plate, required this.state});
 
-  Map<String, dynamic> toJson() => {
-    'plate': plate,
-    'state': state,
-  };
+  Map<String, dynamic> toJson() => {'plate': plate, 'state': state};
 }
 
 /// Vehicle filter request
@@ -133,27 +128,37 @@ class VehicleFilterOption {
   }
 }
 
-/// Vehicle filter response
 class VehicleFilterResponse {
-  final List<VehicleFilterOption>? models;
-  final List<VehicleFilterOption>? makes;
-  final List<VehicleFilterOption>? years;
+  final List<VehicleFilterOption> models;
+  final List<VehicleFilterOption> makes;
+  final List<VehicleFilterOption> years;
 
   const VehicleFilterResponse({
-    this.models,
-    this.makes,
-    this.years,
+    required this.models,
+    required this.makes,
+    required this.years,
   });
 
-  factory VehicleFilterResponse.fromJson(Map<String, dynamic> json) => VehicleFilterResponse(
-    models: (json['models'] as List<dynamic>?)
-        ?.map((m) => VehicleFilterOption.fromJson(m as Map<String, dynamic>, 'model'))
+  factory VehicleFilterResponse.fromJson(
+    Map<String, dynamic> json,
+  ) => VehicleFilterResponse(
+    models: ((json['models'] as List<dynamic>?) ?? [])
+        .map(
+          (m) =>
+              VehicleFilterOption.fromJson(m as Map<String, dynamic>, 'model'),
+        )
         .toList(),
-    makes: (json['makes'] as List<dynamic>?)
-        ?.map((m) => VehicleFilterOption.fromJson(m as Map<String, dynamic>, 'make'))
+    makes: ((json['makes'] as List<dynamic>?) ?? [])
+        .map(
+          (m) =>
+              VehicleFilterOption.fromJson(m as Map<String, dynamic>, 'make'),
+        )
         .toList(),
-    years: (json['years'] as List<dynamic>?)
-        ?.map((y) => VehicleFilterOption.fromJson(y as Map<String, dynamic>, 'year'))
+    years: ((json['years'] as List<dynamic>?) ?? [])
+        .map(
+          (y) =>
+              VehicleFilterOption.fromJson(y as Map<String, dynamic>, 'year'),
+        )
         .toList(),
   );
 }
@@ -164,17 +169,10 @@ class Fleet {
   final String name;
   final String timestamp;
 
-  const Fleet({
-    required this.id,
-    required this.name,
-    required this.timestamp,
-  });
+  const Fleet({required this.id, required this.name, required this.timestamp});
 
-  factory Fleet.fromJson(Map<String, dynamic> json) => Fleet(
-    id: json['id'],
-    name: json['name'],
-    timestamp: json['timestamp'],
-  );
+  factory Fleet.fromJson(Map<String, dynamic> json) =>
+      Fleet(id: json['id'], name: json['name'], timestamp: json['timestamp']);
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -211,9 +209,10 @@ class EngineSearchResponse {
 
   const EngineSearchResponse({required this.vehicles});
 
-  factory EngineSearchResponse.fromJson(Map<String, dynamic> json) => EngineSearchResponse(
-    vehicles: (json['vehicles'] as List<dynamic>)
-        .map((v) => Vehicle.fromJson(v as Map<String, dynamic>))
-        .toList(),
-  );
+  factory EngineSearchResponse.fromJson(Map<String, dynamic> json) =>
+      EngineSearchResponse(
+        vehicles: (json['vehicles'] as List<dynamic>)
+            .map((v) => Vehicle.fromJson(v as Map<String, dynamic>))
+            .toList(),
+      );
 }
