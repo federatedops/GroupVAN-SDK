@@ -34,6 +34,7 @@ export 'src/models/models.dart'
         Catalog,
         SupplyCategory,
         SupplySubcategory,
+        TopCategory,
         ApplicationAsset,
         ApplicationAssetsRequest,
         CartItem,
