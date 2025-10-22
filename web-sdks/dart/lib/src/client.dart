@@ -8,10 +8,8 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:path_provider/path_provider.dart';
 
 import 'auth/auth_manager.dart';
 import 'auth/auth_models.dart' as auth_models;
@@ -977,11 +975,6 @@ class GroupVAN {
     if (_instance?._isInitialized == true) {
       return _instance!;
     }
-
-    // Initialize HydratedBloc storage for session persistence
-    HydratedBloc.storage = await HydratedStorage.build(
-      storageDirectory: await getApplicationDocumentsDirectory(),
-    );
 
     _instance = GroupVAN._();
 
