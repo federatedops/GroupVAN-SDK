@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart' show Colors, Color;
+
 enum DisplayTier { primary, secondary }
 
 /// Catalog models for the V3 Catalogs API
@@ -285,7 +287,7 @@ class PartApplication {
       );
 }
 
-class Part {
+class Part implements Comparable {
   final int sku;
   final int rank;
   final int tier;
@@ -334,6 +336,47 @@ class Part {
     interchange: json['interchange'],
     applications: json['applications'],
   );
+
+  @override
+  int compareTo(other) {
+    int tierCompare = tier.compareTo(other.tier);
+    if (tierCompare != 0) return tierCompare;
+
+    int rankCompare = rank.compareTo(other.rank);
+    if (rankCompare != 0) return rankCompare;
+
+    int mfrCodeCompare = mfrCode.compareTo(other.mfrCode);
+    if (mfrCodeCompare != 0) return mfrCodeCompare;
+
+    int partTypeNameCompare = partTypeName.compareTo(other.partTypeName);
+    if (partTypeNameCompare != 0) return partTypeNameCompare;
+
+    return partNumber.compareTo(other.partNumber);
+  }
+
+  String perCarQuantity() {
+    return '1';
+  }
+
+  Color quantityAtLocationColor() {
+    return Colors.grey;
+  }
+
+  String quantityAtLocationText() {
+    return '100+';
+  }
+
+  double cost() {
+    return 1.0;
+  }
+
+  double list() {
+    return 10.0;
+  }
+
+  double core() {
+    return 5.0;
+  }
 }
 
 class Brand {
