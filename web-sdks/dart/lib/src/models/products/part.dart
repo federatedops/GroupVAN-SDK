@@ -19,7 +19,7 @@ class Part implements Comparable {
   final bool interchange;
   final List<PartApplication> applications;
 
-  AssetModel? asset;
+  AssetModel? assets;
   ItemPricingModel? pricing;
 
   Part({
