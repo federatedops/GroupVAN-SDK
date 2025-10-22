@@ -75,27 +75,54 @@ class Part implements Comparable {
     return partNumber.compareTo(other.partNumber);
   }
 
-  String perCarQuantity() {
-    return '1';
-  }
-
   Color quantityAtLocationColor() {
-    return Colors.grey;
+    Color color = Colors.grey;
+
+    double totalQuantityAvailable = pricing!.locations
+        .map((location) => location.quantityAvailable)
+        .reduce((value, element) => value + element);
+
+    if (totalQuantityAvailable == 0) return color;
+
+    double quantityAtFirstLocation = pricing!.locations
+        .where((location) => location.sortOrder == 1)
+        .first
+        .quantityAvailable;
+
+    color = quantityAtFirstLocation > 0 ? Colors.green : Colors.amber;
+
+    return color;
   }
 
   String quantityAtLocationText() {
-    return '100+';
+    double totalQuantityAvailable = pricing!.locations
+        .where((location) => location.sortOrder == 1)
+        .first
+        .quantityAvailable;
+
+    return totalQuantityAvailable > 100
+        ? '100+'
+        : totalQuantityAvailable.toString();
   }
 
   double cost() {
-    return 1.0;
+    return pricing!.locations
+        .where((location) => location.sortOrder == 1)
+        .first
+        .cost;
   }
 
   double list() {
-    return 10.0;
+    return pricing!.locations
+        .where((location) => location.sortOrder == 1)
+        .first
+        .list;
   }
 
-  double core() {
-    return 5.0;
+  double? core() {
+    return pricing?.locations
+        .where((location) => location.sortOrder == 1)
+        .first
+        .core;
   }
 }
