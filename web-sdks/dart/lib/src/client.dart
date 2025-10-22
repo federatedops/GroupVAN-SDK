@@ -396,7 +396,7 @@ class VehiclesClient extends ApiClient {
   }
 
   /// Search by VIN with validation
-  Future<Result<List<Vehicle>?>> searchByVin(String vin) async {
+  Future<Result<Vehicle?>> searchByVin(String vin) async {
     // Validate VIN format
     try {
       GroupVanValidators.vin().validateAndThrow(vin, 'vin');
@@ -405,21 +405,17 @@ class VehiclesClient extends ApiClient {
     }
 
     try {
-      final response = await get<List<dynamic>?>(
+      final response = await get<List<dynamic>>(
         '/v3/vehicles/vin',
         queryParameters: {'vin': vin},
-        decoder: (data) => data as List<dynamic>?,
+        decoder: (data) => data as List<dynamic>,
       );
 
-      if (response.data == null) {
-        return const Success(null);
-      }
-
-      final vehicles = response.data!
+      final vehicles = response.data
           .map((item) => Vehicle.fromJson(item as Map<String, dynamic>))
           .toList();
 
-      return Success(vehicles);
+      return Success(vehicles.firstOrNull);
     } catch (e) {
       GroupVanLogger.vehicles.severe('VIN search failed: $e');
       return Failure(
@@ -1166,7 +1162,7 @@ class GroupVANVehicles {
   }
 
   /// Search by VIN
-  Future<List<Vehicle>?> searchByVin(String vin) async {
+  Future<Vehicle?> searchByVin(String vin) async {
     final result = await _client.searchByVin(vin);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
