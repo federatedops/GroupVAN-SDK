@@ -240,112 +240,173 @@ class PartTypeRequest {
   Map<String, dynamic> toJson() => {'id': id, 'name': name};
 }
 
-/// Price range filter
-class PriceRange {
-  final double min;
-  final double max;
-
-  const PriceRange({required this.min, required this.max});
-
-  Map<String, dynamic> toJson() => {'min': min, 'max': max};
-}
-
-/// Product request filters
-class ProductFilters {
-  final List<int>? brandIds;
-  final PriceRange? priceRange;
-
-  const ProductFilters({this.brandIds, this.priceRange});
-
-  Map<String, dynamic> toJson() => {
-    if (brandIds != null) 'brand_ids': brandIds,
-    if (priceRange != null) 'price_range': priceRange!.toJson(),
-  };
-}
-
 /// Product listing request
 class ProductListingRequest {
-  final int catalogId;
   final int vehicleIndex;
-  final List<PartTypeRequest> partTypes;
-  final ProductFilters? filters;
+  final List<int> partTypeIds;
 
   const ProductListingRequest({
-    required this.catalogId,
     required this.vehicleIndex,
-    required this.partTypes,
-    this.filters,
+    required this.partTypeIds,
   });
 
   Map<String, dynamic> toJson() => {
-    'catalog_id': catalogId,
     'vehicle_index': vehicleIndex,
-    'part_types': partTypes.map((pt) => pt.toJson()).toList(),
-    if (filters != null) 'filters': filters!.toJson(),
+    'part_type_ids': partTypeIds.join(','),
   };
 }
 
-/// Product information
-class Product {
-  final String sku;
-  final String partNumber;
-  final String brand;
-  final String description;
-  final double listPrice;
-  final double yourCost;
+class PartApplicationDisplay {
+  final String name;
+  final String value;
 
-  const Product({
-    required this.sku,
-    required this.partNumber,
-    required this.brand,
-    required this.description,
-    required this.listPrice,
-    required this.yourCost,
+  const PartApplicationDisplay({required this.name, required this.value});
+
+  factory PartApplicationDisplay.fromJson(Map<String, dynamic> json) =>
+      PartApplicationDisplay(name: json['name'], value: json['value']);
+}
+
+class PartApplication {
+  final int id;
+  final bool assets;
+  final List<PartApplicationDisplay> displays;
+
+  const PartApplication({
+    required this.id,
+    required this.assets,
+    required this.displays,
   });
 
-  factory Product.fromJson(Map<String, dynamic> json) => Product(
-    sku: json['sku'],
-    partNumber: json['part_number'],
-    brand: json['brand'],
-    description: json['description'],
-    listPrice: (json['list_price'] as num).toDouble(),
-    yourCost: (json['your_cost'] as num).toDouble(),
-  );
+  factory PartApplication.fromJson(Map<String, dynamic> json) =>
+      PartApplication(
+        id: json['id'],
+        assets: json['assets'],
+        displays: json['displays'],
+      );
+}
 
-  Map<String, dynamic> toJson() => {
-    'sku': sku,
-    'part_number': partNumber,
-    'brand': brand,
-    'description': description,
-    'list_price': listPrice,
-    'your_cost': yourCost,
-  };
+class Part {
+  final int sku;
+  final int rank;
+  final int tier;
+  final String mfrCode;
+  final String mfrName;
+  final String autoCareBrandId;
+  final String partNumber;
+  final int? parentPartTypeId;
+  final int partTypeId;
+  final String partTypeName;
+  final bool buyersGuide;
+  final bool productInfo;
+  final bool interchange;
+  final List<PartApplication> applications;
+
+  const Part({
+    required this.sku,
+    required this.rank,
+    required this.tier,
+    required this.mfrCode,
+    required this.mfrName,
+    required this.autoCareBrandId,
+    required this.partNumber,
+    this.parentPartTypeId,
+    required this.partTypeId,
+    required this.partTypeName,
+    required this.buyersGuide,
+    required this.productInfo,
+    required this.interchange,
+    required this.applications,
+  });
+
+  factory Part.fromJson(Map<String, dynamic> json) => Part(
+    sku: json['sku'],
+    rank: json['rank'],
+    tier: json['tier'],
+    mfrCode: json['mfr_code'],
+    mfrName: json['mfr_name'],
+    autoCareBrandId: json['auto_care_brand_id'],
+    partNumber: json['part_number'],
+    parentPartTypeId: json['parent_part_type_id'],
+    partTypeId: json['part_type_id'],
+    partTypeName: json['part_type_name'],
+    buyersGuide: json['buyers_guide'],
+    productInfo: json['product_info'],
+    interchange: json['interchange'],
+    applications: json['applications'],
+  );
+}
+
+class Brand {
+  final String code;
+  final String name;
+
+  const Brand({required this.code, required this.name});
+
+  factory Brand.fromJson(Map<String, dynamic> json) =>
+      Brand(code: json['code'], name: json['name']);
+}
+
+class Attribute {
+  final String name;
+  final int id;
+
+  const Attribute({required this.name, required this.id});
+
+  factory Attribute.fromJson(Map<String, dynamic> json) =>
+      Attribute(name: json['name'], id: json['id']);
+}
+
+class AttributeFamily {
+  final String name;
+  final String key;
+  final List<Attribute> attributes;
+
+  const AttributeFamily({
+    required this.name,
+    required this.key,
+    required this.attributes,
+  });
+
+  factory AttributeFamily.fromJson(Map<String, dynamic> json) =>
+      AttributeFamily(
+        name: json['name'],
+        key: json['key'],
+        attributes: json['attributes'],
+      );
 }
 
 /// Product listing response
-class ProductListingResponse {
-  final List<Product> products;
-  final int totalCount;
-  final int page;
+class ProductListing {
+  final List<Part> parts;
+  final List<Brand> brands;
+  final List<String> shadows;
+  final int partTypeId;
+  final int partTypeName;
+  final List<AttributeFamily> attributeFamilies;
 
-  const ProductListingResponse({
-    required this.products,
-    required this.totalCount,
-    required this.page,
+  const ProductListing({
+    required this.parts,
+    required this.brands,
+    required this.shadows,
+    required this.partTypeId,
+    required this.partTypeName,
+    required this.attributeFamilies,
   });
 
-  factory ProductListingResponse.fromJson(Map<String, dynamic> json) =>
-      ProductListingResponse(
-        products: (json['products'] as List<dynamic>)
-            .map((p) => Product.fromJson(p as Map<String, dynamic>))
-            .toList(),
-        totalCount: json['total_count'],
-        page: json['page'],
-      );
-
-  Map<String, dynamic> toJson() => {
-    'products': products.map((p) => p.toJson()).toList(),
-    'total_count': totalCount,
-    'page': page,
-  };
+  factory ProductListing.fromJson(Map<String, dynamic> json) => ProductListing(
+    parts: (json['parts'] as List<dynamic>)
+        .map((p) => Part.fromJson(p as Map<String, dynamic>))
+        .toList(),
+    brands: (json['brands'] as List<dynamic>)
+        .map((b) => Brand.fromJson(b as Map<String, dynamic>))
+        .toList(),
+    shadows: (json['shadows'] as List<dynamic>)
+        .map((s) => s as String)
+        .toList(),
+    partTypeId: json['part_type_id'],
+    partTypeName: json['part_type_name'],
+    attributeFamilies: (json['attribute_families'] as List<dynamic>)
+        .map((af) => AttributeFamily.fromJson(af as Map<String, dynamic>))
+        .toList(),
+  );
 }

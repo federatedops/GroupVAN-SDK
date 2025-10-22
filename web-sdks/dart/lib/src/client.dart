@@ -857,7 +857,7 @@ class CatalogsClient extends ApiClient {
   }
 
   /// Get product listings with validation
-  Future<Result<ProductListingResponse>> getProducts({
+  Future<Result<List<ProductListing>>> getProducts({
     required ProductListingRequest request,
     String? sessionId,
   }) async {
@@ -865,10 +865,10 @@ class CatalogsClient extends ApiClient {
     final effectiveSessionId = sessionId ?? _sessionCubit.currentSessionId;
 
     try {
-      final response = await post<Map<String, dynamic>>(
+      final response = await post<List<dynamic>>(
         '/v3/catalogs/products',
         data: request.toJson(),
-        decoder: (data) => data as Map<String, dynamic>,
+        decoder: (data) => data as List<dynamic>,
         options: effectiveSessionId != null
             ? Options(
                 headers: {
@@ -880,8 +880,10 @@ class CatalogsClient extends ApiClient {
             : null,
       );
 
-      final productListing = ProductListingResponse.fromJson(response.data);
-      return Success(productListing);
+      final productListings = response.data
+          .map((item) => ProductListing.fromJson(item as Map<String, dynamic>))
+          .toList();
+      return Success(productListings);
     } catch (e) {
       GroupVanLogger.catalogs.severe('Failed to get products: $e');
       return Failure(
@@ -1399,7 +1401,7 @@ class GroupVANCatalogs {
   }
 
   /// Get product listings
-  Future<ProductListingResponse> getProducts({
+  Future<List<ProductListing>> getProducts({
     required ProductListingRequest request,
     String? sessionId,
   }) async {
