@@ -57,4 +57,9 @@ export 'src/models/models.dart'
         VehicleSearchRequest,
         VinSearchRequest,
         PlateSearchRequest,
-        User;
+        User,
+        AssetModel,
+        SpinAssetModel,
+        SpinAssetResponse,
+        ItemPricingModel,
+        ItemPricingLocationModel;
