@@ -532,28 +532,8 @@ class VehiclesClient extends ApiClient {
   }
 
   /// Get fleet vehicles with validation
-  Future<Result<List<Vehicle>>> getFleetVehicles({
-    required String fleetId,
-  }) async {
+  Future<Result<List<Vehicle>>> getFleetVehicles({required int fleetId}) async {
     // Validate fleet ID
-    try {
-      if (fleetId.trim().isEmpty) {
-        throw ValidationException(
-          'Fleet ID cannot be empty',
-          errors: [
-            ValidationError(
-              field: 'fleet_id',
-              message: 'Fleet ID cannot be empty',
-              value: fleetId,
-              rule: 'required',
-            ),
-          ],
-        );
-      }
-    } catch (e) {
-      return Failure(e as ValidationException);
-    }
-
     try {
       final response = await get<List<dynamic>>(
         '/v3/vehicles/fleets/$fleetId',
@@ -1225,7 +1205,7 @@ class GroupVANVehicles {
   }
 
   /// Get fleet vehicles
-  Future<List<Vehicle>> getFleetVehicles({required String fleetId}) async {
+  Future<List<Vehicle>> getFleetVehicles({required int fleetId}) async {
     final result = await _client.getFleetVehicles(fleetId: fleetId);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
