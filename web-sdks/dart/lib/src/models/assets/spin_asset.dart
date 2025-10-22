@@ -1,5 +1,5 @@
-class SpinAssetModel {
-  const SpinAssetModel({
+class SpinAsset {
+  const SpinAsset({
     required this.spinFrames,
     required this.spinPlanes,
     required this.spinUrl,
@@ -9,8 +9,8 @@ class SpinAssetModel {
   final int spinPlanes;
   final String? spinUrl;
 
-  factory SpinAssetModel.fromJson(Map<String, dynamic> json) {
-    return SpinAssetModel(
+  factory SpinAsset.fromJson(Map<String, dynamic> json) {
+    return SpinAsset(
       spinFrames: json['spin_frames'] is int
           ? json['spin_frames']
           : int.tryParse(json['spin_frames']?.toString() ?? '24') ?? 24,
@@ -30,11 +30,11 @@ class SpinAssetResponse {
   });
 
   final bool hasSpinAssets;
-  final List<SpinAssetModel> spinAssets;
+  final List<SpinAsset> spinAssets;
   final int? legacySpinFrames;
 
   factory SpinAssetResponse.fromProductInfo(Map<String, dynamic> productInfo) {
-    List<SpinAssetModel> spinAssets = [];
+    List<SpinAsset> spinAssets = [];
     int? legacySpinFrames;
 
     // Check for modern spin_assets format
@@ -43,7 +43,7 @@ class SpinAssetResponse {
       if (spinAssetsData is List && spinAssetsData.isNotEmpty) {
         for (var assetData in spinAssetsData) {
           if (assetData is Map<String, dynamic>) {
-            spinAssets.add(SpinAssetModel.fromJson(assetData));
+            spinAssets.add(SpinAsset.fromJson(assetData));
           }
         }
       }

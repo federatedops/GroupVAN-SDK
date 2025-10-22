@@ -1,20 +1,20 @@
-class AssetModel {
-  const AssetModel({
+class Asset {
+  const Asset({
     required this.images,
     required this.brandLogo,
     required this.sku,
     required this.spinAsset,
   });
 
-  final List<AssetImageModel> images;
+  final List<AssetImage> images;
   final String brandLogo;
   final int sku;
   final bool spinAsset;
 
-  factory AssetModel.fromJson(Map<String, dynamic> json) {
-    return AssetModel(
-      images: List<AssetImageModel>.from(
-        json['images'].map((image) => AssetImageModel.fromJson(image)),
+  factory Asset.fromJson(Map<String, dynamic> json) {
+    return Asset(
+      images: List<AssetImage>.from(
+        json['images'].map((image) => AssetImage.fromJson(image)),
       ),
       brandLogo: json['logo_file'],
       sku: json['sku'],
@@ -23,8 +23,8 @@ class AssetModel {
   }
 }
 
-class AssetImageModel {
-  const AssetImageModel({
+class AssetImage {
+  const AssetImage({
     required this.primary,
     required this.large,
     required this.medium,
@@ -36,8 +36,8 @@ class AssetImageModel {
   final String medium;
   final String thumb;
 
-  factory AssetImageModel.fromJson(Map<String, dynamic> json) {
-    return AssetImageModel(
+  factory AssetImage.fromJson(Map<String, dynamic> json) {
+    return AssetImage(
       primary: json['is_primary'] == 0 ? false : true,
       large: json['large_path'],
       medium: json['medium_path'],

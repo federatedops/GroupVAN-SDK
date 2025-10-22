@@ -58,8 +58,8 @@ export 'src/models/models.dart'
         VinSearchRequest,
         PlateSearchRequest,
         User,
-        AssetModel,
-        SpinAssetModel,
+        Asset,
+        SpinAsset,
         SpinAssetResponse,
         ItemPricing,
         ItemPricingLocation;

@@ -19,8 +19,8 @@ class Part implements Comparable {
   final bool interchange;
   final List<PartApplication> applications;
 
-  AssetModel? assets;
-  ItemPricingModel? pricing;
+  Asset? assets;
+  ItemPricing? pricing;
 
   Part({
     required this.sku,
