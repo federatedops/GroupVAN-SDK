@@ -315,6 +315,6 @@ class ProductListingRequest {
 
   Map<String, dynamic> toJson() => {
     'vehicle_index': vehicleIndex,
-    'part_type_ids': partTypeIds.join(','),
+    'part_type_ids': partTypeIds,
   };
 }
