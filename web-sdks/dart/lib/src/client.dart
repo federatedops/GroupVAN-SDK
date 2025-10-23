@@ -917,6 +917,31 @@ class CatalogsClient extends ApiClient {
       );
     }
   }
+
+  Future<Result<Interchange>> getInterchange({
+    required String partNumber,
+    List<String>? brands,
+    List<int>? partTypes,
+  }) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/catalogs/interchange',
+        data: {
+          'part_number': partNumber,
+          'brands': brands,
+          'part_types': partTypes,
+        },
+      );
+      return Success(Interchange.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catalogs.severe('Failed to get interchange: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get interchange: $e'),
+      );
+    }
+  }
 }
 
 class ReportsClient extends ApiClient {
@@ -1441,6 +1466,22 @@ class GroupVANCatalogs {
 
   Future<List<Asset>> getProductAssets({required List<int> skus}) async {
     final result = await _client.getProductAssets(skus: skus);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  Future<Interchange> getInterchange({
+    required String partNumber,
+    List<String>? brands,
+    List<int>? partTypes,
+  }) async {
+    final result = await _client.getInterchange(
+      partNumber: partNumber,
+      brands: brands,
+      partTypes: partTypes,
+    );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
