@@ -895,6 +895,28 @@ class CatalogsClient extends ApiClient {
       );
     }
   }
+
+  Future<Result<List<Asset>>> getProductAssets({
+    required List<int> skus,
+  }) async {
+    try {
+      final response = await post<List<dynamic>>(
+        '/v3/catalogs/products/assets',
+        data: {'catalog_skus': skus},
+      );
+      final assets = response.data
+          .map((item) => Asset.fromJson(item as Map<String, dynamic>))
+          .toList();
+      return Success(assets);
+    } catch (e) {
+      GroupVanLogger.catalogs.severe('Failed to get product assets: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get product assets: $e'),
+      );
+    }
+  }
 }
 
 class ReportsClient extends ApiClient {
@@ -1411,6 +1433,14 @@ class GroupVANCatalogs {
       request: request,
       sessionId: sessionId,
     );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  Future<List<Asset>> getProductAssets({required List<int> skus}) async {
+    final result = await _client.getProductAssets(skus: skus);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }

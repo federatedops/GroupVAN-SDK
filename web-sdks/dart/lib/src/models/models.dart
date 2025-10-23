@@ -7,3 +7,4 @@ export 'catalogs.dart';
 export 'products/products.dart';
 export 'assets/assets.dart';
 export 'auth.dart';
+export 'interchange/models.dart';
