@@ -918,7 +918,7 @@ class CatalogsClient extends ApiClient {
     }
   }
 
-  Future<Result<Interchange>> getInterchange({
+  Future<Result<Interchange>> getInterchanges({
     required String partNumber,
     List<String>? brands,
     List<int>? partTypes,
@@ -1472,12 +1472,12 @@ class GroupVANCatalogs {
     return result.value;
   }
 
-  Future<Interchange> getInterchange({
+  Future<Interchange> getInterchanges({
     required String partNumber,
     List<String>? brands,
     List<int>? partTypes,
   }) async {
-    final result = await _client.getInterchange(
+    final result = await _client.getInterchanges(
       partNumber: partNumber,
       brands: brands,
       partTypes: partTypes,
