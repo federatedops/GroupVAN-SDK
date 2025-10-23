@@ -14,11 +14,11 @@ class Asset {
   factory Asset.fromJson(Map<String, dynamic> json) {
     return Asset(
       images: List<AssetImage>.from(
-        json['images'].map((image) => AssetImage.fromJson(image)),
+        json['product_images'].map((image) => AssetImage.fromJson(image)),
       ),
-      brandLogo: json['logo_file'],
+      brandLogo: json['logo'],
       sku: json['sku'],
-      spinAsset: json['spin_exists'] == 0 ? false : true,
+      spinAsset: json['spin_assets'] ?? false,
     );
   }
 }
