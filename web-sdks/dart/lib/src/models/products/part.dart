@@ -55,7 +55,9 @@ class Part implements Comparable {
     buyersGuide: json['buyers_guide'],
     productInfo: json['product_info'],
     interchange: json['interchange'],
-    applications: json['applications'],
+    applications: (json['applications'] as List<dynamic>)
+        .map((a) => PartApplication.fromJson(a as Map<String, dynamic>))
+        .toList(),
   );
 
   @override
