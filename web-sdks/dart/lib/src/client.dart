@@ -900,11 +900,12 @@ class CatalogsClient extends ApiClient {
     required List<int> skus,
   }) async {
     try {
-      final response = await post<List<dynamic>>(
+      final response = await post<Map<String, dynamic>>(
         '/v3/catalogs/products/assets',
         data: {'catalog_skus': skus},
       );
-      final assets = response.data
+      final catalogAssets = response.data['catalog_assets'] as List<dynamic>;
+      final assets = catalogAssets
           .map((item) => Asset.fromJson(item as Map<String, dynamic>))
           .toList();
       return Success(assets);
