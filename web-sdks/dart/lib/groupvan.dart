@@ -32,6 +32,7 @@ export 'src/models/models.dart'
         VehicleSearchResponse,
         VehicleCategory,
         Catalog,
+        CatalogType,
         SupplyCategory,
         SupplySubcategory,
         TopCategory,
