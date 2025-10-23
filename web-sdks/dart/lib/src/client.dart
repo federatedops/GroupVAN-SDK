@@ -1461,7 +1461,32 @@ class GroupVANCatalogs {
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
-    return result.value;
+
+    final skus = <int>[];
+    final itemPricingRequest = <ItemPricingRequest>[];
+    final List<ProductListing> productListings = result.value;
+    for (var product in productListings) {
+      for (var part in product.parts) {
+        skus.add(part.sku);
+        itemPricingRequest.add(
+          ItemPricingRequest(
+            id: part.sku.toString(),
+            mfrCode: part.mfrCode,
+            partNumber: part.partNumber,
+          ),
+        );
+      }
+      product.parts.sort((a, b) => a.rank.compareTo(b.rank));
+    }
+
+    final assets = await getProductAssets(skus: skus);
+    for (var product in productListings) {
+      for (var part in product.parts) {
+        part.assets = assets[part.sku];
+      }
+    }
+
+    return productListings;
   }
 
   Future<List<Asset>> getProductAssets({required List<int> skus}) async {
