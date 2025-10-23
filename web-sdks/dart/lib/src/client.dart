@@ -1486,35 +1486,7 @@ class GroupVANCatalogs {
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
-
-    final skus = <int>[];
-    final itemPricingRequest = <ItemPricingRequest>[];
-    final List<ProductListing> productListings = result.value;
-    for (var product in productListings) {
-      for (var part in product.parts) {
-        skus.add(part.sku);
-        itemPricingRequest.add(
-          ItemPricingRequest(
-            id: part.sku.toString(),
-            mfrCode: part.mfrCode,
-            partNumber: part.partNumber,
-          ),
-        );
-      }
-    }
-
-    final assets = await getProductAssets(skus: skus);
-    final pricing = await getItemPricing(items: itemPricingRequest);
-
-    for (var product in productListings) {
-      for (var part in product.parts) {
-        part.assets = assets[part.sku];
-        part.pricing = pricing[part.sku.toString()];
-      }
-      product.parts.sort((a, b) => a.rank.compareTo(b.rank));
-    }
-
-    return productListings;
+    return result.value;
   }
 
   Future<List<Asset>> getProductAssets({required List<int> skus}) async {
