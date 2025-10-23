@@ -15,7 +15,7 @@ class AttributeFamily {
       AttributeFamily(
         name: json['name'],
         key: json['key'],
-        attributes: (json['attributes'] as List<dynamic>)
+        attributes: ((json['options'] as List<dynamic>?) ?? [])
             .map((a) => Attribute.fromJson(a as Map<String, dynamic>))
             .toList(),
       );

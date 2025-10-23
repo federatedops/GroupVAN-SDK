@@ -15,7 +15,7 @@ class PartApplication {
       PartApplication(
         id: json['id'],
         assets: json['assets'],
-        displays: (json['displays'] as List<dynamic>)
+        displays: ((json['display'] as List<dynamic>?) ?? [])
             .map(
               (d) => PartApplicationDisplay.fromJson(d as Map<String, dynamic>),
             )
