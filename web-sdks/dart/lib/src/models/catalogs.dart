@@ -31,7 +31,7 @@ class PartType {
   });
 
   factory PartType.fromJson(Map<String, dynamic> json) => PartType(
-    displayTier: json['display_tier'],
+    displayTier: DisplayTier.values.byName(json['display_tier']),
     id: json['id'],
     name: json['name'],
     popularityGroup: json['popularity_group'],
