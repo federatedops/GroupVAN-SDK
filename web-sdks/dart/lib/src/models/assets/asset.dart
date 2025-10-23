@@ -38,7 +38,7 @@ class AssetImage {
 
   factory AssetImage.fromJson(Map<String, dynamic> json) {
     return AssetImage(
-      primary: json['is_primary'] == 0 ? false : true,
+      primary: json['primary'] ?? false,
       large: json['large_path'],
       medium: json['medium_path'],
       thumb: json['thumb_path'],
