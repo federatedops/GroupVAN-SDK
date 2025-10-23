@@ -112,7 +112,7 @@ class PartType {
 
 /// Vehicle category information
 class VehicleCategory {
-  final String displayTier;
+  final DisplayTier displayTier;
   final int id;
   final String name;
   final List<PartType> partTypes;
@@ -126,7 +126,7 @@ class VehicleCategory {
 
   factory VehicleCategory.fromJson(Map<String, dynamic> json) =>
       VehicleCategory(
-        displayTier: json['display_tier'],
+        displayTier: DisplayTier.values.byName(json['display_tier']),
         id: json['id'],
         name: json['name'],
         partTypes: (json['part_types'] as List<dynamic>)
@@ -135,7 +135,7 @@ class VehicleCategory {
       );
 
   Map<String, dynamic> toJson() => {
-    'display_tier': displayTier,
+    'display_tier': displayTier.name,
     'id': id,
     'name': name,
     'part_types': partTypes.map((pt) => pt.toJson()).toList(),
