@@ -2,28 +2,28 @@ import 'interchange_brand.dart';
 import 'interchange_part_type.dart';
 import 'interchange_part.dart';
 
-class InterchangeModel {
-  InterchangeModel({required this.brands, this.partTypes, required this.parts});
+class Interchange {
+  Interchange({required this.brands, this.partTypes, required this.parts});
 
-  final List<InterchangeBrandModel> brands;
-  final List<InterchangePartTypeModel>? partTypes;
-  final List<InterchangePartModel> parts;
+  final List<InterchangeBrand> brands;
+  final List<InterchangePartType>? partTypes;
+  final List<InterchangePart> parts;
 
-  factory InterchangeModel.fromJson(Map<String, dynamic> json) {
-    return InterchangeModel(
-      brands: List<InterchangeBrandModel>.from(
-        json['brands'].map((brands) => InterchangeBrandModel.fromJson(brands)),
+  factory Interchange.fromJson(Map<String, dynamic> json) {
+    return Interchange(
+      brands: List<InterchangeBrand>.from(
+        json['brands'].map((brands) => InterchangeBrand.fromJson(brands)),
       ),
       partTypes: json['terms'] != null
-          ? List<InterchangePartTypeModel>.from(
+          ? List<InterchangePartType>.from(
               json['terms'].map(
-                (partType) => InterchangePartTypeModel.fromJson(partType),
+                (partType) => InterchangePartType.fromJson(partType),
               ),
             )
           : null,
-      parts: List<InterchangePartModel>.from(
+      parts: List<InterchangePart>.from(
         json['interchanges'].map(
-          (interchange) => InterchangePartModel.fromJson(interchange),
+          (interchange) => InterchangePart.fromJson(interchange),
         ),
       ),
     );

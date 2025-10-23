@@ -1,5 +1,5 @@
-class InterchangePartModel {
-  InterchangePartModel({
+class InterchangePart {
+  InterchangePart({
     this.id,
     this.name,
     this.alternateName,
@@ -24,8 +24,8 @@ class InterchangePartModel {
   final int sourceSort;
   final int? sku;
 
-  factory InterchangePartModel.fromJson(Map<String, dynamic> json) {
-    return InterchangePartModel(
+  factory InterchangePart.fromJson(Map<String, dynamic> json) {
+    return InterchangePart(
       id: json['brand_id'],
       name: json['brand_name'],
       alternateName: json['alternate_brand_name'],

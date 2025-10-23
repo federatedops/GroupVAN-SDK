@@ -63,7 +63,7 @@ export 'src/models/models.dart'
         SpinAssetResponse,
         ItemPricing,
         ItemPricingLocation,
-        InterchangeModel,
-        InterchangeBrandModel,
-        InterchangePartTypeModel,
-        InterchangePartModel;
+        Interchange,
+        InterchangeBrand,
+        InterchangePartType,
+        InterchangePart;
