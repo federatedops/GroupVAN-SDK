@@ -949,7 +949,7 @@ class CatalogsClient extends ApiClient {
   }) async {
     try {
       final response = await post<Map<String, dynamic>>(
-        'json/federated/v3_1/item_inquiry',
+        '/json/federated/v3_1/item_inquiry',
         data: items.map((item) => item.toJson()).toList(),
         decoder: (data) => data as Map<String, dynamic>,
       );
