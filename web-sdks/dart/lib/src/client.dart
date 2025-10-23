@@ -942,6 +942,30 @@ class CatalogsClient extends ApiClient {
       );
     }
   }
+
+  Future<Result<List<ItemPricing>>> getItemPricing({
+    required List<ItemPricingRequest> items,
+  }) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        'json/federated/v3_1/item_inquiry',
+        data: items.map((item) => item.toJson()).toList(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+      return Success(
+        response.data.entries
+            .map((item) => ItemPricing.fromJson(item as Map<String, dynamic>))
+            .toList(),
+      );
+    } catch (e) {
+      GroupVanLogger.catalogs.severe('Failed to get item pricing: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get item pricing: $e'),
+      );
+    }
+  }
 }
 
 class ReportsClient extends ApiClient {
@@ -1511,6 +1535,20 @@ class GroupVANCatalogs {
       throw Exception('Unexpected error: ${result.error}');
     }
     return result.value;
+  }
+
+  Future<Map<String, ItemPricing>> getItemPricing({
+    required List<ItemPricingRequest> items,
+  }) async {
+    final result = await _client.getItemPricing(items: items);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    Map<String, ItemPricing> pricing = {};
+    for (var item in result.value) {
+      pricing[item.id] = item;
+    }
+    return pricing;
   }
 }
 
