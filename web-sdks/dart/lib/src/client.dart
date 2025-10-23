@@ -1501,14 +1501,17 @@ class GroupVANCatalogs {
           ),
         );
       }
-      product.parts.sort((a, b) => a.rank.compareTo(b.rank));
     }
 
     final assets = await getProductAssets(skus: skus);
+    final pricing = await getItemPricing(items: itemPricingRequest);
+
     for (var product in productListings) {
       for (var part in product.parts) {
         part.assets = assets[part.sku];
+        part.pricing = pricing[part.sku.toString()];
       }
+      product.parts.sort((a, b) => a.rank.compareTo(b.rank));
     }
 
     return productListings;
