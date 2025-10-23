@@ -1,17 +1,80 @@
 enum DisplayTier { primary, secondary }
 
+enum CatalogType {
+  supply,
+  vehicle;
+
+  static CatalogType fromString(String value) {
+    switch (value.toLowerCase()) {
+      case 'supply':
+        return CatalogType.supply;
+      case 'vehicle':
+        return CatalogType.vehicle;
+      default:
+        // Default to supply for unknown types
+        return CatalogType.supply;
+    }
+  }
+
+  @override
+  String toString() {
+    switch (this) {
+      case CatalogType.supply:
+        return 'supply';
+      case CatalogType.vehicle:
+        return 'vehicle';
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case CatalogType.supply:
+        return 'Supply Catalog';
+      case CatalogType.vehicle:
+        return 'Vehicle Catalog';
+    }
+  }
+}
+
 /// Catalog models for the V3 Catalogs API
 class Catalog {
   final int id;
   final String name;
-  final String type;
+  final CatalogType type;
 
   const Catalog({required this.id, required this.name, required this.type});
 
-  factory Catalog.fromJson(Map<String, dynamic> json) =>
-      Catalog(id: json['id'], name: json['name'], type: json['type']);
+  factory Catalog.fromJson(Map<String, dynamic> json) => Catalog(
+    id: json['id'],
+    name: json['name'],
+    type: CatalogType.fromString(json['type']),
+  );
 
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'type': type};
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'type': type.toString(),
+  };
+
+  Catalog copyWith({int? id, String? name, CatalogType? type}) => Catalog(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    type: type ?? this.type,
+  );
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Catalog && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  String toString() {
+    return 'Catalog(id: $id, name: $name, type: $type)';
+  }
 }
 
 /// Part type information used in categories
