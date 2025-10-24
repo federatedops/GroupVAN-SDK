@@ -967,6 +967,23 @@ class CatalogsClient extends ApiClient {
       );
     }
   }
+
+  Future<Result<ProductInfoResponse>> getProductInfo({required int sku}) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/catalogs/products/info',
+        queryParameters: {'sku': sku},
+      );
+      return Success(ProductInfoResponse.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catalogs.severe('Failed to get product info: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get product info: $e'),
+      );
+    }
+  }
 }
 
 class ReportsClient extends ApiClient {
@@ -1525,6 +1542,14 @@ class GroupVANCatalogs {
       pricing[item.id] = item;
     }
     return pricing;
+  }
+
+  Future<ProductInfoResponse> getProductInfo({required int sku}) async {
+    final result = await _client.getProductInfo(sku: sku);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
   }
 }
 

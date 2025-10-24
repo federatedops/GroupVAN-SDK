@@ -8,3 +8,4 @@ export 'products/products.dart';
 export 'assets/assets.dart';
 export 'auth.dart';
 export 'interchange/models.dart';
+export 'product_info/product_info_response.dart';

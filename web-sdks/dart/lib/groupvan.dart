@@ -68,4 +68,7 @@ export 'src/models/models.dart'
         Interchange,
         InterchangeBrand,
         InterchangePartType,
-        InterchangePart;
+        InterchangePart,
+        ProductInfoResponse,
+        InfoAttribute,
+        Document;
