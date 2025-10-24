@@ -88,12 +88,10 @@ class GroupVanClientConfig {
     bool enableCaching = true,
   }) {
     return GroupVanClientConfig(
-      baseUrl: 'http://localhost:5000',
-      //baseUrl: 'https://catalog-sdk-integration.dev.groupvan.com',
+      baseUrl: 'https://catalog-sdk-integration.dev.groupvan.com',
       //baseUrl: 'https://api.staging.groupvan.com',
       httpClientConfig: const HttpClientConfig(
-        baseUrl: 'http://localhost:5000',
-        //baseUrl: 'https://catalog-sdk-integration.dev.groupvan.com',
+        baseUrl: 'https://catalog-sdk-integration.dev.groupvan.com',
         //baseUrl: 'https://api.staging.groupvan.com',
         enableLogging: true,
       ),
