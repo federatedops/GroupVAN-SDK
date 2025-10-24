@@ -984,6 +984,36 @@ class CatalogsClient extends ApiClient {
       );
     }
   }
+
+  Future<Result<SearchResponse>> search({
+    required String query,
+    Vehicle? vehicle,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{'query': query};
+
+      if (vehicle?.year != null) {
+        queryParams['year'] = vehicle!.year;
+      }
+      if (vehicle?.make != null) {
+        queryParams['make'] = vehicle!.make;
+      }
+      if (vehicle?.model != null) {
+        queryParams['model'] = vehicle!.model;
+      }
+
+      final response = await get<Map<String, dynamic>>(
+        '/v2_1/serach/omni',
+        queryParameters: {'query': query},
+      );
+      return Success(SearchResponse.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catalogs.severe('Failed to search: $e');
+      return Failure(
+        e is GroupVanException ? e : NetworkException('Failed to search: $e'),
+      );
+    }
+  }
 }
 
 class ReportsClient extends ApiClient {
@@ -1546,6 +1576,17 @@ class GroupVANCatalogs {
 
   Future<ProductInfoResponse> getProductInfo({required int sku}) async {
     final result = await _client.getProductInfo(sku: sku);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  Future<SearchResponse> search({
+    required String query,
+    Vehicle? vehicle,
+  }) async {
+    final result = await _client.search(query: query, vehicle: vehicle);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }

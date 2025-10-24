@@ -71,4 +71,6 @@ export 'src/models/models.dart'
         InterchangePart,
         ProductInfoResponse,
         InfoAttribute,
-        Document;
+        Document,
+        SearchResponse,
+        SuggestedPart;
