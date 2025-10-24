@@ -1,3 +1,5 @@
+import '../product_info/product_info_response.dart';
+
 class SpinAsset {
   const SpinAsset({
     required this.spinFrames,
@@ -26,43 +28,16 @@ class SpinAssetResponse {
   const SpinAssetResponse({
     required this.hasSpinAssets,
     required this.spinAssets,
-    required this.legacySpinFrames,
   });
 
   final bool hasSpinAssets;
   final List<SpinAsset> spinAssets;
-  final int? legacySpinFrames;
 
-  factory SpinAssetResponse.fromProductInfo(Map<String, dynamic> productInfo) {
-    List<SpinAsset> spinAssets = [];
-    int? legacySpinFrames;
-
-    // Check for modern spin_assets format
-    if (productInfo.containsKey('spin_assets')) {
-      final spinAssetsData = productInfo['spin_assets'];
-      if (spinAssetsData is List && spinAssetsData.isNotEmpty) {
-        for (var assetData in spinAssetsData) {
-          if (assetData is Map<String, dynamic>) {
-            spinAssets.add(SpinAsset.fromJson(assetData));
-          }
-        }
-      }
-    }
-
-    // Check for legacy spinFrames field
-    if (productInfo.containsKey('spinFrames')) {
-      final frames = productInfo['spinFrames'];
-      if (frames != null) {
-        legacySpinFrames = frames is int
-            ? frames
-            : int.tryParse(frames.toString());
-      }
-    }
-
+  factory SpinAssetResponse.fromProductInfo(ProductInfoResponse productInfo) {
+    List<SpinAsset> spinAssets = productInfo.spinAssets ?? [];
     return SpinAssetResponse(
-      hasSpinAssets: spinAssets.isNotEmpty || legacySpinFrames != null,
+      hasSpinAssets: spinAssets.isNotEmpty,
       spinAssets: spinAssets,
-      legacySpinFrames: legacySpinFrames,
     );
   }
 }
