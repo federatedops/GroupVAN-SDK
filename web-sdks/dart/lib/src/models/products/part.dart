@@ -18,7 +18,7 @@ class Part implements Comparable {
   final bool productInfo;
   final bool interchange;
   final List<PartApplication> applications;
-  Asset assets;
+  Asset? assets;
   ItemPricing? pricing;
 
   Part({
@@ -36,7 +36,7 @@ class Part implements Comparable {
     required this.productInfo,
     required this.interchange,
     required this.applications,
-    required this.assets,
+    this.assets,
     this.pricing,
   });
 
