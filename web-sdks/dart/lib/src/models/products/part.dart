@@ -18,8 +18,8 @@ class Part implements Comparable {
   final bool productInfo;
   final bool interchange;
   final List<PartApplication> applications;
-  final Asset assets;
-  final ItemPricing pricing;
+  Asset assets;
+  ItemPricing? pricing;
 
   Part({
     required this.sku,
@@ -37,7 +37,7 @@ class Part implements Comparable {
     required this.interchange,
     required this.applications,
     required this.assets,
-    required this.pricing,
+    this.pricing,
   });
 
   factory Part.fromJson(Map<String, dynamic> json) => Part(
