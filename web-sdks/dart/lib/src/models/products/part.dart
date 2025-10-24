@@ -18,7 +18,7 @@ class Part implements Comparable {
   final bool productInfo;
   final bool interchange;
   final List<PartApplication> applications;
-  Asset assets;
+  Asset? assets;
   ItemPricing? pricing;
 
   Part({
@@ -36,7 +36,7 @@ class Part implements Comparable {
     required this.productInfo,
     required this.interchange,
     required this.applications,
-    required this.assets,
+    this.assets,
     this.pricing,
   });
 
@@ -54,11 +54,15 @@ class Part implements Comparable {
     buyersGuide: json['buyers_guide'],
     productInfo: json['product_info'],
     interchange: json['interchange'],
-    applications: (json['applications'] as List<dynamic>)
+    applications: ((json['applications'] as List<dynamic>?) ?? [])
         .map((a) => PartApplication.fromJson(a as Map<String, dynamic>))
         .toList(),
-    assets: Asset.fromJson(json['asset']),
-    pricing: ItemPricing.fromJson(json['pricing']),
+    assets: json['asset'] != null
+        ? Asset.fromJson(json['asset'] as Map<String, dynamic>)
+        : null,
+    pricing: json['pricing'] != null
+        ? ItemPricing.fromJson(json['pricing'] as Map<String, dynamic>)
+        : null,
   );
 
   @override
