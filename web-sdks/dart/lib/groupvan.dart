@@ -73,4 +73,5 @@ export 'src/models/models.dart'
         InfoAttribute,
         Document,
         SearchResponse,
-        SuggestedPart;
+        SuggestedPart,
+        ApplicationAttribute;
