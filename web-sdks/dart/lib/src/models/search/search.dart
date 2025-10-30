@@ -1,4 +1,3 @@
 library search;
 
-export 'search_response.dart';
-export 'suggested_part.dart';
+export 'omni_response.dart';

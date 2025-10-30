@@ -8,6 +8,7 @@ export 'src/client.dart'
         GroupVANAuth,
         GroupVANVehicles,
         GroupVANCatalogs,
+        GroupVANSearch,
         AuthUser,
         AuthSession,
         AuthChangeEvent,
@@ -72,5 +73,4 @@ export 'src/models/models.dart'
         ProductInfoResponse,
         InfoAttribute,
         Document,
-        SearchResponse,
-        SuggestedPart;
+        OmniSearchResponse;

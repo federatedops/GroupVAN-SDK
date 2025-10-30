@@ -118,6 +118,7 @@ class GroupVanClient {
   late final VehiclesClient _vehiclesClient;
   late final CatalogsClient _catalogsClient;
   late final ReportsClient _reportsClient;
+  late final SearchClient _searchClient;
 
   GroupVanClient(this._config);
 
@@ -141,6 +142,9 @@ class GroupVanClient {
 
   /// Reports API client
   ReportsClient get reports => _reportsClient;
+
+  /// Search API client
+  SearchClient get search => _searchClient;
 
   /// Current authentication status
   auth_models.AuthStatus get authStatus => _authManager.currentStatus;
@@ -187,6 +191,7 @@ class GroupVanClient {
     _vehiclesClient = VehiclesClient(httpClient, _authManager, _sessionCubit);
     _catalogsClient = CatalogsClient(httpClient, _authManager, _sessionCubit);
     _reportsClient = ReportsClient(httpClient, _authManager);
+    _searchClient = SearchClient(httpClient, _authManager, _sessionCubit);
     GroupVanLogger.sdk.warning('DEBUG: API clients initialized');
 
     // Initialize authentication manager (restore tokens if available)
@@ -982,36 +987,6 @@ class CatalogsClient extends ApiClient {
       );
     }
   }
-
-  Future<Result<SearchResponse>> search({
-    required String query,
-    Vehicle? vehicle,
-  }) async {
-    try {
-      final queryParams = <String, dynamic>{'query': query};
-
-      if (vehicle?.year != null) {
-        queryParams['year'] = vehicle!.year;
-      }
-      if (vehicle?.make != null) {
-        queryParams['make'] = vehicle!.make;
-      }
-      if (vehicle?.model != null) {
-        queryParams['model'] = vehicle!.model;
-      }
-
-      final response = await get<Map<String, dynamic>>(
-        '/v2_1/serach/omni',
-        queryParameters: {'query': query},
-      );
-      return Success(SearchResponse.fromJson(response.data));
-    } catch (e) {
-      GroupVanLogger.catalogs.severe('Failed to search: $e');
-      return Failure(
-        e is GroupVanException ? e : NetworkException('Failed to search: $e'),
-      );
-    }
-  }
 }
 
 class ReportsClient extends ApiClient {
@@ -1038,6 +1013,46 @@ class ReportsClient extends ApiClient {
         e is GroupVanException
             ? e
             : NetworkException('Failed to create report: $e'),
+      );
+    }
+  }
+}
+
+/// Search API client for omni search functionality
+class SearchClient extends ApiClient {
+  final SessionCubit _sessionCubit;
+
+  const SearchClient(super.httpClient, super.authManager, this._sessionCubit);
+
+  /// Perform omni search with optional vehicle context
+  Future<Result<OmniSearchResponse>> omni({
+    required String query,
+    int? vehicleIndex,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{'query': query};
+
+      if (vehicleIndex != null) {
+        queryParams['vehicle_index'] = vehicleIndex;
+      }
+
+      final response = await get<Map<String, dynamic>>(
+        '/v3/search/omni',
+        queryParameters: queryParams,
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      // Store session ID if present
+      if (response.sessionId != null) {
+        _sessionCubit.updateSession(response.sessionId!);
+      }
+
+      final searchResponse = OmniSearchResponse.fromJson(response.data);
+      return Success(searchResponse);
+    } catch (e) {
+      GroupVanLogger.sdk.severe('Omni search failed: $e');
+      return Failure(
+        e is GroupVanException ? e : NetworkException('Omni search failed: $e'),
       );
     }
   }
@@ -1166,6 +1181,9 @@ class GroupVAN {
 
   /// Quick access to reports API (deprecated - use client.reports instead)
   GroupVANReports get reports => GroupVANReports._(_client.reports);
+
+  /// Quick access to search API (deprecated - use client.search instead)
+  GroupVANSearch get search => GroupVANSearch._(_client.search);
 
   /// Check if SDK is initialized
   bool get isInitialized => _isInitialized;
@@ -1579,17 +1597,6 @@ class GroupVANCatalogs {
     }
     return result.value;
   }
-
-  Future<SearchResponse> search({
-    required String query,
-    Vehicle? vehicle,
-  }) async {
-    final result = await _client.search(query: query, vehicle: vehicle);
-    if (result.isFailure) {
-      throw Exception('Unexpected error: ${result.error}');
-    }
-    return result.value;
-  }
 }
 
 /// Namespaced reports API
@@ -1600,6 +1607,25 @@ class GroupVANReports {
 
   Future<void> createReport({required Uint8List screenshot, String? message}) =>
       _client.createReport(screenshot: screenshot, message: message);
+}
+
+/// Namespaced search API
+class GroupVANSearch {
+  final SearchClient _client;
+
+  const GroupVANSearch._(this._client);
+
+  /// Perform omni search
+  Future<OmniSearchResponse> omni({
+    required String query,
+    int? vehicleIndex,
+  }) async {
+    final result = await _client.omni(query: query, vehicleIndex: vehicleIndex);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 }
 
 /// Convenient client interface for extraction and reuse (like Supabase pattern)
@@ -1620,6 +1646,9 @@ class GroupVANClient {
 
   /// Reports operations
   GroupVANReports get reports => GroupVANReports._(_client.reports);
+
+  /// Search operations
+  GroupVANSearch get search => GroupVANSearch._(_client.search);
 }
 
 /// Authentication user information
