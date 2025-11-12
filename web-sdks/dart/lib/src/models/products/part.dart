@@ -57,8 +57,9 @@ class Part implements Comparable {
     applications: ((json['applications'] as List<dynamic>?) ?? [])
         .map((a) => PartApplication.fromJson(a as Map<String, dynamic>))
         .toList(),
-    assets: Asset.fromJson(json['asset'] as Map<String, dynamic>),
-
+    assets: json['asset'] != null
+        ? Asset.fromJson(json['asset'] as Map<String, dynamic>)
+        : null,
     pricing: json['pricing'] != null
         ? ItemPricing.fromJson(json['pricing'] as Map<String, dynamic>)
         : null,
