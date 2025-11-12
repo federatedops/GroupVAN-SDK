@@ -9,11 +9,11 @@ class Part implements Comparable {
   final int tier;
   final String mfrCode;
   final String mfrName;
-  final String autoCareBrandId;
+  final String? autoCareBrandId;
   final String partNumber;
   final int? parentPartTypeId;
-  final int partTypeId;
-  final String partTypeName;
+  final int? partTypeId;
+  final String? partTypeName;
   final bool buyersGuide;
   final bool productInfo;
   final bool interchange;
@@ -27,11 +27,11 @@ class Part implements Comparable {
     required this.tier,
     required this.mfrCode,
     required this.mfrName,
-    required this.autoCareBrandId,
+    this.autoCareBrandId,
     required this.partNumber,
     this.parentPartTypeId,
-    required this.partTypeId,
-    required this.partTypeName,
+    this.partTypeId,
+    this.partTypeName,
     required this.buyersGuide,
     required this.productInfo,
     required this.interchange,
