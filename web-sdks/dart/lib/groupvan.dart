@@ -73,4 +73,5 @@ export 'src/models/models.dart'
         ProductInfoResponse,
         InfoAttribute,
         Document,
-        OmniSearchResponse;
+        OmniSearchResponse,
+        MemberCategory;
