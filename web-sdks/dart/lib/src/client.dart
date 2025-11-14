@@ -89,10 +89,10 @@ class GroupVanClientConfig {
   }) {
     return GroupVanClientConfig(
       //baseUrl: 'https://api.staging.groupvan.com',
-      baseUrl: 'https://381-v3-search-queries.dev.groupvan.com',
+      baseUrl: 'v3-search-copy',
       httpClientConfig: const HttpClientConfig(
         //baseUrl: 'https://api.staging.groupvan.com',
-        baseUrl: 'https://381-v3-search-queries.dev.groupvan.com',
+        baseUrl: 'v3-search-copy',
         enableLogging: true,
       ),
       tokenStorage: tokenStorage ?? SecureTokenStorage.platformOptimized(),
