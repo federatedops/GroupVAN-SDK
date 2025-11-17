@@ -76,7 +76,9 @@ class Part implements Comparable {
     int mfrCodeCompare = mfrCode.compareTo(other.mfrCode);
     if (mfrCodeCompare != 0) return mfrCodeCompare;
 
-    int partTypeNameCompare = partTypeName.compareTo(other.partTypeName);
+    int partTypeNameCompare = (partTypeName ?? '').compareTo(
+      other.partTypeName ?? '',
+    );
     if (partTypeNameCompare != 0) return partTypeNameCompare;
 
     return partNumber.compareTo(other.partNumber);
