@@ -872,13 +872,20 @@ class CatalogsClient extends ApiClient {
   }) async* {
     WebSocketChannel? channel;
 
-    String uri = 'ws://127.0.0.1:5000/v3/catalogs/products';
+    final effectiveSessionId = sessionId ?? _sessionCubit.currentSessionId;
+    final baseUri = Uri.parse(httpClient.baseUrl);
+    final wsUri = Uri(
+      scheme: 'wss',
+      host: baseUri.host,
+      path: '/v3/catalogs/products',
+      queryParameters: {
+        'token': authManager.currentStatus.accessToken,
+        if (effectiveSessionId != null) 'session_id': effectiveSessionId,
+      },
+    );
+
     try {
-      channel = WebSocketChannel.connect(
-        Uri.parse(
-          '$uri?token=${authManager.currentStatus.accessToken}&session_id=$sessionId',
-        ),
-      );
+      channel = WebSocketChannel.connect(wsUri);
 
       channel.sink.add(jsonEncode(request.toJson()));
 
