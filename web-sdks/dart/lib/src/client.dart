@@ -6,12 +6,12 @@ library client;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'auth/auth_manager.dart';
 import 'auth/auth_models.dart' as auth_models;
@@ -91,10 +91,12 @@ class GroupVanClientConfig {
   }) {
     return GroupVanClientConfig(
       //baseUrl: 'https://api.staging.groupvan.com',
-      baseUrl: 'https://381-v3-search-queries.dev.groupvan.com',
+      //baseUrl: 'https://412-v3-websockets.dev.groupvan.com',
+      baseUrl: 'http://127.0.0.1:5000',
       httpClientConfig: const HttpClientConfig(
         //baseUrl: 'https://api.staging.groupvan.com',
-        baseUrl: 'https://381-v3-search-queries.dev.groupvan.com',
+        //baseUrl: 'https://412-v3-websockets.dev.groupvan.com',
+        baseUrl: 'http://127.0.0.1:5000',
         enableLogging: true,
       ),
       tokenStorage: tokenStorage ?? SecureTokenStorage.platformOptimized(),
@@ -866,44 +868,45 @@ class CatalogsClient extends ApiClient {
   }
 
   /// Get product listings with validation
-  Stream<ProductListing> getProducts({
+  Stream<List<ProductListing>> getProducts({
     required ProductListingRequest request,
     String? sessionId,
   }) async* {
-    Socket? socket;
+    WebSocketChannel? channel;
+
+    String uri = 'ws://127.0.0.1:5000/v3/catalogs/products';
     try {
-      socket = await Socket.connect('localhost', 8080);
-      socket.write('${jsonEncode(request.toJson())}\n');
-      await socket.flush();
+      channel = WebSocketChannel.connect(
+        Uri.parse(
+          '$uri?token=${authManager.currentStatus.accessToken}&session_id=$sessionId',
+        ),
+      );
 
-      final lineStream = socket
-          .cast<List<int>>()
-          .transform(utf8.decoder)
-          .transform(const LineSplitter());
+      channel.sink.add(jsonEncode(request.toJson()));
 
-      var messageIndex = 0;
-      await for (final line in lineStream) {
-        if (line.trim().isEmpty) continue;
-        messageIndex += 1;
+      List<ProductListing> products = [];
 
-        final dynamic decoded = jsonDecode(line);
-        if (decoded is! Map<String, dynamic>) {
-          continue;
-        }
-
-        if (messageIndex == 1) {
-          final listings = decoded['product_listings'];
-          if (listings is List<dynamic>) {
-            for (final item in listings) {
-              if (item is Map<String, dynamic>) {
-                yield ProductListing.fromJson(item);
-              }
+      await for (final message in channel.stream) {
+        final data = jsonDecode(message);
+        if (data.containsKey('product_listings')) {
+          for (final product in data['product_listings']) {
+            products.add(ProductListing.fromJson(product));
+          }
+          yield products;
+        } else if (data.containsKey('assets')) {
+          final assets = data['assets'];
+          for (final product in products) {
+            for (final part in product.parts) {
+              part.assets = Asset.fromJson(assets[part.sku.toString()]);
             }
           }
-        }
-
-        if (messageIndex >= 3) {
-          break;
+        } else if (data.containsKey('pricing')) {
+          final pricing = data['pricing'];
+          for (final product in products) {
+            for (final part in product.parts) {
+              part.pricing = ItemPricing.fromJson(pricing[part.sku.toString()]);
+            }
+          }
         }
       }
     } catch (e, stackTrace) {
@@ -913,7 +916,7 @@ class CatalogsClient extends ApiClient {
         stackTrace,
       );
     } finally {
-      await socket?.close();
+      await channel?.sink.close();
     }
   }
 
@@ -1556,7 +1559,7 @@ class GroupVANCatalogs {
   }
 
   /// Get product listings
-  Stream<ProductListing> getProducts({
+  Stream<List<ProductListing>> getProducts({
     required ProductListingRequest request,
     String? sessionId,
   }) {
