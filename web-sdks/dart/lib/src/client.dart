@@ -91,12 +91,10 @@ class GroupVanClientConfig {
   }) {
     return GroupVanClientConfig(
       //baseUrl: 'https://api.staging.groupvan.com',
-      //baseUrl: 'https://412-v3-websockets.dev.groupvan.com',
-      baseUrl: 'http://127.0.0.1:5000',
+      baseUrl: 'https://381-v3-search-queries.dev.groupvan.com',
       httpClientConfig: const HttpClientConfig(
         //baseUrl: 'https://api.staging.groupvan.com',
-        //baseUrl: 'https://412-v3-websockets.dev.groupvan.com',
-        baseUrl: 'http://127.0.0.1:5000',
+        baseUrl: 'https://381-v3-search-queries.dev.groupvan.com',
         enableLogging: true,
       ),
       tokenStorage: tokenStorage ?? SecureTokenStorage.platformOptimized(),
