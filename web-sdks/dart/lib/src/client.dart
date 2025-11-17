@@ -5,11 +5,13 @@
 library client;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'auth/auth_manager.dart';
 import 'auth/auth_models.dart' as auth_models;
@@ -864,40 +866,62 @@ class CatalogsClient extends ApiClient {
   }
 
   /// Get product listings with validation
-  Future<Result<List<ProductListing>>> getProducts({
+  Stream<List<ProductListing>> getProducts({
     required ProductListingRequest request,
     String? sessionId,
-  }) async {
-    // Use provided sessionId or get from cubit
+  }) async* {
+    WebSocketChannel? channel;
+
     final effectiveSessionId = sessionId ?? _sessionCubit.currentSessionId;
+    final baseUri = Uri.parse(httpClient.baseUrl);
+    final wsUri = Uri(
+      scheme: 'wss',
+      host: baseUri.host,
+      path: '/v3/catalogs/products',
+      queryParameters: {
+        'token': authManager.currentStatus.accessToken,
+        if (effectiveSessionId != null) 'session_id': effectiveSessionId,
+      },
+    );
 
     try {
-      final response = await post<List<dynamic>>(
-        '/v3/catalogs/products',
-        data: request.toJson(),
-        decoder: (data) => data as List<dynamic>,
-        options: effectiveSessionId != null
-            ? Options(
-                headers: {
-                  'Authorization':
-                      'Bearer ${authManager.currentStatus.accessToken}',
-                  'gv-session-id': effectiveSessionId,
-                },
-              )
-            : null,
-      );
+      channel = WebSocketChannel.connect(wsUri);
 
-      final productListings = response.data
-          .map((item) => ProductListing.fromJson(item as Map<String, dynamic>))
-          .toList();
-      return Success(productListings);
-    } catch (e) {
-      GroupVanLogger.catalogs.severe('Failed to get products: $e');
-      return Failure(
-        e is GroupVanException
-            ? e
-            : NetworkException('Failed to get products: $e'),
+      channel.sink.add(jsonEncode(request.toJson()));
+
+      List<ProductListing> products = [];
+
+      await for (final message in channel.stream) {
+        final data = jsonDecode(message);
+        if (data.containsKey('product_listings')) {
+          for (final product in data['product_listings']) {
+            products.add(ProductListing.fromJson(product));
+          }
+          yield products;
+        } else if (data.containsKey('assets')) {
+          final assets = data['assets'];
+          for (final product in products) {
+            for (final part in product.parts) {
+              part.assets = Asset.fromJson(assets[part.sku.toString()]);
+            }
+          }
+        } else if (data.containsKey('pricing')) {
+          final pricing = data['pricing'];
+          for (final product in products) {
+            for (final part in product.parts) {
+              part.pricing = ItemPricing.fromJson(pricing[part.sku.toString()]);
+            }
+          }
+        }
+      }
+    } catch (e, stackTrace) {
+      GroupVanLogger.catalogs.severe('Failed to stream products: $e');
+      Error.throwWithStackTrace(
+        NetworkException('Failed to stream products: $e'),
+        stackTrace,
       );
+    } finally {
+      await channel?.sink.close();
     }
   }
 
@@ -1540,18 +1564,11 @@ class GroupVANCatalogs {
   }
 
   /// Get product listings
-  Future<List<ProductListing>> getProducts({
+  Stream<List<ProductListing>> getProducts({
     required ProductListingRequest request,
     String? sessionId,
-  }) async {
-    final result = await _client.getProducts(
-      request: request,
-      sessionId: sessionId,
-    );
-    if (result.isFailure) {
-      throw Exception('Unexpected error: ${result.error}');
-    }
-    return result.value;
+  }) {
+    return _client.getProducts(request: request, sessionId: sessionId);
   }
 
   Future<List<Asset>> getProductAssets({required List<int> skus}) async {
