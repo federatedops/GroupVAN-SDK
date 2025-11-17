@@ -5,6 +5,8 @@
 library client;
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -864,40 +866,54 @@ class CatalogsClient extends ApiClient {
   }
 
   /// Get product listings with validation
-  Future<Result<List<ProductListing>>> getProducts({
+  Stream<ProductListing> getProducts({
     required ProductListingRequest request,
     String? sessionId,
-  }) async {
-    // Use provided sessionId or get from cubit
-    final effectiveSessionId = sessionId ?? _sessionCubit.currentSessionId;
-
+  }) async* {
+    Socket? socket;
     try {
-      final response = await post<List<dynamic>>(
-        '/v3/catalogs/products',
-        data: request.toJson(),
-        decoder: (data) => data as List<dynamic>,
-        options: effectiveSessionId != null
-            ? Options(
-                headers: {
-                  'Authorization':
-                      'Bearer ${authManager.currentStatus.accessToken}',
-                  'gv-session-id': effectiveSessionId,
-                },
-              )
-            : null,
-      );
+      socket = await Socket.connect('localhost', 8080);
+      socket.write('${jsonEncode(request.toJson())}\n');
+      await socket.flush();
 
-      final productListings = response.data
-          .map((item) => ProductListing.fromJson(item as Map<String, dynamic>))
-          .toList();
-      return Success(productListings);
-    } catch (e) {
-      GroupVanLogger.catalogs.severe('Failed to get products: $e');
-      return Failure(
-        e is GroupVanException
-            ? e
-            : NetworkException('Failed to get products: $e'),
+      final lineStream = socket
+          .cast<List<int>>()
+          .transform(utf8.decoder)
+          .transform(const LineSplitter());
+
+      var messageIndex = 0;
+      await for (final line in lineStream) {
+        if (line.trim().isEmpty) continue;
+        messageIndex += 1;
+
+        final dynamic decoded = jsonDecode(line);
+        if (decoded is! Map<String, dynamic>) {
+          continue;
+        }
+
+        if (messageIndex == 1) {
+          final listings = decoded['product_listings'];
+          if (listings is List<dynamic>) {
+            for (final item in listings) {
+              if (item is Map<String, dynamic>) {
+                yield ProductListing.fromJson(item);
+              }
+            }
+          }
+        }
+
+        if (messageIndex >= 3) {
+          break;
+        }
+      }
+    } catch (e, stackTrace) {
+      GroupVanLogger.catalogs.severe('Failed to stream products: $e');
+      Error.throwWithStackTrace(
+        NetworkException('Failed to stream products: $e'),
+        stackTrace,
       );
+    } finally {
+      await socket?.close();
     }
   }
 
@@ -1540,18 +1556,11 @@ class GroupVANCatalogs {
   }
 
   /// Get product listings
-  Future<List<ProductListing>> getProducts({
+  Stream<ProductListing> getProducts({
     required ProductListingRequest request,
     String? sessionId,
-  }) async {
-    final result = await _client.getProducts(
-      request: request,
-      sessionId: sessionId,
-    );
-    if (result.isFailure) {
-      throw Exception('Unexpected error: ${result.error}');
-    }
-    return result.value;
+  }) {
+    return _client.getProducts(request: request, sessionId: sessionId);
   }
 
   Future<List<Asset>> getProductAssets({required List<int> skus}) async {
