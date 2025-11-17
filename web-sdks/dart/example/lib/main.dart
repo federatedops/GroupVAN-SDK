@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:groupvan/groupvan.dart';
 import 'package:groupvan_sdk_example_app/link_provider_page.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 
 import 'auth_status.dart';
 import 'link_account_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  HydratedBloc.storage = await HydratedStorage.build(
+    storageDirectory: kIsWeb
+        ? HydratedStorageDirectory.web
+        : HydratedStorageDirectory((await getTemporaryDirectory()).path),
+  );
+
   await GroupVAN.initialize(
     isProduction: false,
     enableLogging: true,

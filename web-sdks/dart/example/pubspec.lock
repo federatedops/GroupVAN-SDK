@@ -208,7 +208,7 @@ packages:
     source: hosted
     version: "4.1.2"
   hydrated_bloc:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: hydrated_bloc
       sha256: f359a1135cc2eaddb53eeb21c8f915a149b9bdb80d01fda27c6f4e333db0cf2f
