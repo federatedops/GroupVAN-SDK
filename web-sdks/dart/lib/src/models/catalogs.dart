@@ -79,10 +79,10 @@ class Catalog {
 
 /// Part type information used in categories
 class PartType {
-  final DisplayTier displayTier;
+  final DisplayTier? displayTier;
   final int id;
   final String name;
-  final int popularityGroup;
+  final int? popularityGroup;
   final List<String> slangList;
 
   const PartType({
@@ -94,7 +94,9 @@ class PartType {
   });
 
   factory PartType.fromJson(Map<String, dynamic> json) => PartType(
-    displayTier: DisplayTier.values.byName(json['display_tier']),
+    displayTier: json['display_tier'] != null
+        ? DisplayTier.values.byName(json['display_tier'])
+        : null,
     id: json['id'],
     name: json['name'],
     popularityGroup: json['popularity_group'],
