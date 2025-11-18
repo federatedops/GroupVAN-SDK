@@ -90,11 +90,9 @@ class GroupVanClientConfig {
     bool enableCaching = true,
   }) {
     return GroupVanClientConfig(
-      //baseUrl: 'https://api.staging.groupvan.com',
-      baseUrl: 'https://381-v3-search-queries.dev.groupvan.com',
+      baseUrl: 'https://api.staging.groupvan.com',
       httpClientConfig: const HttpClientConfig(
-        //baseUrl: 'https://api.staging.groupvan.com',
-        baseUrl: 'https://381-v3-search-queries.dev.groupvan.com',
+        baseUrl: 'https://api.staging.groupvan.com',
         enableLogging: true,
       ),
       tokenStorage: tokenStorage ?? SecureTokenStorage.platformOptimized(),
