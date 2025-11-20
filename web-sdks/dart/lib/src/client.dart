@@ -905,6 +905,7 @@ class CatalogsClient extends ApiClient {
               part.assets = Asset.fromJson(assets[part.sku.toString()]);
             }
           }
+          yield products;
         } else if (data.containsKey('pricing')) {
           final pricing = data['pricing'];
           for (final product in products) {
@@ -912,6 +913,7 @@ class CatalogsClient extends ApiClient {
               part.pricing = ItemPricing.fromJson(pricing[part.sku.toString()]);
             }
           }
+          yield products;
         }
       }
     } catch (e, stackTrace) {
