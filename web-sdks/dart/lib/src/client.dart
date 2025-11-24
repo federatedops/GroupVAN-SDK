@@ -1057,6 +1057,8 @@ class SearchClient extends ApiClient {
     required String query,
     int? vehicleIndex,
   }) async {
+    final sessionId = _sessionCubit.currentSessionId;
+
     try {
       final queryParams = <String, dynamic>{'query': query};
 
@@ -1068,6 +1070,9 @@ class SearchClient extends ApiClient {
         '/v3/search/omni',
         queryParameters: queryParams,
         decoder: (data) => data as Map<String, dynamic>,
+        options: sessionId != null
+            ? Options(headers: {'gv-session-id': sessionId})
+            : null,
       );
 
       // Store session ID if present
