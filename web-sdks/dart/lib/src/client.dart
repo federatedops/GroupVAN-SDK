@@ -1056,6 +1056,7 @@ class SearchClient extends ApiClient {
   Future<Result<OmniSearchResponse>> omni({
     required String query,
     int? vehicleIndex,
+    bool? disableFilters,
   }) async {
     final sessionId = _sessionCubit.currentSessionId;
 
@@ -1064,6 +1065,9 @@ class SearchClient extends ApiClient {
 
       if (vehicleIndex != null) {
         queryParams['vehicle_index'] = vehicleIndex;
+      }
+      if (disableFilters != null) {
+        queryParams['disable_filters'] = disableFilters;
       }
 
       final response = await get<Map<String, dynamic>>(
@@ -1645,8 +1649,13 @@ class GroupVANSearch {
   Future<OmniSearchResponse> omni({
     required String query,
     int? vehicleIndex,
+    bool? disableFilters,
   }) async {
-    final result = await _client.omni(query: query, vehicleIndex: vehicleIndex);
+    final result = await _client.omni(
+      query: query,
+      vehicleIndex: vehicleIndex,
+      disableFilters: disableFilters,
+    );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
