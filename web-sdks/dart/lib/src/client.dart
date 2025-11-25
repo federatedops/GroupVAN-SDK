@@ -710,13 +710,19 @@ class CatalogsClient extends ApiClient {
     required int catalogId,
     required int engineIndex,
     String? sessionId,
+    bool? disableFilters,
   }) async {
     // Use provided sessionId or get from cubit
     final effectiveSessionId = sessionId ?? _sessionCubit.currentSessionId;
+    final queryParams = <String, dynamic>{};
+    if (disableFilters != null) {
+      queryParams['disable_filters'] = disableFilters;
+    }
 
     try {
       final response = await get<List<dynamic>>(
         '/v3/catalogs/$catalogId/vehicle/$engineIndex/categories',
+        queryParameters: queryParams,
         decoder: (data) => data as List<dynamic>,
         options: effectiveSessionId != null
             ? Options(
@@ -1527,11 +1533,13 @@ class GroupVANCatalogs {
     required int catalogId,
     required int engineIndex,
     String? sessionId,
+    bool? disableFilters,
   }) async {
     final result = await _client.getVehicleCategories(
       catalogId: catalogId,
       engineIndex: engineIndex,
       sessionId: sessionId,
+      disableFilters: disableFilters,
     );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
