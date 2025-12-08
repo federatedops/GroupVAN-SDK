@@ -672,6 +672,31 @@ class VehiclesClient extends ApiClient {
       );
     }
   }
+
+  /// Get previously selected part types for a vehicle
+  Future<Result<List<PartType>>> getPreviousPartTypes({
+    required int vehicleIndex,
+  }) async {
+    try {
+      final response = await get<List<dynamic>>(
+        '/v3/vehicles/$vehicleIndex/part_types',
+        decoder: (data) => data as List<dynamic>,
+      );
+
+      final partTypes = response.data
+          .map((item) => PartType.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      return Success(partTypes);
+    } catch (e) {
+      GroupVanLogger.vehicles.severe('Failed to get previous part types: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get previous part types: $e'),
+      );
+    }
+  }
 }
 
 /// Catalogs API client with comprehensive catalog management
@@ -1503,6 +1528,19 @@ class GroupVANVehicles {
     final result = await _client.getAccountVehicles(
       offset: offset,
       limit: limit,
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get previously selected part types for a vehicle
+  Future<List<PartType>> getPreviousPartTypes({
+    required int vehicleIndex,
+  }) async {
+    final result = await _client.getPreviousPartTypes(
+      vehicleIndex: vehicleIndex,
     );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
