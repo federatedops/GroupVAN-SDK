@@ -677,10 +677,21 @@ class VehiclesClient extends ApiClient {
   Future<Result<List<PartType>>> getPreviousPartTypes({
     required int vehicleIndex,
   }) async {
+    final sessionId = _sessionCubit.currentSessionId;
+
     try {
       final response = await get<List<dynamic>>(
         '/v3/vehicles/$vehicleIndex/part_types',
         decoder: (data) => data as List<dynamic>,
+        options: sessionId != null
+            ? Options(
+                headers: {
+                  'Authorization':
+                      'Bearer ${authManager.currentStatus.accessToken}',
+                  'gv-session-id': sessionId,
+                },
+              )
+            : null,
       );
 
       final partTypes = response.data
