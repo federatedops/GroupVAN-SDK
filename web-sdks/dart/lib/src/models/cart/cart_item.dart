@@ -36,7 +36,7 @@ class CartItem {
     quantity: json['quantity'],
     memberNumber: json['member_number'],
     locationId: json['location_id'],
-    type: CartItemType.values.byName(json['type']),
+    type: CartItemType.values.byName(json['item_type']),
     sku: json['sku'],
     id: json['id'],
   );
@@ -50,7 +50,7 @@ class CartItem {
     'quantity': quantity,
     'member_number': memberNumber,
     'location_id': locationId,
-    'type': type.name,
+    'item_type': type.name,
     'sku': sku,
     'id': id,
   };
