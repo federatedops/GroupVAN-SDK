@@ -121,6 +121,7 @@ class GroupVanClient {
   late final CatalogsClient _catalogsClient;
   late final ReportsClient _reportsClient;
   late final SearchClient _searchClient;
+  late final CartClient _cartClient;
 
   GroupVanClient(this._config);
 
@@ -147,6 +148,9 @@ class GroupVanClient {
 
   /// Search API client
   SearchClient get search => _searchClient;
+
+  /// Cart API client
+  CartClient get cart => _cartClient;
 
   /// Current authentication status
   auth_models.AuthStatus get authStatus => _authManager.currentStatus;
@@ -194,6 +198,7 @@ class GroupVanClient {
     _catalogsClient = CatalogsClient(httpClient, _authManager, _sessionCubit);
     _reportsClient = ReportsClient(httpClient, _authManager);
     _searchClient = SearchClient(httpClient, _authManager, _sessionCubit);
+    _cartClient = CartClient(httpClient, _authManager, _sessionCubit);
     GroupVanLogger.sdk.warning('DEBUG: API clients initialized');
 
     // Initialize authentication manager (restore tokens if available)
@@ -311,6 +316,41 @@ abstract class ApiClient {
     };
 
     return await httpClient.post<T>(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      decoder: decoder,
+      options: Options(
+        headers: headers,
+        method: options?.method,
+        sendTimeout: options?.sendTimeout,
+        receiveTimeout: options?.receiveTimeout,
+        extra: options?.extra,
+        followRedirects: options?.followRedirects,
+        maxRedirects: options?.maxRedirects,
+        persistentConnection: options?.persistentConnection,
+        requestEncoder: options?.requestEncoder,
+        responseDecoder: options?.responseDecoder,
+        responseType: options?.responseType,
+        validateStatus: options?.validateStatus,
+      ),
+    );
+  }
+
+  /// Make an authenticated DELETE request
+  Future<GroupVanResponse<T>> delete<T>(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    T Function(dynamic)? decoder,
+    Options? options,
+  }) async {
+    final headers = <String, dynamic>{
+      'Authorization': 'Bearer ${authManager.currentStatus.accessToken}',
+      ...?options?.headers,
+    };
+
+    return await httpClient.delete<T>(
       path,
       data: data,
       queryParameters: queryParameters,
@@ -1057,6 +1097,75 @@ class CatalogsClient extends ApiClient {
   }
 }
 
+/// Cart API client for cart item management
+class CartClient extends ApiClient {
+  final SessionCubit _sessionCubit;
+
+  const CartClient(super.httpClient, super.authManager, this._sessionCubit);
+
+  /// Add items to cart
+  Future<Result<CartResponse>> addToCart({
+    required AddToCartRequest request,
+  }) async {
+    final sessionId = _sessionCubit.currentSessionId;
+
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/cart/items',
+        data: request.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+        options: sessionId != null
+            ? Options(headers: {'gv-session-id': sessionId})
+            : null,
+      );
+
+      if (response.sessionId != null) {
+        _sessionCubit.updateSession(response.sessionId!);
+      }
+
+      return Success(CartResponse.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.cart.severe('Failed to add items to cart: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to add items to cart: $e'),
+      );
+    }
+  }
+
+  /// Remove items from cart
+  Future<Result<CartResponse>> removeFromCart({
+    required RemoveFromCartRequest request,
+  }) async {
+    final sessionId = _sessionCubit.currentSessionId;
+
+    try {
+      final response = await delete<Map<String, dynamic>>(
+        '/v3/cart/items',
+        data: request.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+        options: sessionId != null
+            ? Options(headers: {'gv-session-id': sessionId})
+            : null,
+      );
+
+      if (response.sessionId != null) {
+        _sessionCubit.updateSession(response.sessionId!);
+      }
+
+      return Success(CartResponse.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.cart.severe('Failed to remove items from cart: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to remove items from cart: $e'),
+      );
+    }
+  }
+}
+
 class ReportsClient extends ApiClient {
   const ReportsClient(super.httpClient, super.authManager);
 
@@ -1255,6 +1364,9 @@ class GroupVAN {
 
   /// Quick access to catalogs API (deprecated - use client.catalogs instead)
   GroupVANCatalogs get catalogs => GroupVANCatalogs._(_client.catalogs);
+
+  /// Quick access to cart API (deprecated - use client.cart instead)
+  GroupVANCart get cart => GroupVANCart._(_client.cart);
 
   /// Quick access to reports API (deprecated - use client.reports instead)
   GroupVANReports get reports => GroupVANReports._(_client.reports);
@@ -1684,6 +1796,31 @@ class GroupVANCatalogs {
   }
 }
 
+/// Namespaced cart API
+class GroupVANCart {
+  final CartClient _client;
+
+  const GroupVANCart._(this._client);
+
+  /// Add items to cart
+  Future<CartResponse> addToCart(AddToCartRequest request) async {
+    final result = await _client.addToCart(request: request);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Remove items from cart
+  Future<CartResponse> removeFromCart(RemoveFromCartRequest request) async {
+    final result = await _client.removeFromCart(request: request);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+}
+
 /// Namespaced reports API
 class GroupVANReports {
   final ReportsClient _client;
@@ -1733,6 +1870,9 @@ class GroupVANClient {
 
   /// Catalog operations
   GroupVANCatalogs get catalogs => GroupVANCatalogs._(_client.catalogs);
+
+  /// Cart operations
+  GroupVANCart get cart => GroupVANCart._(_client.cart);
 
   /// Reports operations
   GroupVANReports get reports => GroupVANReports._(_client.reports);

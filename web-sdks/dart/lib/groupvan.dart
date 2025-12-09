@@ -39,7 +39,6 @@ export 'src/models/models.dart'
         TopCategory,
         ApplicationAsset,
         ApplicationAssetsRequest,
-        CartItem,
         DisplayTier,
         PartType,
         PartTypeRequest,
@@ -74,4 +73,9 @@ export 'src/models/models.dart'
         InfoAttribute,
         Document,
         OmniSearchResponse,
-        MemberCategory;
+        MemberCategory,
+        AddToCartRequest,
+        RemoveFromCartRequest,
+        CartResponse,
+        CartItem,
+        CartItemType;

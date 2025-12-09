@@ -17,6 +17,9 @@ class GroupVanLogger {
   /// Logger for catalog operations
   static final Logger catalogs = Logger('GroupVAN.SDK.Catalogs');
 
+  /// Logger for cart operations
+  static final Logger cart = Logger('GroupVAN.SDK.Cart');
+
   /// Logger for authentication operations
   static final Logger auth = Logger('GroupVAN.SDK.Auth');
 

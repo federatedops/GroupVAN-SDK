@@ -242,59 +242,6 @@ class ApplicationAssetsRequest {
   };
 }
 
-/// Cart item information
-class CartItem {
-  final String sku;
-  final String mfrCode;
-  final String partNumber;
-  final double list;
-  final double cost;
-  final double core;
-  final int orderQuantity;
-  final String locationId;
-  final String partDescription;
-  final int baseVehicleId;
-
-  const CartItem({
-    required this.sku,
-    required this.mfrCode,
-    required this.partNumber,
-    required this.list,
-    required this.cost,
-    required this.core,
-    required this.orderQuantity,
-    required this.locationId,
-    required this.partDescription,
-    required this.baseVehicleId,
-  });
-
-  factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
-    sku: json['sku'],
-    mfrCode: json['mfr_code'],
-    partNumber: json['part_number'],
-    list: (json['list'] as num).toDouble(),
-    cost: (json['cost'] as num).toDouble(),
-    core: (json['core'] as num).toDouble(),
-    orderQuantity: json['order_quantity'],
-    locationId: json['location_id'],
-    partDescription: json['part_description'],
-    baseVehicleId: json['base_vehicle_id'],
-  );
-
-  Map<String, dynamic> toJson() => {
-    'sku': sku,
-    'mfr_code': mfrCode,
-    'part_number': partNumber,
-    'list': list,
-    'cost': cost,
-    'core': core,
-    'order_quantity': orderQuantity,
-    'location_id': locationId,
-    'part_description': partDescription,
-    'base_vehicle_id': baseVehicleId,
-  };
-}
-
 /// Part type for product requests
 class PartTypeRequest {
   final int id;
