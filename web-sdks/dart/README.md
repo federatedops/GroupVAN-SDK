@@ -440,6 +440,489 @@ See `example/elite_sdk_example.dart` for a comprehensive demonstration of:
 - Error handling patterns
 - Authentication status monitoring
 
+## 🔐 Admin Features (Impersonation & 2FA)
+
+The SDK provides admin functionality for users with the `catalog_developer` role, enabling secure user impersonation for debugging and support purposes.
+
+### Security Features (SOC2 Compliant)
+
+- **Mandatory 2FA** for every impersonation session
+- **Three 2FA methods** (in priority order):
+  1. **Passkey/WebAuthn** - Most secure, phishing-resistant (Touch ID, Face ID, Windows Hello, YubiKey)
+  2. **TOTP** - Authenticator app (Google Authenticator, Authy, 1Password)
+  3. **Email OTP** - Fallback option, always available
+- **1-hour session limit** with automatic expiration
+- **Complete audit trail** for compliance
+- **Rate limiting** (5 attempts per hour)
+
+### Quick Start: User Impersonation
+
+```dart
+import 'package:groupvan/groupvan.dart';
+
+// Access admin features (requires catalog_developer role)
+final admin = GroupVAN.instance.admin;
+
+// Check available 2FA methods
+final status = await admin.getTwoFactorStatus();
+print('Passkey enabled: ${status.passkeyEnabled}');
+print('TOTP enabled: ${status.totpEnabled}');
+print('Recommended method: ${status.recommendedMethod}');
+
+// Start impersonation with TOTP or email OTP
+final session = await admin.startImpersonation(
+  targetUserId: 'user-uuid-to-impersonate',
+  twoFactorCode: '123456',  // From authenticator app or email
+);
+
+print('Impersonating: ${session.targetEmail}');
+print('Session expires: ${session.expiresAt}');
+
+// All API calls now act as the impersonated user
+final vehicles = await GroupVAN.instance.vehicles.getUserVehicles();
+
+// End impersonation (restores admin identity)
+await admin.endImpersonation();
+```
+
+### Passkey Authentication (Recommended)
+
+Passkeys provide the highest level of security - they're phishing-resistant and use biometric verification (Touch ID, Face ID, Windows Hello) or hardware security keys.
+
+#### Setup: Register a Passkey (One-time)
+
+```dart
+import 'package:groupvan/groupvan.dart';
+import 'dart:html' as html;  // For web
+import 'dart:convert';
+
+final admin = GroupVAN.instance.admin;
+
+// Step 1: Begin registration ceremony
+final beginResponse = await admin.beginPasskeyRegistration();
+
+// Step 2: Call WebAuthn API (browser/platform)
+final credential = await _createPasskeyCredential(beginResponse.options);
+
+// Step 3: Complete registration
+final result = await admin.completePasskeyRegistration(
+  challengeId: beginResponse.challengeId,
+  credential: credential,
+  deviceName: 'MacBook Pro Touch ID',  // Optional friendly name
+);
+
+print('Passkey registered: ${result.passkeyId}');
+```
+
+#### Usage: Impersonate with Passkey
+
+```dart
+final admin = GroupVAN.instance.admin;
+
+// Step 1: Begin authentication ceremony
+final authResponse = await admin.beginPasskeyAuthentication();
+
+// Step 2: Call WebAuthn API (user touches Touch ID / Face ID / security key)
+final credential = await _getPasskeyCredential(authResponse.options);
+
+// Step 3: Start impersonation with passkey
+final session = await admin.startImpersonationWithPasskey(
+  targetUserId: 'user-uuid-to-impersonate',
+  passkeyChallengeId: authResponse.challengeId,
+  passkeyCredential: credential,
+);
+
+print('Impersonating with passkey: ${session.targetEmail}');
+```
+
+### Flutter Web: WebAuthn Integration
+
+For Flutter Web, use the browser's WebAuthn API via `dart:html`:
+
+```dart
+import 'dart:html' as html;
+import 'dart:convert';
+import 'dart:typed_data';
+
+/// Create a new passkey credential (registration)
+Future<Map<String, dynamic>> createPasskeyCredential(
+  Map<String, dynamic> options,
+) async {
+  // Convert base64url challenge to Uint8Array
+  final challenge = _base64UrlDecode(options['challenge']);
+  final userId = _base64UrlDecode(options['user']['id']);
+
+  final publicKeyCredentialCreationOptions = {
+    'challenge': challenge,
+    'rp': options['rp'],
+    'user': {
+      'id': userId,
+      'name': options['user']['name'],
+      'displayName': options['user']['displayName'],
+    },
+    'pubKeyCredParams': options['pubKeyCredParams'],
+    'timeout': options['timeout'],
+    'attestation': options['attestation'] ?? 'none',
+    'authenticatorSelection': options['authenticatorSelection'],
+  };
+
+  final credential = await html.window.navigator.credentials!.create(
+    {'publicKey': publicKeyCredentialCreationOptions},
+  ) as html.PublicKeyCredential;
+
+  // Convert response to JSON for API
+  final response = credential.response as html.AuthenticatorAttestationResponse;
+  return {
+    'id': credential.id,
+    'rawId': _base64UrlEncode(Uint8List.view(credential.rawId!)),
+    'type': credential.type,
+    'response': {
+      'clientDataJSON': _base64UrlEncode(
+        Uint8List.view(response.clientDataJson!),
+      ),
+      'attestationObject': _base64UrlEncode(
+        Uint8List.view(response.attestationObject!),
+      ),
+    },
+  };
+}
+
+/// Get existing passkey credential (authentication)
+Future<Map<String, dynamic>> getPasskeyCredential(
+  Map<String, dynamic> options,
+) async {
+  final challenge = _base64UrlDecode(options['challenge']);
+
+  final allowCredentials = (options['allowCredentials'] as List?)?.map((cred) {
+    return {
+      'id': _base64UrlDecode(cred['id']),
+      'type': cred['type'],
+      'transports': cred['transports'],
+    };
+  }).toList();
+
+  final publicKeyCredentialRequestOptions = {
+    'challenge': challenge,
+    'timeout': options['timeout'],
+    'rpId': options['rpId'],
+    'allowCredentials': allowCredentials,
+    'userVerification': options['userVerification'] ?? 'preferred',
+  };
+
+  final credential = await html.window.navigator.credentials!.get(
+    {'publicKey': publicKeyCredentialRequestOptions},
+  ) as html.PublicKeyCredential;
+
+  final response = credential.response as html.AuthenticatorAssertionResponse;
+  return {
+    'id': credential.id,
+    'rawId': _base64UrlEncode(Uint8List.view(credential.rawId!)),
+    'type': credential.type,
+    'response': {
+      'clientDataJSON': _base64UrlEncode(
+        Uint8List.view(response.clientDataJson!),
+      ),
+      'authenticatorData': _base64UrlEncode(
+        Uint8List.view(response.authenticatorData!),
+      ),
+      'signature': _base64UrlEncode(
+        Uint8List.view(response.signature!),
+      ),
+      'userHandle': response.userHandle != null
+          ? _base64UrlEncode(Uint8List.view(response.userHandle!))
+          : null,
+    },
+  };
+}
+
+// Base64URL encoding/decoding helpers
+Uint8List _base64UrlDecode(String input) {
+  String normalized = input.replaceAll('-', '+').replaceAll('_', '/');
+  while (normalized.length % 4 != 0) {
+    normalized += '=';
+  }
+  return base64Decode(normalized);
+}
+
+String _base64UrlEncode(Uint8List data) {
+  return base64Encode(data).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+}
+```
+
+### Flutter Mobile: Platform-Specific Passkey Integration
+
+For iOS and Android, use platform channels or a package like `passkeys` or `webauthn`:
+
+```dart
+// Example using a passkey package (conceptual)
+import 'package:passkeys/passkeys.dart';
+
+class PasskeyService {
+  final _passkeys = Passkeys();
+
+  Future<Map<String, dynamic>> createCredential(Map<String, dynamic> options) async {
+    final credential = await _passkeys.register(
+      challenge: options['challenge'],
+      rpId: options['rp']['id'],
+      rpName: options['rp']['name'],
+      userId: options['user']['id'],
+      userName: options['user']['name'],
+    );
+    return credential.toJson();
+  }
+
+  Future<Map<String, dynamic>> getCredential(Map<String, dynamic> options) async {
+    final credential = await _passkeys.authenticate(
+      challenge: options['challenge'],
+      rpId: options['rpId'],
+      allowCredentials: options['allowCredentials'],
+    );
+    return credential.toJson();
+  }
+}
+```
+
+### Managing Passkeys
+
+```dart
+final admin = GroupVAN.instance.admin;
+
+// List all registered passkeys
+final passkeys = await admin.getPasskeys();
+for (final passkey in passkeys) {
+  print('${passkey.deviceName}: ${passkey.authenticatorType}');
+  print('  Created: ${passkey.createdAt}');
+  print('  Last used: ${passkey.lastUsedAt}');
+}
+
+// Revoke a passkey
+await admin.revokePasskey(passkeyId: 'passkey-uuid');
+```
+
+### TOTP Setup (Authenticator App)
+
+```dart
+final admin = GroupVAN.instance.admin;
+
+// Step 1: Get setup info
+final setup = await admin.setupTotp();
+print('Secret: ${setup.secret}');
+print('QR Code URI: ${setup.qrCodeUri}');
+
+// Step 2: Display QR code to user (use qr_flutter package)
+// QrImageView(data: setup.qrCodeUri)
+
+// Step 3: User scans QR, enters code to verify
+final verified = await admin.verifyTotp(code: '123456');
+if (verified) {
+  print('TOTP enabled successfully!');
+}
+```
+
+### Email OTP (Fallback)
+
+```dart
+final admin = GroupVAN.instance.admin;
+
+// Request email OTP
+final response = await admin.requestEmailOtp();
+print('OTP sent to: ${response.emailMasked}');  // j***@example.com
+print('Expires at: ${response.expiresAt}');
+
+// Use the code for impersonation
+await admin.startImpersonation(
+  targetUserId: 'user-uuid',
+  twoFactorCode: '123456',  // From email
+);
+```
+
+### Checking Impersonation Status
+
+```dart
+final admin = GroupVAN.instance.admin;
+
+// Check if currently impersonating
+if (admin.isImpersonating) {
+  final session = admin.currentImpersonation!;
+  print('Impersonating: ${session.targetEmail}');
+  print('Time remaining: ${session.expiresAt.difference(DateTime.now())}');
+}
+```
+
+### Viewing Impersonation History (Audit)
+
+```dart
+final admin = GroupVAN.instance.admin;
+
+// Get recent impersonation sessions
+final sessions = await admin.getImpersonationSessions(limit: 10);
+for (final session in sessions) {
+  print('${session.createdAt}: Impersonated ${session.targetEmail}');
+  print('  Method: ${session.twoFactorMethod}');
+  print('  Duration: ${session.endedAt?.difference(session.createdAt)}');
+}
+```
+
+### Complete Example: Admin Panel Widget
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:groupvan/groupvan.dart';
+
+class ImpersonationWidget extends StatefulWidget {
+  @override
+  State<ImpersonationWidget> createState() => _ImpersonationWidgetState();
+}
+
+class _ImpersonationWidgetState extends State<ImpersonationWidget> {
+  final _admin = GroupVAN.instance.admin;
+  final _userIdController = TextEditingController();
+  final _codeController = TextEditingController();
+  TwoFactorStatus? _status;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStatus();
+  }
+
+  Future<void> _loadStatus() async {
+    final status = await _admin.getTwoFactorStatus();
+    setState(() => _status = status);
+  }
+
+  Future<void> _startImpersonation() async {
+    setState(() => _loading = true);
+    try {
+      if (_status?.passkeyEnabled == true) {
+        // Use passkey (most secure)
+        final authResponse = await _admin.beginPasskeyAuthentication();
+        final credential = await getPasskeyCredential(authResponse.options);
+        await _admin.startImpersonationWithPasskey(
+          targetUserId: _userIdController.text,
+          passkeyChallengeId: authResponse.challengeId,
+          passkeyCredential: credential,
+        );
+      } else {
+        // Fall back to TOTP/email
+        await _admin.startImpersonation(
+          targetUserId: _userIdController.text,
+          twoFactorCode: _codeController.text,
+        );
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Now impersonating user')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _endImpersonation() async {
+    await _admin.endImpersonation();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Impersonation ended')),
+    );
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_admin.isImpersonating) {
+      final session = _admin.currentImpersonation!;
+      return Card(
+        color: Colors.orange.shade100,
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Icon(Icons.warning, color: Colors.orange, size: 48),
+              Text('Impersonating: ${session.targetEmail}'),
+              Text('Expires: ${session.expiresAt}'),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _endImpersonation,
+                child: Text('End Impersonation'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('User Impersonation', style: Theme.of(context).textTheme.titleLarge),
+            if (_status != null) ...[
+              SizedBox(height: 8),
+              Text('2FA Methods: ${_status!.recommendedMethod} (recommended)'),
+              if (_status!.passkeyEnabled)
+                Chip(label: Text('Passkey Ready'), avatar: Icon(Icons.fingerprint)),
+            ],
+            SizedBox(height: 16),
+            TextField(
+              controller: _userIdController,
+              decoration: InputDecoration(labelText: 'Target User ID'),
+            ),
+            if (_status?.passkeyEnabled != true) ...[
+              SizedBox(height: 8),
+              TextField(
+                controller: _codeController,
+                decoration: InputDecoration(labelText: '2FA Code'),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loading ? null : _startImpersonation,
+              child: _loading
+                  ? CircularProgressIndicator()
+                  : Text(_status?.passkeyEnabled == true
+                      ? 'Impersonate with Passkey'
+                      : 'Impersonate'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+### Error Handling
+
+```dart
+try {
+  await admin.startImpersonation(
+    targetUserId: userId,
+    twoFactorCode: code,
+  );
+} on AuthorizationException catch (e) {
+  // User doesn't have catalog_developer role
+  print('Not authorized: ${e.message}');
+} on ValidationException catch (e) {
+  // Invalid 2FA code
+  print('Invalid code: ${e.message}');
+} on RateLimitException catch (e) {
+  // Too many attempts (5/hour limit)
+  print('Rate limited: ${e.message}');
+} on NetworkException catch (e) {
+  // Network issues
+  print('Network error: ${e.message}');
+}
+```
+
+---
+
 ## 🏆 Industry Standards Met
 
 This SDK meets and exceeds industry standards for professional SDK development:

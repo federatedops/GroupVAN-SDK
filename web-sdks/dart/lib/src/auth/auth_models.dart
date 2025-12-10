@@ -129,6 +129,18 @@ class TokenClaims extends Equatable {
   @JsonKey(name: 'member')
   final String? member;
 
+  /// Whether this is an impersonation session
+  @JsonKey(name: 'imp', defaultValue: false)
+  final bool isImpersonating;
+
+  /// Admin user ID who initiated impersonation (if impersonating)
+  @JsonKey(name: 'imp_by')
+  final String? impersonatedBy;
+
+  /// Impersonation session ID (if impersonating)
+  @JsonKey(name: 'imp_session')
+  final String? impersonationSessionId;
+
   const TokenClaims({
     required this.userId,
     required this.issuedAt,
@@ -136,6 +148,9 @@ class TokenClaims extends Equatable {
     required this.jti,
     this.type = 'access',
     this.member,
+    this.isImpersonating = false,
+    this.impersonatedBy,
+    this.impersonationSessionId,
   });
 
   factory TokenClaims.fromJson(Map<String, dynamic> json) =>
@@ -169,7 +184,17 @@ class TokenClaims extends Equatable {
   }
 
   @override
-  List<Object?> get props => [userId, type, issuedAt, expiration, jti, member];
+  List<Object?> get props => [
+        userId,
+        type,
+        issuedAt,
+        expiration,
+        jti,
+        member,
+        isImpersonating,
+        impersonatedBy,
+        impersonationSessionId,
+      ];
 }
 
 /// Authentication state
@@ -336,6 +361,15 @@ class AuthStatus extends Equatable {
     if (!hasTokens || claims == null) return false;
     return claims!.willExpireWithin(const Duration(minutes: 2));
   }
+
+  /// Whether currently impersonating another user
+  bool get isImpersonating => claims?.isImpersonating ?? false;
+
+  /// Admin user ID who initiated impersonation (if impersonating)
+  String? get impersonatedBy => claims?.impersonatedBy;
+
+  /// Impersonation session ID (if impersonating)
+  String? get impersonationSessionId => claims?.impersonationSessionId;
 
   /// Copy with new values
   AuthStatus copyWith({

@@ -11,3 +11,4 @@ export 'interchange/models.dart';
 export 'product_info/product_info_response.dart';
 export 'search/search.dart';
 export 'cart/cart.dart';
+export 'admin/admin.dart';

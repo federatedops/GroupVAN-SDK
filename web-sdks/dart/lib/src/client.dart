@@ -13,6 +13,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import 'admin/admin_client.dart';
 import 'auth/auth_manager.dart';
 import 'auth/auth_models.dart' as auth_models;
 import 'core/exceptions.dart';
@@ -1374,6 +1375,9 @@ class GroupVAN {
   /// Quick access to search API (deprecated - use client.search instead)
   GroupVANSearch get search => GroupVANSearch._(_client.search);
 
+  /// Quick access to admin API (impersonation, 2FA)
+  GroupVANAdmin get admin => GroupVANAdmin(_client.httpClient, _client.auth);
+
   /// Check if SDK is initialized
   bool get isInitialized => _isInitialized;
 
@@ -1879,6 +1883,9 @@ class GroupVANClient {
 
   /// Search operations
   GroupVANSearch get search => GroupVANSearch._(_client.search);
+
+  /// Admin operations (impersonation, 2FA) - requires catalog_developer role
+  GroupVANAdmin get admin => GroupVANAdmin(_client.httpClient, _client.auth);
 }
 
 /// Authentication user information

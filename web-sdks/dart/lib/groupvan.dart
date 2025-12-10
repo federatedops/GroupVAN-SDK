@@ -14,6 +14,9 @@ export 'src/client.dart'
         AuthChangeEvent,
         AuthState;
 
+// Admin client for impersonation and 2FA (requires catalog_developer role)
+export 'src/admin/admin_client.dart' show GroupVANAdmin, AdminClient;
+
 // Token storage (for custom implementations)
 export 'src/auth/auth_manager.dart'
     show TokenStorage, SecureTokenStorage, MemoryTokenStorage;
@@ -79,4 +82,27 @@ export 'src/models/models.dart'
         CartResponse,
         CartItem,
         CartItemType,
-        RemovalItem;
+        RemovalItem,
+        // Admin/Impersonation models
+        TwoFactorMethod,
+        ImpersonationEndReason,
+        StartImpersonationRequest,
+        EndImpersonationRequest,
+        ImpersonationTargetUser,
+        ImpersonationResponse,
+        EndImpersonationResponse,
+        ImpersonationSession,
+        ImpersonationSessionsResponse,
+        TwoFactorSetupResponse,
+        TwoFactorVerifyRequest,
+        TwoFactorVerifyResponse,
+        TwoFactorStatus,
+        EmailOtpResponse,
+        // Passkey/WebAuthn models
+        PasskeyInfo,
+        PasskeyListResponse,
+        PasskeyRegistrationBeginResponse,
+        PasskeyRegistrationCompleteRequest,
+        PasskeyRegistrationCompleteResponse,
+        PasskeyAuthenticationBeginResponse,
+        PasskeyImpersonationRequest;
