@@ -26,6 +26,9 @@ class GroupVanLogger {
   /// Logger for reports operations
   static final Logger reports = Logger('GroupVAN.SDK.Reports');
 
+  /// Logger for admin operations (impersonation, 2FA)
+  static final Logger admin = Logger('GroupVAN.SDK.Admin');
+
   /// Initialize the logging system
   ///
   /// Call this once during SDK initialization to configure logging.

@@ -50,6 +50,9 @@ TokenClaims _$TokenClaimsFromJson(Map<String, dynamic> json) => TokenClaims(
   jti: json['jti'] as String,
   type: json['type'] as String? ?? 'access',
   member: json['member'] as String?,
+  isImpersonating: json['imp'] as bool? ?? false,
+  impersonatedBy: json['imp_by'] as String?,
+  impersonationSessionId: json['imp_session'] as String?,
 );
 
 Map<String, dynamic> _$TokenClaimsToJson(TokenClaims instance) =>
@@ -60,4 +63,7 @@ Map<String, dynamic> _$TokenClaimsToJson(TokenClaims instance) =>
       'exp': instance.expiration,
       'jti': instance.jti,
       'member': instance.member,
+      'imp': instance.isImpersonating,
+      'imp_by': instance.impersonatedBy,
+      'imp_session': instance.impersonationSessionId,
     };
