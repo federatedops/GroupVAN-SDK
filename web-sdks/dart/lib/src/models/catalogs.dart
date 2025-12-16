@@ -255,18 +255,18 @@ class PartTypeRequest {
 /// Product listing request
 class ProductListingRequest {
   final int vehicleIndex;
-  final List<int> partTypeIds;
+  final List<int> itemIds;
   final int showAll;
 
   const ProductListingRequest({
     required this.vehicleIndex,
-    required this.partTypeIds,
+    required this.itemIds,
     required this.showAll,
   });
 
   Map<String, dynamic> toJson() => {
     'vehicle_index': vehicleIndex,
-    'part_type_ids': partTypeIds,
+    'item_ids': itemIds,
     'show_all': showAll,
   };
 }
