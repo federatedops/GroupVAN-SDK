@@ -4,8 +4,6 @@
 /// retry logic, caching, and comprehensive error handling.
 library http_client;
 
-import 'dart:convert';
-
 import 'package:web/web.dart' hide Response;
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
@@ -248,6 +246,40 @@ class GroupVanHttpClient {
 
     try {
       final response = await _dio.put<dynamic>(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options:
+            options?.copyWith(extra: {'correlation_id': correlationId}) ??
+            Options(extra: {'correlation_id': correlationId}),
+        cancelToken: cancelToken,
+      );
+
+      return _buildResponse<T>(
+        response,
+        startTime,
+        correlationId,
+        decoder: decoder,
+      );
+    } on DioException catch (e) {
+      throw _handleDioException(e, correlationId);
+    }
+  }
+
+  /// Make a PATCH request
+  Future<GroupVanResponse<T>> patch<T>(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+    T Function(dynamic)? decoder,
+  }) async {
+    final startTime = DateTime.now();
+    final correlationId = _uuid.v4();
+
+    try {
+      final response = await _dio.patch<dynamic>(
         path,
         data: data,
         queryParameters: queryParameters,

@@ -263,6 +263,22 @@ class GroupVanClient {
       decoder: decoder,
     );
   }
+
+  /// Make an authenticated PATCH request
+  Future<GroupVanResponse<T>> patch<T>(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    T Function(dynamic)? decoder,
+  }) async {
+    await getValidToken(); // Ensure we have a valid token
+    return await httpClient.patch<T>(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      decoder: decoder,
+    );
+  }
 }
 
 /// Base API client with common functionality
@@ -321,6 +337,42 @@ abstract class ApiClient {
     };
 
     return await httpClient.post<T>(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      decoder: decoder,
+      options: Options(
+        headers: headers,
+        method: options?.method,
+        sendTimeout: options?.sendTimeout,
+        receiveTimeout: options?.receiveTimeout,
+        extra: options?.extra,
+        followRedirects: options?.followRedirects,
+        maxRedirects: options?.maxRedirects,
+        persistentConnection: options?.persistentConnection,
+        requestEncoder: options?.requestEncoder,
+        responseDecoder: options?.responseDecoder,
+        responseType: options?.responseType,
+        validateStatus: options?.validateStatus,
+      ),
+    );
+  }
+
+  /// Make an authenticated PATCH request
+  Future<GroupVanResponse<T>> patch<T>(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    T Function(dynamic)? decoder,
+    Options? options,
+  }) async {
+    // Merge headers from options with auth header
+    final headers = <String, dynamic>{
+      'Authorization': 'Bearer ${authManager.currentStatus.accessToken}',
+      ...?options?.headers,
+    };
+
+    return await httpClient.patch<T>(
       path,
       data: data,
       queryParameters: queryParameters,
@@ -1115,7 +1167,7 @@ class CartClient extends ApiClient {
     final sessionId = _sessionCubit.currentSessionId;
 
     try {
-      final response = await post<Map<String, dynamic>>(
+      final response = await patch<Map<String, dynamic>>(
         '/v3/cart/items',
         data: request.toJson(),
         decoder: (data) => data as Map<String, dynamic>,
@@ -1146,7 +1198,7 @@ class CartClient extends ApiClient {
     final sessionId = _sessionCubit.currentSessionId;
 
     try {
-      final response = await delete<Map<String, dynamic>>(
+      final response = await patch<Map<String, dynamic>>(
         '/v3/cart/items',
         data: request.toJson(),
         decoder: (data) => data as Map<String, dynamic>,
