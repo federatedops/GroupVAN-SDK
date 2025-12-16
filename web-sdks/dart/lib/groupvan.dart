@@ -79,4 +79,5 @@ export 'src/models/models.dart'
         CartResponse,
         CartItem,
         CartItemType,
-        RemovalItem;
+        RemovalItem,
+        LocationDetails;

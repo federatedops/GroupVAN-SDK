@@ -1404,9 +1404,7 @@ class GroupVAN {
   GroupVANSearch get search => GroupVANSearch._(_client.search);
 
   /// Quick access to user API (deprecated - use client.user instead)
-  GroupVANUser get user => GroupVANUser._(_client.user);
-
- 
+  GroupVANUser get user => GroupVANUser._(_client.user); 
 
   /// Check if SDK is initialized
   bool get isInitialized => _isInitialized;
