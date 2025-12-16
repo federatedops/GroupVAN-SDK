@@ -122,6 +122,7 @@ class GroupVanClient {
   late final ReportsClient _reportsClient;
   late final SearchClient _searchClient;
   late final CartClient _cartClient;
+  late final UserClient _userClient;
 
   GroupVanClient(this._config);
 
@@ -151,6 +152,9 @@ class GroupVanClient {
 
   /// Cart API client
   CartClient get cart => _cartClient;
+
+  /// User API client
+  UserClient get user => _userClient;
 
   /// Current authentication status
   auth_models.AuthStatus get authStatus => _authManager.currentStatus;
@@ -199,6 +203,7 @@ class GroupVanClient {
     _reportsClient = ReportsClient(httpClient, _authManager);
     _searchClient = SearchClient(httpClient, _authManager, _sessionCubit);
     _cartClient = CartClient(httpClient, _authManager, _sessionCubit);
+    _userClient = UserClient(httpClient, _authManager);
     GroupVanLogger.sdk.warning('DEBUG: API clients initialized');
 
     // Initialize authentication manager (restore tokens if available)
@@ -1244,6 +1249,30 @@ class SearchClient extends ApiClient {
   }
 }
 
+/// User API client
+class UserClient extends ApiClient {
+  const UserClient(super.httpClient, super.authManager);
+
+  /// Get location details
+  Future<Result<LocationDetails>> getLocationDetails(String locationId) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/user/$locationId/details',
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(LocationDetails.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.sdk.severe('Failed to get location details: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get location details: $e'),
+      );
+    }
+  }
+}
+
 /// Main GroupVAN SDK class with singleton pattern for global access
 class GroupVAN {
   static GroupVAN? _instance;
@@ -1373,6 +1402,11 @@ class GroupVAN {
 
   /// Quick access to search API (deprecated - use client.search instead)
   GroupVANSearch get search => GroupVANSearch._(_client.search);
+
+  /// Quick access to user API (deprecated - use client.user instead)
+  GroupVANUser get user => GroupVANUser._(_client.user);
+
+ 
 
   /// Check if SDK is initialized
   bool get isInitialized => _isInitialized;
@@ -1855,6 +1889,22 @@ class GroupVANSearch {
   }
 }
 
+/// Namespaced user API
+class GroupVANUser {
+  final UserClient _client;
+
+  const GroupVANUser._(this._client);
+
+  /// Get location details
+  Future<LocationDetails> getLocationDetails(String locationId) async {
+    final result = await _client.getLocationDetails(locationId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+}
+
 /// Convenient client interface for extraction and reuse (like Supabase pattern)
 @immutable
 class GroupVANClient {
@@ -1879,6 +1929,10 @@ class GroupVANClient {
 
   /// Search operations
   GroupVANSearch get search => GroupVANSearch._(_client.search);
+
+  /// User operations
+  GroupVANUser get user => GroupVANUser._(_client.user);
+
 }
 
 /// Authentication user information
