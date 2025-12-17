@@ -254,7 +254,7 @@ class PartTypeRequest {
 
 /// Product listing request
 class ProductListingRequest {
-  final int vehicleIndex;
+  final int? vehicleIndex;
   final List<int> itemIds;
   final int showAll;
 
