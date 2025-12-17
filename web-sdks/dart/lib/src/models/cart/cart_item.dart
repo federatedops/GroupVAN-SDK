@@ -12,7 +12,7 @@ class CartItem {
   final CartItemType type;
   final int? sku;
   final int? id;
-  final String? itemUrl;
+  final String? imageUrl;
   final String? partName;
   final String? brand;
   final String? itemGroupKey;
@@ -30,7 +30,7 @@ class CartItem {
     required this.type,
     this.sku,
     this.id,
-    this.itemUrl,
+    this.imageUrl,
     this.partName,
     this.brand,
     this.itemGroupKey,
@@ -49,7 +49,7 @@ class CartItem {
     type: CartItemType.values.byName(json['item_type']),
     sku: json['sku'],
     id: json['id'],
-    itemUrl: json['item_url'],
+    imageUrl: json['image_url'],
     partName: json['part_name'],
     brand: json['brand'],
     itemGroupKey: json['item_group_key'],
@@ -68,7 +68,7 @@ class CartItem {
     'item_type': type.name,
     'sku': sku,
     'id': id,
-    'item_url': itemUrl,
+    'image_url': imageUrl,
     'part_name': partName,
     'brand': brand,
     'item_group_key': itemGroupKey,
