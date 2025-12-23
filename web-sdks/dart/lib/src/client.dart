@@ -1140,7 +1140,7 @@ class CatalogsClient extends ApiClient {
   Future<Result<ProductInfoResponse>> getProductInfo({required int sku}) async {
     try {
       final response = await get<Map<String, dynamic>>(
-        '/v3/catalogs/products/info',
+        '/v3/catalogs/product/info',
         queryParameters: {'sku': sku},
       );
       return Success(ProductInfoResponse.fromJson(response.data));
@@ -1457,7 +1457,7 @@ class GroupVAN {
   GroupVANSearch get search => GroupVANSearch._(_client.search);
 
   /// Quick access to user API (deprecated - use client.user instead)
-  GroupVANUser get user => GroupVANUser._(_client.user); 
+  GroupVANUser get user => GroupVANUser._(_client.user);
 
   /// Check if SDK is initialized
   bool get isInitialized => _isInitialized;
@@ -1834,8 +1834,14 @@ class GroupVANCatalogs {
     return _client.getProducts(request: request, sessionId: sessionId);
   }
 
-  Future<List<Asset>> getProductAssets({List<int>? catalogSkus, List<int>? memberSkus}) async {
-    final result = await _client.getProductAssets(catalogSkus: catalogSkus, memberSkus: memberSkus);
+  Future<List<Asset>> getProductAssets({
+    List<int>? catalogSkus,
+    List<int>? memberSkus,
+  }) async {
+    final result = await _client.getProductAssets(
+      catalogSkus: catalogSkus,
+      memberSkus: memberSkus,
+    );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
@@ -1983,7 +1989,6 @@ class GroupVANClient {
 
   /// User operations
   GroupVANUser get user => GroupVANUser._(_client.user);
-
 }
 
 /// Authentication user information
