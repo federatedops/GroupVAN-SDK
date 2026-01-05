@@ -1096,7 +1096,7 @@ class CartClient extends ApiClient {
 
     try {
       final response = await patch<Map<String, dynamic>>(
-        '/v3/cart/items',
+        '/v3/cart/items/add',
         data: request.toJson(),
         decoder: (data) => data as Map<String, dynamic>,
       );
@@ -1119,7 +1119,7 @@ class CartClient extends ApiClient {
 
     try {
       final response = await patch<Map<String, dynamic>>(
-        '/v3/cart/items',
+        '/v3/cart/items/remove',
         data: request.toJson(),
         decoder: (data) => data as Map<String, dynamic>,
       );
