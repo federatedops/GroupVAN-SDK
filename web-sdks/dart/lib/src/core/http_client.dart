@@ -349,13 +349,6 @@ class GroupVanHttpClient {
         ? decoder(response.data)
         : response.data as T;
 
-    // Extract session ID from headers
-    final sessionId =
-        response.headers.value('gv-session-id') ??
-        response.headers.value('GroupVAN-Session-ID') ??
-        response.headers.value('groupvan-session-id') ??
-        response.headers.value('session-id');
-
     // Check if response was cached
     final fromCache =
         response.headers.value('cache-control')?.contains('hit') ?? false;
@@ -392,7 +385,6 @@ class GroupVanHttpClient {
         server: response.headers.value('server'),
         correlationId: correlationId,
       ),
-      sessionId: sessionId,
       fromCache: fromCache,
       cacheTimestamp: cacheTimestamp,
     );

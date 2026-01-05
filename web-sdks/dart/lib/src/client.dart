@@ -21,7 +21,6 @@ import 'core/response.dart';
 import 'core/validation.dart';
 import 'logging.dart';
 import 'models/models.dart';
-import 'session/session_cubit.dart';
 
 /// Configuration for the GroupVAN SDK client
 @immutable
@@ -116,7 +115,6 @@ class GroupVanClient {
   final GroupVanClientConfig _config;
   late final GroupVanHttpClient _httpClient;
   late final AuthManager _authManager;
-  late final SessionCubit _sessionCubit;
   late final VehiclesClient _vehiclesClient;
   late final CatalogsClient _catalogsClient;
   late final ReportsClient _reportsClient;
@@ -131,12 +129,6 @@ class GroupVanClient {
 
   /// Authentication manager
   AuthManager get auth => _authManager;
-
-  /// Session manager
-  SessionCubit get session => _sessionCubit;
-
-  /// Current session ID (if available)
-  String? get currentSessionId => _sessionCubit.currentSessionId;
 
   /// Vehicles API client
   VehiclesClient get vehicles => _vehiclesClient;
@@ -193,16 +185,12 @@ class GroupVanClient {
     );
     GroupVanLogger.sdk.warning('DEBUG: Authentication manager created');
 
-    // Initialize session cubit
-    _sessionCubit = SessionCubit();
-    GroupVanLogger.sdk.warning('DEBUG: Session manager initialized');
-
     // Initialize API clients
-    _vehiclesClient = VehiclesClient(httpClient, _authManager, _sessionCubit);
-    _catalogsClient = CatalogsClient(httpClient, _authManager, _sessionCubit);
+    _vehiclesClient = VehiclesClient(httpClient, _authManager);
+    _catalogsClient = CatalogsClient(httpClient, _authManager);
     _reportsClient = ReportsClient(httpClient, _authManager);
-    _searchClient = SearchClient(httpClient, _authManager, _sessionCubit);
-    _cartClient = CartClient(httpClient, _authManager, _sessionCubit);
+    _searchClient = SearchClient(httpClient, _authManager);
+    _cartClient = CartClient(httpClient, _authManager);
     _userClient = UserClient(httpClient, _authManager);
     GroupVanLogger.sdk.warning('DEBUG: API clients initialized');
 
@@ -217,7 +205,6 @@ class GroupVanClient {
   /// Clean up resources
   void dispose() {
     _authManager.dispose();
-    _sessionCubit.close();
     GroupVanLogger.sdk.info('GroupVAN SDK Client disposed');
   }
 
@@ -432,9 +419,7 @@ abstract class ApiClient {
 
 /// Vehicles API client with comprehensive vehicle management
 class VehiclesClient extends ApiClient {
-  final SessionCubit _sessionCubit;
-
-  const VehiclesClient(super.httpClient, super.authManager, this._sessionCubit);
+  const VehiclesClient(super.httpClient, super.authManager);
 
   /// Get vehicle groups with validation
   Future<Result<List<VehicleGroup>>> getVehicleGroups() async {
@@ -478,11 +463,6 @@ class VehiclesClient extends ApiClient {
         queryParameters: {'offset': offset, 'limit': limit},
         decoder: (data) => data as List<dynamic>,
       );
-
-      // Store session ID if present
-      if (response.sessionId != null) {
-        _sessionCubit.updateSession(response.sessionId!);
-      }
 
       final vehicles = response.data
           .map((item) => Vehicle.fromJson(item as Map<String, dynamic>))
@@ -566,11 +546,6 @@ class VehiclesClient extends ApiClient {
         decoder: (data) => data as List<dynamic>,
       );
 
-      // Store session ID if present
-      if (response.sessionId != null) {
-        _sessionCubit.updateSession(response.sessionId!);
-      }
-
       final vehicles = response.data
           .map((item) => Vehicle.fromJson(item as Map<String, dynamic>))
           .toList();
@@ -603,11 +578,6 @@ class VehiclesClient extends ApiClient {
         queryParameters: {'plate': plate, 'state': state},
         decoder: (data) => data as List<dynamic>,
       );
-
-      // Store session ID if present
-      if (response.sessionId != null) {
-        _sessionCubit.updateSession(response.sessionId!);
-      }
 
       final vehicles = response.data
           .map((item) => Vehicle.fromJson(item as Map<String, dynamic>))
@@ -658,11 +628,6 @@ class VehiclesClient extends ApiClient {
         decoder: (data) => data as List<dynamic>,
       );
 
-      // Store session ID if present
-      if (response.sessionId != null) {
-        _sessionCubit.updateSession(response.sessionId!);
-      }
-
       final vehicles = response.data
           .map((item) => Vehicle.fromJson(item as Map<String, dynamic>))
           .toList();
@@ -710,11 +675,6 @@ class VehiclesClient extends ApiClient {
         decoder: (data) => data as List<dynamic>,
       );
 
-      // Store session ID if present
-      if (response.sessionId != null) {
-        _sessionCubit.updateSession(response.sessionId!);
-      }
-
       final vehicles = response.data
           .map((item) => Vehicle.fromJson(item as Map<String, dynamic>))
           .toList();
@@ -750,11 +710,6 @@ class VehiclesClient extends ApiClient {
         decoder: (data) => data as List<dynamic>,
       );
 
-      // Store session ID if present
-      if (response.sessionId != null) {
-        _sessionCubit.updateSession(response.sessionId!);
-      }
-
       final vehicles = response.data
           .map((item) => Vehicle.fromJson(item as Map<String, dynamic>))
           .toList();
@@ -774,21 +729,11 @@ class VehiclesClient extends ApiClient {
   Future<Result<List<PartType>>> getPreviousPartTypes({
     required int vehicleIndex,
   }) async {
-    final sessionId = _sessionCubit.currentSessionId;
 
     try {
       final response = await get<List<dynamic>>(
         '/v3/vehicles/$vehicleIndex/part_types',
         decoder: (data) => data as List<dynamic>,
-        options: sessionId != null
-            ? Options(
-                headers: {
-                  'Authorization':
-                      'Bearer ${authManager.currentStatus.accessToken}',
-                  'gv-session-id': sessionId,
-                },
-              )
-            : null,
       );
 
       final partTypes = response.data
@@ -809,9 +754,8 @@ class VehiclesClient extends ApiClient {
 
 /// Catalogs API client with comprehensive catalog management
 class CatalogsClient extends ApiClient {
-  final SessionCubit _sessionCubit;
 
-  const CatalogsClient(super.httpClient, super.authManager, this._sessionCubit);
+  const CatalogsClient(super.httpClient, super.authManager);
 
   /// Get available catalogs
   Future<Result<List<Catalog>>> getCatalogs() async {
@@ -840,11 +784,8 @@ class CatalogsClient extends ApiClient {
   Future<Result<List<VehicleCategory>>> getVehicleCategories({
     required int catalogId,
     required int engineIndex,
-    String? sessionId,
     bool? disableFilters,
   }) async {
-    // Use provided sessionId or get from cubit
-    final effectiveSessionId = sessionId ?? _sessionCubit.currentSessionId;
     final queryParams = <String, dynamic>{};
     if (disableFilters != null) {
       queryParams['disable_filters'] = disableFilters;
@@ -855,15 +796,6 @@ class CatalogsClient extends ApiClient {
         '/v3/catalogs/$catalogId/vehicle/$engineIndex/categories',
         queryParameters: queryParams,
         decoder: (data) => data as List<dynamic>,
-        options: effectiveSessionId != null
-            ? Options(
-                headers: {
-                  'Authorization':
-                      'Bearer ${authManager.currentStatus.accessToken}',
-                  'gv-session-id': effectiveSessionId,
-                },
-              )
-            : null,
       );
 
       final categories = response.data
@@ -1005,11 +937,9 @@ class CatalogsClient extends ApiClient {
   /// Get product listings with validation
   Stream<List<ProductListing>> getProducts({
     required ProductListingRequest request,
-    String? sessionId,
   }) async* {
     WebSocketChannel? channel;
 
-    final effectiveSessionId = sessionId ?? _sessionCubit.currentSessionId;
     final baseUri = Uri.parse(httpClient.baseUrl);
     final wsUri = Uri(
       scheme: 'wss',
@@ -1017,7 +947,6 @@ class CatalogsClient extends ApiClient {
       path: '/v3/catalogs/products',
       queryParameters: {
         'token': authManager.currentStatus.accessToken,
-        if (effectiveSessionId != null) 'session_id': effectiveSessionId,
       },
     );
 
@@ -1157,29 +1086,20 @@ class CatalogsClient extends ApiClient {
 
 /// Cart API client for cart item management
 class CartClient extends ApiClient {
-  final SessionCubit _sessionCubit;
 
-  const CartClient(super.httpClient, super.authManager, this._sessionCubit);
+  const CartClient(super.httpClient, super.authManager);
 
   /// Add items to cart
   Future<Result<CartResponse>> addToCart({
     required AddToCartRequest request,
   }) async {
-    final sessionId = _sessionCubit.currentSessionId;
 
     try {
       final response = await patch<Map<String, dynamic>>(
         '/v3/cart/items',
         data: request.toJson(),
         decoder: (data) => data as Map<String, dynamic>,
-        options: sessionId != null
-            ? Options(headers: {'gv-session-id': sessionId})
-            : null,
       );
-
-      if (response.sessionId != null) {
-        _sessionCubit.updateSession(response.sessionId!);
-      }
 
       return Success(CartResponse.fromJson(response.data));
     } catch (e) {
@@ -1196,21 +1116,13 @@ class CartClient extends ApiClient {
   Future<Result<CartResponse>> removeFromCart({
     required RemoveFromCartRequest request,
   }) async {
-    final sessionId = _sessionCubit.currentSessionId;
 
     try {
       final response = await patch<Map<String, dynamic>>(
         '/v3/cart/items',
         data: request.toJson(),
         decoder: (data) => data as Map<String, dynamic>,
-        options: sessionId != null
-            ? Options(headers: {'gv-session-id': sessionId})
-            : null,
       );
-
-      if (response.sessionId != null) {
-        _sessionCubit.updateSession(response.sessionId!);
-      }
 
       return Success(CartResponse.fromJson(response.data));
     } catch (e) {
@@ -1255,9 +1167,8 @@ class ReportsClient extends ApiClient {
 
 /// Search API client for omni search functionality
 class SearchClient extends ApiClient {
-  final SessionCubit _sessionCubit;
 
-  const SearchClient(super.httpClient, super.authManager, this._sessionCubit);
+  const SearchClient(super.httpClient, super.authManager);
 
   /// Perform omni search with optional vehicle context
   Future<Result<OmniSearchResponse>> omni({
@@ -1265,7 +1176,6 @@ class SearchClient extends ApiClient {
     int? vehicleIndex,
     bool? disableFilters,
   }) async {
-    final sessionId = _sessionCubit.currentSessionId;
 
     try {
       final queryParams = <String, dynamic>{'query': query};
@@ -1281,15 +1191,7 @@ class SearchClient extends ApiClient {
         '/v3/search/omni',
         queryParameters: queryParams,
         decoder: (data) => data as Map<String, dynamic>,
-        options: sessionId != null
-            ? Options(headers: {'gv-session-id': sessionId})
-            : null,
       );
-
-      // Store session ID if present
-      if (response.sessionId != null) {
-        _sessionCubit.updateSession(response.sessionId!);
-      }
 
       final searchResponse = OmniSearchResponse.fromJson(response.data);
       return Success(searchResponse);
@@ -1776,13 +1678,11 @@ class GroupVANCatalogs {
   Future<List<VehicleCategory>> getVehicleCategories({
     required int catalogId,
     required int engineIndex,
-    String? sessionId,
     bool? disableFilters,
   }) async {
     final result = await _client.getVehicleCategories(
       catalogId: catalogId,
       engineIndex: engineIndex,
-      sessionId: sessionId,
       disableFilters: disableFilters,
     );
     if (result.isFailure) {
@@ -1829,9 +1729,8 @@ class GroupVANCatalogs {
   /// Get product listings
   Stream<List<ProductListing>> getProducts({
     required ProductListingRequest request,
-    String? sessionId,
   }) {
-    return _client.getProducts(request: request, sessionId: sessionId);
+    return _client.getProducts(request: request);
   }
 
   Future<List<Asset>> getProductAssets({

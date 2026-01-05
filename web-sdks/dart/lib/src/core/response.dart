@@ -21,9 +21,6 @@ class GroupVanResponse<T> {
   /// Response metadata
   final ResponseMetadata responseMetadata;
 
-  /// Session ID if present
-  final String? sessionId;
-
   /// Whether the response came from cache
   final bool fromCache;
 
@@ -36,7 +33,6 @@ class GroupVanResponse<T> {
     required this.headers,
     required this.requestMetadata,
     required this.responseMetadata,
-    this.sessionId,
     this.fromCache = false,
     this.cacheTimestamp,
   });
@@ -60,7 +56,6 @@ class GroupVanResponse<T> {
     Map<String, String>? headers,
     RequestMetadata? requestMetadata,
     ResponseMetadata? responseMetadata,
-    String? sessionId,
     bool? fromCache,
     DateTime? cacheTimestamp,
   }) {
@@ -70,7 +65,6 @@ class GroupVanResponse<T> {
       headers: headers ?? this.headers,
       requestMetadata: requestMetadata ?? this.requestMetadata,
       responseMetadata: responseMetadata ?? this.responseMetadata,
-      sessionId: sessionId ?? this.sessionId,
       fromCache: fromCache ?? this.fromCache,
       cacheTimestamp: cacheTimestamp ?? this.cacheTimestamp,
     );
@@ -78,7 +72,7 @@ class GroupVanResponse<T> {
 
   @override
   String toString() {
-    return 'GroupVanResponse<$T>(status: $statusCode, cached: $fromCache, session: $sessionId)';
+    return 'GroupVanResponse<$T>(status: $statusCode, cached: $fromCache)';
   }
 }
 
@@ -190,7 +184,6 @@ class PaginatedResponse<T> extends GroupVanResponse<List<T>> {
     required super.headers,
     required super.requestMetadata,
     required super.responseMetadata,
-    super.sessionId,
     super.fromCache,
     super.cacheTimestamp,
     required this.page,
@@ -213,7 +206,6 @@ class ResponseBuilder<T> {
   Map<String, String>? _headers;
   RequestMetadata? _requestMetadata;
   ResponseMetadata? _responseMetadata;
-  String? _sessionId;
   bool _fromCache = false;
   DateTime? _cacheTimestamp;
 
@@ -242,10 +234,6 @@ class ResponseBuilder<T> {
     return this;
   }
 
-  ResponseBuilder<T> sessionId(String? sessionId) {
-    _sessionId = sessionId;
-    return this;
-  }
 
   ResponseBuilder<T> fromCache(bool cached, [DateTime? timestamp]) {
     _fromCache = cached;
@@ -268,7 +256,6 @@ class ResponseBuilder<T> {
       headers: _headers!,
       requestMetadata: _requestMetadata!,
       responseMetadata: _responseMetadata!,
-      sessionId: _sessionId,
       fromCache: _fromCache,
       cacheTimestamp: _cacheTimestamp,
     );

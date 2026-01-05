@@ -344,11 +344,6 @@ class GroupVanValidators {
         pattern: ValidationPatterns.sku,
       );
 
-  /// Session ID validator
-  static StringValidator sessionId() => StringValidator(
-        minLength: 10,
-        maxLength: 50,
-      );
 
   /// Application IDs validator
   static ListValidator<int> applicationIds() => ListValidator<int>(

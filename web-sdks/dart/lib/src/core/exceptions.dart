@@ -216,26 +216,3 @@ class DataException extends GroupVanException {
       'DataException: $message${dataType != null ? ' (type: $dataType)' : ''}';
 }
 
-/// Session-related exceptions
-class SessionException extends GroupVanException {
-  /// Session ID that caused the error
-  final String? sessionId;
-
-  /// Type of session error
-  final SessionErrorType errorType;
-
-  SessionException(
-    super.message, {
-    this.sessionId,
-    required this.errorType,
-    super.context,
-    super.timestamp,
-  });
-
-  @override
-  String toString() =>
-      'SessionException: $message (Type: $errorType)${sessionId != null ? ' (session: $sessionId)' : ''}';
-}
-
-/// Types of session errors
-enum SessionErrorType { expired, invalid, missing, conflict }

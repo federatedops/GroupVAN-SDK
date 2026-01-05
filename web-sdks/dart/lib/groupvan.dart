@@ -19,7 +19,6 @@ export 'src/auth/auth_manager.dart'
     show TokenStorage, SecureTokenStorage, MemoryTokenStorage;
 
 // Session management
-export 'src/session/session_cubit.dart' show SessionCubit;
 
 // Essential types and exceptions for error handling
 export 'src/core/exceptions.dart';
