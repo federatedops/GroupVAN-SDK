@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class LocationDetails {
   final String? description;
   final double? latitude;
@@ -18,7 +16,7 @@ class LocationDetails {
       description: json['description'] as String?,
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
-      hours: json['hours'] as Map<String, String>?,
+      hours: (json['hours'] as Map<String, dynamic>?)?.cast<String, String>(),
     );
   }
 
