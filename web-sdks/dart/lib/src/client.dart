@@ -1171,35 +1171,95 @@ class SearchClient extends ApiClient {
   const SearchClient(super.httpClient, super.authManager);
 
   /// Perform omni search with optional vehicle context
-  Future<Result<OmniSearchResponse>> omni({
+  Stream<OmniSearchResponse> omni({
     required String query,
     int? vehicleIndex,
     bool? disableFilters,
-  }) async {
+  }) async* {
+    WebSocketChannel? channel;
+
+    final baseUri = Uri.parse(httpClient.baseUrl);
+    final wsUri = Uri(
+      scheme: 'wss',
+      host: baseUri.host,
+      path: '/v3/search/omni',
+      queryParameters: {
+        'token': authManager.currentStatus.accessToken,
+      },
+    );
 
     try {
-      final queryParams = <String, dynamic>{'query': query};
+      channel = WebSocketChannel.connect(wsUri);
+
+      final request = <String, dynamic>{
+        'query': query,
+      };
 
       if (vehicleIndex != null) {
-        queryParams['vehicle_index'] = vehicleIndex;
+        request['vehicle_index'] = vehicleIndex;
       }
       if (disableFilters != null) {
-        queryParams['disable_filters'] = disableFilters;
+        request['disable_filters'] = disableFilters;
       }
 
-      final response = await get<Map<String, dynamic>>(
-        '/v3/search/omni',
-        queryParameters: queryParams,
-        decoder: (data) => data as Map<String, dynamic>,
+      channel.sink.add(jsonEncode(request));
+
+      final response = OmniSearchResponse(
+        partTypes: [],
+        parts: [],
+        vehicles: [],
+        memberCategories: [],
       );
 
-      final searchResponse = OmniSearchResponse.fromJson(response.data);
-      return Success(searchResponse);
-    } catch (e) {
+      await for (final message in channel.stream) {
+        final data = jsonDecode(message);
+
+        bool updated = false;
+
+        if (data.containsKey('part_types')) {
+          final list = (data['part_types'] as List)
+              .map((e) => PartType.fromJson(e as Map<String, dynamic>))
+              .toList();
+          response.partTypes.addAll(list);
+          updated = true;
+        }
+
+        if (data.containsKey('parts')) {
+          final list = (data['parts'] as List)
+              .map((e) => Part.fromJson(e as Map<String, dynamic>))
+              .toList();
+          response.parts.addAll(list);
+          updated = true;
+        }
+
+        if (data.containsKey('vehicles')) {
+          final list = (data['vehicles'] as List)
+              .map((e) => Vehicle.fromJson(e as Map<String, dynamic>))
+              .toList();
+          response.vehicles.addAll(list);
+          updated = true;
+        }
+
+        if (data.containsKey('member_categories')) {
+          final list = (data['member_categories'] as List)
+              .map((e) => MemberCategory.fromJson(e as Map<String, dynamic>))
+              .toList();
+          response.memberCategories.addAll(list);
+          updated = true;
+        }
+
+        if (updated) {
+          yield response;
+        }
+      }
+    } catch (e, stackTrace) {
       GroupVanLogger.sdk.severe('Omni search failed: $e');
-      return Failure(
-        e is GroupVanException ? e : NetworkException('Omni search failed: $e'),
+      Error.throwWithStackTrace(
+        NetworkException('Omni search failed: $e'),
+        stackTrace,
       );
+    } finally {
+      await channel?.sink.close();
     }
   }
 }
@@ -1828,20 +1888,16 @@ class GroupVANSearch {
   const GroupVANSearch._(this._client);
 
   /// Perform omni search
-  Future<OmniSearchResponse> omni({
+  Stream<OmniSearchResponse> omni({
     required String query,
     int? vehicleIndex,
     bool? disableFilters,
-  }) async {
-    final result = await _client.omni(
+  }) {
+    return _client.omni(
       query: query,
       vehicleIndex: vehicleIndex,
       disableFilters: disableFilters,
     );
-    if (result.isFailure) {
-      throw Exception('Unexpected error: ${result.error}');
-    }
-    return result.value;
   }
 }
 
