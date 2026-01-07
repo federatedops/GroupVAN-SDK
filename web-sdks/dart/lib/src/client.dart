@@ -1262,6 +1262,24 @@ class SearchClient extends ApiClient {
       await channel?.sink.close();
     }
   }
+
+  /// Get VIN data
+  Future<Result<Map<String, String>>> vinData(String vin) async {
+    try {
+      final response = await get<Map<String, String>>(
+        '/v3/search/vin',
+        queryParameters: {'vin': vin},
+        decoder: (data) => Map<String, String>.from(data as Map),
+      );
+
+      return Success(response.data);
+    } catch (e) {
+      GroupVanLogger.sdk.severe('VIN data search failed: $e');
+      return Failure(
+        e is GroupVanException ? e : NetworkException('VIN data search failed: $e'),
+      );
+    }
+  }
 }
 
 /// User API client
@@ -1898,6 +1916,15 @@ class GroupVANSearch {
       vehicleIndex: vehicleIndex,
       disableFilters: disableFilters,
     );
+  }
+
+  /// Get VIN data
+  Future<Map<String, String>> vinData(String vin) async {
+    final result = await _client.vinData(vin);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
   }
 }
 
