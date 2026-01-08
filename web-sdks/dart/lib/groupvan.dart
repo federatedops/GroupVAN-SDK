@@ -9,6 +9,7 @@ export 'src/client.dart'
         GroupVANVehicles,
         GroupVANCatalogs,
         GroupVANSearch,
+        OmniSearchSession,
         AuthUser,
         AuthSession,
         AuthChangeEvent,

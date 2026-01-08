@@ -1165,103 +1165,166 @@ class ReportsClient extends ApiClient {
   }
 }
 
+class OmniSearchSession {
+  final WebSocketChannel _channel;
+  final StreamController<OmniSearchResponse> _streamController;
+  OmniSearchResponse _currentResponse;
+
+  OmniSearchSession(this._channel)
+    : _streamController = StreamController<OmniSearchResponse>(),
+      _currentResponse = OmniSearchResponse(
+        partTypes: [],
+        parts: [],
+        vehicles: [],
+        memberCategories: [],
+      ) {
+    _channel.stream.listen(
+      (message) {
+        try {
+          final data = jsonDecode(message);
+          bool updated = false;
+
+          if (data.containsKey('part_types')) {
+            final list =
+                (data['part_types'] as List)
+                    .map((e) => PartType.fromJson(e as Map<String, dynamic>))
+                    .toList();
+            _currentResponse.partTypes.addAll(list);
+            updated = true;
+          }
+
+          if (data.containsKey('parts')) {
+            final list =
+                (data['parts'] as List)
+                    .map((e) => Part.fromJson(e as Map<String, dynamic>))
+                    .toList();
+            _currentResponse.parts.addAll(list);
+            updated = true;
+          }
+
+          if (data.containsKey('vehicles')) {
+            final list =
+                (data['vehicles'] as List)
+                    .map((e) => Vehicle.fromJson(e as Map<String, dynamic>))
+                    .toList();
+            _currentResponse.vehicles.addAll(list);
+            updated = true;
+          }
+
+          if (data.containsKey('member_categories')) {
+            final list =
+                (data['member_categories'] as List)
+                    .map(
+                      (e) => MemberCategory.fromJson(e as Map<String, dynamic>),
+                    )
+                    .toList();
+            _currentResponse.memberCategories.addAll(list);
+            updated = true;
+          }
+
+          if (updated) {
+            _streamController.add(_currentResponse);
+          }
+        } catch (e) {
+          _streamController.addError(e);
+        }
+      },
+      onError: (error) {
+        _streamController.addError(error);
+      },
+      onDone: () {
+        _streamController.close();
+      },
+    );
+  }
+
+  Stream<OmniSearchResponse> get stream => _streamController.stream;
+
+  void search({
+    required String query,
+    int? vehicleIndex,
+    bool? disableFilters,
+  }) {
+    // Reset current response for new search
+    _currentResponse = OmniSearchResponse(
+      partTypes: [],
+      parts: [],
+      vehicles: [],
+      memberCategories: [],
+    );
+    // Optionally emit the empty state immediately so UI clears previous results
+    _streamController.add(_currentResponse);
+
+    final request = <String, dynamic>{'query': query};
+
+    if (vehicleIndex != null) {
+      request['vehicle_index'] = vehicleIndex;
+    }
+    if (disableFilters != null) {
+      request['disable_filters'] = disableFilters;
+    }
+
+    _channel.sink.add(jsonEncode(request));
+  }
+
+  void dispose() {
+    _channel.sink.close();
+    _streamController.close();
+  }
+}
+
 /// Search API client for omni search functionality
 class SearchClient extends ApiClient {
 
   const SearchClient(super.httpClient, super.authManager);
+
+  /// Start a persistent omni search session
+  OmniSearchSession startOmniSearchSession() {
+    final baseUri = Uri.parse(httpClient.baseUrl);
+    final wsUri = Uri(
+      scheme: 'wss',
+      host: baseUri.host,
+      path: '/v3/search/omni',
+      queryParameters: {'token': authManager.currentStatus.accessToken},
+    );
+
+    final channel = WebSocketChannel.connect(wsUri);
+    return OmniSearchSession(channel);
+  }
 
   /// Perform omni search with optional vehicle context
   Stream<OmniSearchResponse> omni({
     required String query,
     int? vehicleIndex,
     bool? disableFilters,
-  }) async* {
-    WebSocketChannel? channel;
-
-    final baseUri = Uri.parse(httpClient.baseUrl);
-    final wsUri = Uri(
-      scheme: 'wss',
-      host: baseUri.host,
-      path: '/v3/search/omni',
-      queryParameters: {
-        'token': authManager.currentStatus.accessToken,
-      },
+  }) {
+    // Backward compatibility wrapper using session
+    // Note: This creates a new connection per call, which is the old behavior
+    // Users should prefer startOmniSearchSession() for better performance
+    final session = startOmniSearchSession();
+    session.search(
+      query: query,
+      vehicleIndex: vehicleIndex,
+      disableFilters: disableFilters,
+    );
+    
+    // We need to ensure the session is disposed when the stream is cancelled by the listener
+    final controller = StreamController<OmniSearchResponse>();
+    
+    final subscription = session.stream.listen(
+      (data) => controller.add(data),
+      onError: (e) => controller.addError(e),
+      onDone: () => controller.close(),
     );
 
-    try {
-      channel = WebSocketChannel.connect(wsUri);
+    controller.onCancel = () {
+      subscription.cancel();
+      session.dispose();
+    };
 
-      final request = <String, dynamic>{
-        'query': query,
-      };
-
-      if (vehicleIndex != null) {
-        request['vehicle_index'] = vehicleIndex;
-      }
-      if (disableFilters != null) {
-        request['disable_filters'] = disableFilters;
-      }
-
-      channel.sink.add(jsonEncode(request));
-
-      final response = OmniSearchResponse(
-        partTypes: [],
-        parts: [],
-        vehicles: [],
-        memberCategories: [],
-      );
-
-      await for (final message in channel.stream) {
-        final data = jsonDecode(message);
-
-        bool updated = false;
-
-        if (data.containsKey('part_types')) {
-          final list = (data['part_types'] as List)
-              .map((e) => PartType.fromJson(e as Map<String, dynamic>))
-              .toList();
-          response.partTypes.addAll(list);
-          updated = true;
-        }
-
-        if (data.containsKey('parts')) {
-          final list = (data['parts'] as List)
-              .map((e) => Part.fromJson(e as Map<String, dynamic>))
-              .toList();
-          response.parts.addAll(list);
-          updated = true;
-        }
-
-        if (data.containsKey('vehicles')) {
-          final list = (data['vehicles'] as List)
-              .map((e) => Vehicle.fromJson(e as Map<String, dynamic>))
-              .toList();
-          response.vehicles.addAll(list);
-          updated = true;
-        }
-
-        if (data.containsKey('member_categories')) {
-          final list = (data['member_categories'] as List)
-              .map((e) => MemberCategory.fromJson(e as Map<String, dynamic>))
-              .toList();
-          response.memberCategories.addAll(list);
-          updated = true;
-        }
-
-        if (updated) {
-          yield response;
-        }
-      }
-    } catch (e, stackTrace) {
-      GroupVanLogger.sdk.severe('Omni search failed: $e');
-      Error.throwWithStackTrace(
-        NetworkException('Omni search failed: $e'),
-        stackTrace,
-      );
-    } finally {
-      await channel?.sink.close();
-    }
+    return controller.stream;
   }
+
 
   /// Get VIN data
   Future<Result<Map<String, String>>> vinData(String vin) async {
@@ -1904,6 +1967,13 @@ class GroupVANSearch {
   final SearchClient _client;
 
   const GroupVANSearch._(this._client);
+
+  /// Start a persistent omni search session
+  /// 
+  /// Returns an [OmniSearchSession] that can be used to perform multiple searches
+  /// over a single WebSocket connection. Remember to call [dispose] on the session
+  /// when you are done.
+  OmniSearchSession startSession() => _client.startOmniSearchSession();
 
   /// Perform omni search
   Stream<OmniSearchResponse> omni({
