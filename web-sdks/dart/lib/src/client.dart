@@ -1292,40 +1292,6 @@ class SearchClient extends ApiClient {
     return OmniSearchSession(channel);
   }
 
-  /// Perform omni search with optional vehicle context
-  Stream<OmniSearchResponse> omni({
-    required String query,
-    int? vehicleIndex,
-    bool? disableFilters,
-  }) {
-    // Backward compatibility wrapper using session
-    // Note: This creates a new connection per call, which is the old behavior
-    // Users should prefer startOmniSearchSession() for better performance
-    final session = startOmniSearchSession();
-    session.search(
-      query: query,
-      vehicleIndex: vehicleIndex,
-      disableFilters: disableFilters,
-    );
-    
-    // We need to ensure the session is disposed when the stream is cancelled by the listener
-    final controller = StreamController<OmniSearchResponse>();
-    
-    final subscription = session.stream.listen(
-      (data) => controller.add(data),
-      onError: (e) => controller.addError(e),
-      onDone: () => controller.close(),
-    );
-
-    controller.onCancel = () {
-      subscription.cancel();
-      session.dispose();
-    };
-
-    return controller.stream;
-  }
-
-
   /// Get VIN data
   Future<Result<Map<String, String>>> vinData(String vin) async {
     try {
@@ -1974,19 +1940,6 @@ class GroupVANSearch {
   /// over a single WebSocket connection. Remember to call [dispose] on the session
   /// when you are done.
   OmniSearchSession startSession() => _client.startOmniSearchSession();
-
-  /// Perform omni search
-  Stream<OmniSearchResponse> omni({
-    required String query,
-    int? vehicleIndex,
-    bool? disableFilters,
-  }) {
-    return _client.omni(
-      query: query,
-      vehicleIndex: vehicleIndex,
-      disableFilters: disableFilters,
-    );
-  }
 
   /// Get VIN data
   Future<Map<String, String>> vinData(String vin) async {

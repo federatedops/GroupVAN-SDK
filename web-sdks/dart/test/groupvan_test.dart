@@ -94,6 +94,23 @@ void main() {
       expect(client.auth, isA<GroupVANAuth>());
       expect(client.vehicles, isA<GroupVANVehicles>());
       expect(client.catalogs, isA<GroupVANCatalogs>());
+      expect(client.search, isA<GroupVANSearch>());
+
+      await GroupVAN.dispose();
+    });
+
+    test('search client has all expected methods', () async {
+      await GroupVAN.initialize(
+        isProduction: false,
+        enableLogging: false,
+        tokenStorage: MemoryTokenStorage(),
+      );
+
+      final search = GroupVAN.instance.client.search;
+      expect(search, isA<GroupVANSearch>());
+
+      // Test that all methods exist (method type checking)
+      expect(search.startSession, isA<Function>());
 
       await GroupVAN.dispose();
     });
