@@ -894,46 +894,6 @@ class CatalogsClient extends ApiClient {
     }
   }
 
-  /// Get cart details with validation
-  Future<Result<List<CartItem>>> getCart({required String cartId}) async {
-    // Validate cart ID
-    try {
-      if (cartId.trim().isEmpty) {
-        throw ValidationException(
-          'Cart ID cannot be empty',
-          errors: [
-            ValidationError(
-              field: 'cart_id',
-              message: 'Cart ID cannot be empty',
-              value: cartId,
-              rule: 'required',
-            ),
-          ],
-        );
-      }
-    } catch (e) {
-      return Failure(e as ValidationException);
-    }
-
-    try {
-      final response = await get<List<dynamic>>(
-        '/v3/catalogs/cart/$cartId',
-        decoder: (data) => data as List<dynamic>,
-      );
-
-      final cartItems = response.data
-          .map((item) => CartItem.fromJson(item as Map<String, dynamic>))
-          .toList();
-
-      return Success(cartItems);
-    } catch (e) {
-      GroupVanLogger.catalogs.severe('Failed to get cart: $e');
-      return Failure(
-        e is GroupVanException ? e : NetworkException('Failed to get cart: $e'),
-      );
-    }
-  }
-
   /// Get product listings with validation
   Stream<List<ProductListing>> getProducts({
     required ProductListingRequest request,
@@ -1846,15 +1806,6 @@ class GroupVANCatalogs {
       applicationIds: applicationIds,
       languageCode: languageCode,
     );
-    if (result.isFailure) {
-      throw Exception('Unexpected error: ${result.error}');
-    }
-    return result.value;
-  }
-
-  /// Get cart details
-  Future<List<CartItem>> getCart({required String cartId}) async {
-    final result = await _client.getCart(cartId: cartId);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
