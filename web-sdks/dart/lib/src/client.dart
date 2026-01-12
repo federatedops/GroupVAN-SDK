@@ -1082,6 +1082,34 @@ class CatalogsClient extends ApiClient {
       );
     }
   }
+
+  /// Get Identifix URL
+  Future<Result<String>> getIdentifixUrl({required int vehicleIndex}) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/catalogs/identifix',
+        queryParameters: {'vehicle_index': vehicleIndex},
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      final url = response.data['identifix_login_url'];
+      if (url is! String) {
+        return Failure(
+          NetworkException(
+            'Invalid response format: identifix_login_url is not a string',
+          ),
+        );
+      }
+      return Success(url);
+    } catch (e) {
+      GroupVanLogger.catalogs.severe('Failed to get Identifix URL: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get Identifix URL: $e'),
+      );
+    }
+  }
 }
 
 /// Cart API client for cart item management
@@ -1886,6 +1914,15 @@ class GroupVANCatalogs {
 
   Future<ProductInfoResponse> getProductInfo({required int sku}) async {
     final result = await _client.getProductInfo(sku: sku);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get Identifix URL
+  Future<String> getIdentifixUrl(int vehicleIndex) async {
+    final result = await _client.getIdentifixUrl(vehicleIndex: vehicleIndex);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
