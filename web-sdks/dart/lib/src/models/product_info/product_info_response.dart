@@ -78,13 +78,13 @@ class ProductInfoResponse {
       mfrCode: json['mfr_code'],
       partNumber: json['part_number'],
       stripPart: json['strip_part'],
-      spinAssets: json['spin_assets']
+      spinAssets: (json['spin_assets'] as List?)
           ?.map((spinAsset) => SpinAsset.fromJson(spinAsset))
           .toList(),
-      documents: json['documents']
+      documents: (json['documents'] as List?)
           ?.map((document) => Document.fromJson(document))
           .toList(),
-      attributes: json['attributes']
+      attributes: (json['attributes'] as List?)
           ?.map((attribute) => InfoAttribute.fromJson(attribute))
           .toList(),
     );
