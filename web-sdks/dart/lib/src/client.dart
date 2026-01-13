@@ -1193,7 +1193,7 @@ class OmniSearchSession {
           if (data.containsKey('vehicles')) {
             final list =
                 (data['vehicles'] as List)
-                    .map((e) => Vehicle.fromJson(e as Map<String, dynamic>))
+                    .map((e) => VehicleAndPartType.fromJson(e as Map<String, dynamic>))
                     .toList();
             _currentResponse.vehicles.addAll(list);
             updated = true;

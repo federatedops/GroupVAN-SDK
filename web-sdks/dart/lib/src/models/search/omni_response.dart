@@ -1,13 +1,13 @@
 import '../catalogs.dart';
 import '../products/part.dart';
-import '../shared.dart';
 import 'member_category.dart';
+import 'vehicle_and_part_type.dart';
 
 /// Omni search response
 class OmniSearchResponse {
   final List<PartType> partTypes;
   final List<Part> parts;
-  final List<Vehicle> vehicles;
+  final List<VehicleAndPartType> vehicles;
   final List<MemberCategory> memberCategories;
 
   const OmniSearchResponse({
@@ -26,7 +26,7 @@ class OmniSearchResponse {
             .map((item) => Part.fromJson(item as Map<String, dynamic>))
             .toList(),
         vehicles: ((json['vehicles'] as List<dynamic>?) ?? [])
-            .map((item) => Vehicle.fromJson(item as Map<String, dynamic>))
+            .map((item) => VehicleAndPartType.fromJson(item as Map<String, dynamic>))
             .toList(),
         memberCategories: ((json['member_categories'] as List<dynamic>?) ?? [])
             .map(
