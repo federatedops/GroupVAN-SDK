@@ -1297,6 +1297,78 @@ class SearchClient extends ApiClient {
       );
     }
   }
+
+  /// Search products by query string
+  ///
+  /// Returns a stream of [Part] objects that updates as data is received.
+  /// The stream emits:
+  /// 1. Initial products list
+  /// 2. Products with assets attached
+  /// 3. Products with pricing attached
+  Stream<List<Part>> searchProducts({
+    required String query,
+    bool? disableFilters,
+  }) async* {
+    WebSocketChannel? channel;
+
+    final baseUri = Uri.parse(httpClient.baseUrl);
+    final wsUri = Uri(
+      scheme: 'wss',
+      host: baseUri.host,
+      path: '/v3/search/products',
+      queryParameters: {
+        'token': authManager.currentStatus.accessToken,
+      },
+    );
+
+    try {
+      channel = WebSocketChannel.connect(wsUri);
+
+      final request = <String, dynamic>{'query': query};
+      if (disableFilters != null) {
+        request['disable_filters'] = disableFilters;
+      }
+      channel.sink.add(jsonEncode(request));
+
+      List<Part> products = [];
+
+      await for (final message in channel.stream) {
+        final data = jsonDecode(message);
+        if (data.containsKey('products')) {
+          for (final product in data['products']) {
+            products.add(Part.fromJson(product));
+          }
+          yield products;
+        } else if (data.containsKey('assets')) {
+          final assets = data['assets'] as Map<String, dynamic>;
+          for (final product in products) {
+            final assetData = assets[product.sku.toString()];
+            if (assetData != null) {
+              product.assets = Asset.fromJson(assetData);
+            }
+          }
+          yield products;
+        } else if (data.containsKey('pricing')) {
+          final pricing = data['pricing'] as Map<String, dynamic>;
+          for (final product in products) {
+            final pricingData = pricing[product.sku.toString()];
+            if (pricingData != null) {
+              product.pricing = ItemPricing.fromJson(pricingData);
+            }
+          }
+          yield products;
+        }
+      }
+    } catch (e, stackTrace) {
+      GroupVanLogger.sdk.severe('Failed to search products: $e');
+      Error.throwWithStackTrace(
+        NetworkException('Failed to search products: $e'),
+        stackTrace,
+      );
+    } finally {
+      await channel?.sink.close();
+    }
+  }
 }
 
 /// User API client
@@ -1923,7 +1995,7 @@ class GroupVANSearch {
   const GroupVANSearch._(this._client);
 
   /// Start a persistent omni search session
-  /// 
+  ///
   /// Returns an [OmniSearchSession] that can be used to perform multiple searches
   /// over a single WebSocket connection. Remember to call [dispose] on the session
   /// when you are done.
@@ -1936,6 +2008,17 @@ class GroupVANSearch {
       throw Exception('Unexpected error: ${result.error}');
     }
     return result.value;
+  }
+
+  /// Search products by query string
+  ///
+  /// Returns a stream of [Part] objects that updates as data is received.
+  /// The stream emits updates as products, assets, and pricing data arrive.
+  Stream<List<Part>> searchProducts({
+    required String query,
+    bool? disableFilters,
+  }) {
+    return _client.searchProducts(query: query, disableFilters: disableFilters);
   }
 }
 
