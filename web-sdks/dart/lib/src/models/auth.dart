@@ -198,6 +198,7 @@ class User {
   final String? picture;
   final String? memberId;
   final Location? location;
+  final bool hasIdentifixAccess;
   final List<String> roles;
 
   const User({
@@ -206,6 +207,7 @@ class User {
     required this.name,
     required this.createdAt,
     required this.roles,
+    required this.hasIdentifixAccess,
     this.picture,
     this.memberId,
     this.location,
@@ -217,6 +219,7 @@ class User {
     name: json['name'],
     createdAt: DateTime.parse(json['created_at']),
     roles: List<String>.from(json['roles'] as List),
+    hasIdentifixAccess: json['has_identifix_access'],
     picture: json['picture'],
     memberId: json['member_id'],
     location: json['location'] != null
