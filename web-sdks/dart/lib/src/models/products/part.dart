@@ -17,6 +17,7 @@ class Part implements Comparable {
   final bool buyersGuide;
   final bool productInfo;
   final bool interchange;
+  final String? memberNote;
   final List<PartApplication> applications;
   Asset? assets;
   ItemPricing? pricing;
@@ -35,6 +36,7 @@ class Part implements Comparable {
     required this.buyersGuide,
     required this.productInfo,
     required this.interchange,
+    this.memberNote,
     required this.applications,
     this.assets,
     this.pricing,
@@ -54,6 +56,7 @@ class Part implements Comparable {
     buyersGuide: json['buyers_guide'],
     productInfo: json['product_info'],
     interchange: json['interchange'],
+    memberNote: json['member_note'],
     applications: ((json['applications'] as List<dynamic>?) ?? [])
         .map((a) => PartApplication.fromJson(a as Map<String, dynamic>))
         .toList(),
