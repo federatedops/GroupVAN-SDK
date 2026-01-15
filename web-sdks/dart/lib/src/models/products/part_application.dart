@@ -2,7 +2,7 @@ import 'part_application_display.dart';
 
 class PartApplication {
   final int id;
-  final bool assets;
+  final List<String> assets;
   final List<PartApplicationDisplay> displays;
 
   const PartApplication({
@@ -14,7 +14,7 @@ class PartApplication {
   factory PartApplication.fromJson(Map<String, dynamic> json) =>
       PartApplication(
         id: json['id'],
-        assets: json['assets'],
+        assets: ((json['assets'] as List<dynamic>?) ?? []).cast<String>(),
         displays: ((json['display'] as List<dynamic>?) ?? [])
             .map(
               (d) => PartApplicationDisplay.fromJson(d as Map<String, dynamic>),
