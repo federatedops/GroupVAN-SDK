@@ -1070,6 +1070,28 @@ class CatalogsClient extends ApiClient {
       );
     }
   }
+
+  /// Get buyers guide for a part
+  Future<Result<BuyersGuideResponse>> getBuyersGuide({
+    required BuyersGuideRequest request,
+  }) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/catalogs/buyers_guide',
+        data: request.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(BuyersGuideResponse.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catalogs.severe('Failed to get buyers guide: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get buyers guide: $e'),
+      );
+    }
+  }
 }
 
 /// Cart API client for cart item management
@@ -1946,6 +1968,17 @@ class GroupVANCatalogs {
   /// Get Identifix URL
   Future<String> getIdentifixUrl(int vehicleIndex) async {
     final result = await _client.getIdentifixUrl(vehicleIndex: vehicleIndex);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get buyers guide for a part
+  Future<BuyersGuideResponse> getBuyersGuide({
+    required BuyersGuideRequest request,
+  }) async {
+    final result = await _client.getBuyersGuide(request: request);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
