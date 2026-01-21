@@ -928,7 +928,7 @@ class CatalogsClient extends ApiClient {
           final assets = data['assets'];
           for (final product in products) {
             for (final part in product.parts) {
-              part.assets = Asset.fromJson(assets[part.sku.toString()]);
+              part.assets = Asset.fromJson(assets[part.id.toString()]);
             }
           }
           yield products;
@@ -936,7 +936,7 @@ class CatalogsClient extends ApiClient {
           final pricing = data['pricing'];
           for (final product in products) {
             for (final part in product.parts) {
-              part.pricing = ItemPricing.fromJson(pricing[part.sku.toString()]);
+              part.pricing = ItemPricing.fromJson(pricing[part.id.toString()]);
             }
           }
           yield products;
@@ -1342,7 +1342,7 @@ class SearchClient extends ApiClient {
         } else if (data.containsKey('assets')) {
           final assets = data['assets'] as Map<String, dynamic>;
           for (final product in products) {
-            final assetData = assets[product.sku.toString()];
+            final assetData = assets[product.id.toString()];
             if (assetData != null) {
               product.assets = Asset.fromJson(assetData);
             }
@@ -1351,7 +1351,7 @@ class SearchClient extends ApiClient {
         } else if (data.containsKey('pricing')) {
           final pricing = data['pricing'] as Map<String, dynamic>;
           for (final product in products) {
-            final pricingData = pricing[product.sku.toString()];
+            final pricingData = pricing[product.id.toString()];
             if (pricingData != null) {
               product.pricing = ItemPricing.fromJson(pricingData);
             }

@@ -4,6 +4,7 @@ import './item_pricing.dart';
 import '../assets/asset.dart';
 
 class Part implements Comparable {
+  final int id;
   final int sku;
   final int rank;
   final int tier;
@@ -23,6 +24,7 @@ class Part implements Comparable {
   ItemPricing? pricing;
 
   Part({
+    required this.id,
     required this.sku,
     required this.rank,
     required this.tier,
@@ -43,6 +45,7 @@ class Part implements Comparable {
   });
 
   factory Part.fromJson(Map<String, dynamic> json) => Part(
+    id: json['id'],
     sku: json['sku'],
     rank: json['rank'],
     tier: json['tier'],
