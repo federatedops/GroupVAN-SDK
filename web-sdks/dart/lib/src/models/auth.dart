@@ -200,6 +200,7 @@ class User {
   final Location? location;
   final bool hasIdentifixAccess;
   final List<String> roles;
+  final bool showCartButtonWhenNoPrice;
 
   const User({
     required this.id,
@@ -208,6 +209,7 @@ class User {
     required this.createdAt,
     required this.roles,
     required this.hasIdentifixAccess,
+    this.showCartButtonWhenNoPrice = false,
     this.picture,
     this.memberId,
     this.location,
@@ -220,6 +222,7 @@ class User {
     createdAt: DateTime.parse(json['created_at']),
     roles: List<String>.from(json['roles'] as List),
     hasIdentifixAccess: json['has_identifix_access'],
+    showCartButtonWhenNoPrice: json['show_cart_button_when_no_price'] ?? false,
     picture: json['picture'],
     memberId: json['member_id'],
     location: json['location'] != null
@@ -235,5 +238,6 @@ class User {
     'picture': picture,
     'member_id': memberId,
     'location': location?.toJson(),
+    'show_cart_button_when_no_price': showCartButtonWhenNoPrice,
   };
 }
