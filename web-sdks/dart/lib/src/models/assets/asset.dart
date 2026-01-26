@@ -7,7 +7,7 @@ class Asset {
   });
 
   final List<AssetImage> images;
-  final String brandLogo;
+  final String? brandLogo;
   final int sku;
   final bool spinAsset;
 
