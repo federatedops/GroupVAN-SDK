@@ -216,3 +216,38 @@ class EngineSearchResponse {
             .toList(),
       );
 }
+
+/// Vehicle swap request
+class VehicleSwapRequest {
+  final int vehicleIndex;
+  final int? year;
+
+  const VehicleSwapRequest({
+    required this.vehicleIndex,
+    this.year,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'vehicle_index': vehicleIndex,
+    if (year != null) 'year': year,
+  };
+}
+
+/// Vehicle swap response containing compatible years and vehicles
+class VehicleSwapResponse {
+  final List<int> years;
+  final List<Vehicle> vehicles;
+
+  const VehicleSwapResponse({
+    required this.years,
+    required this.vehicles,
+  });
+
+  factory VehicleSwapResponse.fromJson(Map<String, dynamic> json) =>
+      VehicleSwapResponse(
+        years: (json['years'] as List<dynamic>).cast<int>(),
+        vehicles: (json['vehicles'] as List<dynamic>)
+            .map((v) => Vehicle.fromJson(v as Map<String, dynamic>))
+            .toList(),
+      );
+}

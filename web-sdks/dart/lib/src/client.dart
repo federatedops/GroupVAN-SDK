@@ -750,6 +750,28 @@ class VehiclesClient extends ApiClient {
       );
     }
   }
+
+  /// Get vehicle swap data including compatible years and engines
+  Future<Result<VehicleSwapResponse>> getSwapData({
+    required VehicleSwapRequest request,
+  }) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/vehicles/swap',
+        queryParameters: request.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(VehicleSwapResponse.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.vehicles.severe('Failed to get vehicle swap data: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get vehicle swap data: $e'),
+      );
+    }
+  }
 }
 
 /// Catalogs API client with comprehensive catalog management
@@ -1840,6 +1862,23 @@ class GroupVANVehicles {
   }) async {
     final result = await _client.getPreviousPartTypes(
       vehicleIndex: vehicleIndex,
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get vehicle swap data including compatible years and engines
+  ///
+  /// Returns compatible years and vehicle/engine options for swapping
+  /// a vehicle at the given index. Optionally filter by a specific year.
+  Future<VehicleSwapResponse> getSwapData({
+    required int vehicleIndex,
+    int? year,
+  }) async {
+    final result = await _client.getSwapData(
+      request: VehicleSwapRequest(vehicleIndex: vehicleIndex, year: year),
     );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
