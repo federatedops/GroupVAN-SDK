@@ -1,0 +1,43 @@
+{
+  "name": "@groupvan/sdk",
+  "version": "1.0.0",
+  "description": "GroupVAN SDK for JavaScript - A comprehensive client library for the GroupVAN V3 API",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.js",
+      "require": "./src/index.cjs"
+    }
+  },
+  "files": [
+    "src/**/*"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "lint": "eslint src/",
+    "format": "prettier --write src/"
+  },
+  "keywords": [
+    "groupvan",
+    "sdk",
+    "api",
+    "automotive",
+    "parts",
+    "catalog"
+  ],
+  "author": "GroupVAN",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/groupvan/sdk-javascript"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
+  }
+}
