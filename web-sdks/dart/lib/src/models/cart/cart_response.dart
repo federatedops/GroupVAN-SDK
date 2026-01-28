@@ -8,7 +8,7 @@ class CartResponse {
 
   factory CartResponse.fromJson(Map<String, dynamic> json) => CartResponse(
     cartId: json['cart_id'],
-    items: json['items'].map((item) => CartItem.fromJson(item)).toList(),
+    items: (json['items'] as List<dynamic>).map<CartItem>((item) => CartItem.fromJson(item)).toList(),
   );
 
   Map<String, dynamic> toJson() => {
