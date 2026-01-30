@@ -197,7 +197,7 @@ class User {
   final DateTime createdAt;
   final String? picture;
   final String? memberId;
-  final Location? location;
+  final List<Location> locations;
   final bool hasIdentifixAccess;
   final List<String> roles;
   final bool showCartButtonWhenNoPrice;
@@ -212,7 +212,7 @@ class User {
     this.showCartButtonWhenNoPrice = false,
     this.picture,
     this.memberId,
-    this.location,
+    this.locations = const [],
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -225,9 +225,9 @@ class User {
     showCartButtonWhenNoPrice: json['show_cart_button_when_no_price'] ?? false,
     picture: json['picture'],
     memberId: json['member_id'],
-    location: json['location'] != null
-        ? Location.fromJson(json['location'])
-        : null,
+    locations: (json['locations'] as List?)
+        ?.map((e) => Location.fromJson(e as Map<String, dynamic>))
+        .toList() ?? [],
   );
 
   Map<String, dynamic> toJson() => {
@@ -237,7 +237,9 @@ class User {
     'created_at': createdAt.toIso8601String(),
     'picture': picture,
     'member_id': memberId,
-    'location': location?.toJson(),
+    'locations': locations.map((e) => e.toJson()).toList(),
+    'roles': roles,
+    'has_identifix_access': hasIdentifixAccess,
     'show_cart_button_when_no_price': showCartButtonWhenNoPrice,
   };
 }

@@ -27,7 +27,7 @@ class AuthStatus extends StatelessWidget {
               _buildStatusRow('Created At:', user.createdAt.toString()),
               _buildStatusRow('Picture:', user.picture ?? 'N/A'),
               _buildStatusRow('Member ID:', user.memberId ?? 'N/A'),
-              _buildStatusRow('Location:', user.location?.name ?? 'N/A'),
+              _buildStatusRow('Locations:', user.locations.map((l) => l.name).join(', ')),
             ],
 
             if (session?.accessToken != null)
