@@ -158,6 +158,7 @@ class Location {
   final String state;
   final String zip;
   final String phone;
+  final bool inNetwork;
 
   const Location({
     required this.id,
@@ -167,6 +168,7 @@ class Location {
     required this.state,
     required this.zip,
     required this.phone,
+    required this.inNetwork,
   });
 
   factory Location.fromJson(Map<String, dynamic> json) => Location(
@@ -177,6 +179,7 @@ class Location {
     state: json['state'],
     zip: json['zip'],
     phone: json['phone'],
+    inNetwork: json['in_network'],
   );
 
   Map<String, dynamic> toJson() => {
@@ -187,6 +190,7 @@ class Location {
     'state': state,
     'zip': zip,
     'phone': phone,
+    'in_network': inNetwork,
   };
 }
 
