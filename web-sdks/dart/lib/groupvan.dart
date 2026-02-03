@@ -83,7 +83,14 @@ export 'src/models/models.dart'
         RemovalItem,
         LocationDetails,
         BuyersGuideRequest,
-        BuyersGuideResponse;
+        BuyersGuideResponse,
+        BuyersGuideViewType,
+        BuyersGuideGroup,
+        BuyersGuideMake,
+        BuyersGuideModel,
+        BuyersGuideYear,
+        BuyersGuideVehicle,
+        BuyersGuidePartTerm;
 
 // Constants
 export 'src/constants.dart' show CountryCode, CountryDivisionCode;
