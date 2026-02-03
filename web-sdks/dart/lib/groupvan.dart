@@ -81,7 +81,9 @@ export 'src/models/models.dart'
         CartItem,
         CartItemType,
         RemovalItem,
-        LocationDetails;
+        LocationDetails,
+        BuyersGuideRequest,
+        BuyersGuideResponse;
 
 // Constants
 export 'src/constants.dart' show CountryCode, CountryDivisionCode;
