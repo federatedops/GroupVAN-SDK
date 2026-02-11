@@ -203,6 +203,7 @@ class User {
   final String? memberId;
   final List<Location> locations;
   final bool hasIdentifixAccess;
+  final bool canExportBuyersGuide;
   final List<String> roles;
   final bool showCartButtonWhenNoPrice;
 
@@ -213,6 +214,7 @@ class User {
     required this.createdAt,
     required this.roles,
     required this.hasIdentifixAccess,
+    this.canExportBuyersGuide = false,
     this.showCartButtonWhenNoPrice = false,
     this.picture,
     this.memberId,
@@ -226,6 +228,7 @@ class User {
     createdAt: DateTime.parse(json['created_at']),
     roles: List<String>.from(json['roles'] as List),
     hasIdentifixAccess: json['has_identifix_access'],
+    canExportBuyersGuide: json['can_export_buyers_guide'] ?? false,
     showCartButtonWhenNoPrice: json['show_cart_button_when_no_price'] ?? false,
     picture: json['picture'],
     memberId: json['member_id'],
@@ -244,6 +247,7 @@ class User {
     'locations': locations.map((e) => e.toJson()).toList(),
     'roles': roles,
     'has_identifix_access': hasIdentifixAccess,
+    'can_export_buyers_guide': canExportBuyersGuide,
     'show_cart_button_when_no_price': showCartButtonWhenNoPrice,
   };
 }
