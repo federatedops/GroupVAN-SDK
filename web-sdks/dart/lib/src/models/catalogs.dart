@@ -289,8 +289,6 @@ class BuyersGuideRequest {
   final int? yearId;
   final int? makeId;
   final int? modelId;
-  final bool? flat;
-  final BuyersGuideViewType? view;
 
   const BuyersGuideRequest({
     this.sku,
@@ -301,8 +299,6 @@ class BuyersGuideRequest {
     this.yearId,
     this.makeId,
     this.modelId,
-    this.flat,
-    this.view,
   });
 
   Map<String, dynamic> toJson() => {
@@ -314,9 +310,92 @@ class BuyersGuideRequest {
     if (yearId != null) 'year_id': yearId,
     if (makeId != null) 'make_id': makeId,
     if (modelId != null) 'model_id': modelId,
-    if (flat != null) 'flat': flat,
-    if (view != null) 'view': view!.toJson(),
   };
+}
+
+/// Request for flat buyers guide
+class FlatBuyersGuideRequest {
+  final int sku;
+  final BuyersGuideViewType viewType;
+
+  const FlatBuyersGuideRequest({
+    required this.sku,
+    required this.viewType,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'sku': sku,
+    'view_type': viewType.toJson(),
+  };
+}
+
+/// Response item for flat buyers guide
+class FlatBuyersGuideItem {
+  final String makeName;
+  final String modelName;
+  final String vehicleType;
+  final String yearRange;
+  final String? engineName;
+  final String? partTermName;
+  final String? vehicleRegion;
+  final int? usVio;
+  final int? canVio;
+  final int? mexVio;
+
+  const FlatBuyersGuideItem({
+    required this.makeName,
+    required this.modelName,
+    required this.vehicleType,
+    required this.yearRange,
+    this.engineName,
+    this.partTermName,
+    this.vehicleRegion,
+    this.usVio,
+    this.canVio,
+    this.mexVio,
+  });
+
+  factory FlatBuyersGuideItem.fromJson(Map<String, dynamic> json) =>
+      FlatBuyersGuideItem(
+        makeName: json['makename'],
+        modelName: json['modelname'],
+        vehicleType: json['vehicle_type'],
+        yearRange: json['year_range'].toString(),
+        engineName: json['enginename'],
+        partTermName: json['parttermname'],
+        vehicleRegion: json['vehicle_region'],
+        usVio: json['us_vio'],
+        canVio: json['can_vio'],
+        mexVio: json['mex_vio'],
+      );
+
+  Map<String, dynamic> toJson() => {
+    'makename': makeName,
+    'modelname': modelName,
+    'vehicle_type': vehicleType,
+    'year_range': yearRange,
+    if (engineName != null) 'enginename': engineName,
+    if (partTermName != null) 'parttermname': partTermName,
+    if (vehicleRegion != null) 'vehicle_region': vehicleRegion,
+    if (usVio != null) 'us_vio': usVio,
+    if (canVio != null) 'can_vio': canVio,
+    if (mexVio != null) 'mex_vio': mexVio,
+  };
+}
+
+/// Response for flat buyers guide
+class FlatBuyersGuideResponse {
+  final List<FlatBuyersGuideItem> items;
+
+  const FlatBuyersGuideResponse({this.items = const []});
+
+  factory FlatBuyersGuideResponse.fromJson(List<dynamic> json) =>
+      FlatBuyersGuideResponse(
+        items: json
+            .map((item) =>
+                FlatBuyersGuideItem.fromJson(item as Map<String, dynamic>))
+            .toList(),
+      );
 }
 
 /// Part term in buyers guide vehicle

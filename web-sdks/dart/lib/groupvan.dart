@@ -90,7 +90,10 @@ export 'src/models/models.dart'
         BuyersGuideModel,
         BuyersGuideYear,
         BuyersGuideVehicle,
-        BuyersGuidePartTerm;
+        BuyersGuidePartTerm,
+        FlatBuyersGuideRequest,
+        FlatBuyersGuideResponse,
+        FlatBuyersGuideItem;
 
 // Constants
 export 'src/constants.dart' show CountryCode, CountryDivisionCode;

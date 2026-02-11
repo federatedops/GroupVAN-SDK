@@ -1114,6 +1114,28 @@ class CatalogsClient extends ApiClient {
       );
     }
   }
+
+  /// Get flat buyers guide for a part
+  Future<Result<FlatBuyersGuideResponse>> getFlatBuyersGuide({
+    required FlatBuyersGuideRequest request,
+  }) async {
+    try {
+      final response = await post<List<dynamic>>(
+        '/v3/catalogs/buyers_guide/flat',
+        data: request.toJson(),
+        decoder: (data) => data as List<dynamic>,
+      );
+
+      return Success(FlatBuyersGuideResponse.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catalogs.severe('Failed to get flat buyers guide: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get flat buyers guide: $e'),
+      );
+    }
+  }
 }
 
 /// Cart API client for cart item management
