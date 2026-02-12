@@ -2045,6 +2045,16 @@ class GroupVANCatalogs {
     }
     return result.value;
   }
+  
+  Future<FlatBuyersGuideResponse> getFlatBuyersGuide({
+    required FlatBuyersGuideRequest request,
+  }) async {
+    final result = await _client.getFlatBuyersGuide(request: request);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 }
 
 /// Namespaced cart API
