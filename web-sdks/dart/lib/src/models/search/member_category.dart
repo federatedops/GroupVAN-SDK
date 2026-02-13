@@ -1,5 +1,5 @@
 class MemberCategory {
-  final String name;
+  final String? name;
   final int subcategoryId;
   final String subcategoryName;
 
