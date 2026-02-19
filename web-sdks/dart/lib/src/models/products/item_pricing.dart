@@ -37,20 +37,3 @@ class ItemPricing {
     );
   }
 }
-
-class ItemPricingRequest {
-  const ItemPricingRequest({
-    required this.id,
-    required this.mfrCode,
-    required this.partNumber,
-  });
-  final String id;
-  final String mfrCode;
-  final String partNumber;
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'mfr_code': mfrCode,
-    'part_number': partNumber,
-  };
-}

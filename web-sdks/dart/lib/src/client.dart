@@ -1024,26 +1024,23 @@ class CatalogsClient extends ApiClient {
     }
   }
 
-  Future<Result<List<ItemPricing>>> getItemPricing({
-    required List<ItemPricingRequest> items,
+  Future<Result<ItemPricing>> getProductPricing({
+    required ProductPricingRequest request,
   }) async {
     try {
-      final response = await post<Map<String, dynamic>>(
-        '/json/federated/v3_1/item_inquiry',
-        data: items.map((item) => item.toJson()).toList(),
+      final response = await get<Map<String, dynamic>>(
+        '/v3/catalogs/product/pricing',
+        queryParameters: request.toJson(),
         decoder: (data) => data as Map<String, dynamic>,
       );
-      return Success(
-        response.data.entries
-            .map((item) => ItemPricing.fromJson(item as Map<String, dynamic>))
-            .toList(),
-      );
+
+      return Success(ItemPricing.fromJson(response.data));
     } catch (e) {
-      GroupVanLogger.catalogs.severe('Failed to get item pricing: $e');
+      GroupVanLogger.catalogs.severe('Failed to get product pricing: $e');
       return Failure(
         e is GroupVanException
             ? e
-            : NetworkException('Failed to get item pricing: $e'),
+            : NetworkException('Failed to get product pricing: $e'),
       );
     }
   }
@@ -2004,18 +2001,14 @@ class GroupVANCatalogs {
     return result.value;
   }
 
-  Future<Map<String, ItemPricing>> getItemPricing({
-    required List<ItemPricingRequest> items,
+  Future<ItemPricing> getProductPricing({
+    required ProductPricingRequest request,
   }) async {
-    final result = await _client.getItemPricing(items: items);
+    final result = await _client.getProductPricing(request: request);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
-    Map<String, ItemPricing> pricing = {};
-    for (var item in result.value) {
-      pricing[item.id] = item;
-    }
-    return pricing;
+    return result.value;
   }
 
   Future<ProductInfoResponse> getProductInfo({required int sku}) async {

@@ -9,3 +9,4 @@ export 'part_application_display.dart';
 export 'product_listing.dart';
 export 'item_pricing.dart';
 export 'item_pricing_location.dart';
+export 'product_pricing_request.dart';
