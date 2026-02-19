@@ -978,11 +978,12 @@ class CatalogsClient extends ApiClient {
   Future<Result<List<Asset>>> getProductAssets({
     List<int>? catalogSkus,
     List<int>? memberSkus,
+    bool primaryOnly = true,
   }) async {
     try {
       final response = await post<Map<String, dynamic>>(
         '/v3/catalogs/products/assets',
-        data: {'catalog_skus': catalogSkus, 'member_skus': memberSkus},
+        data: {'catalog_skus': catalogSkus, 'member_skus': memberSkus, 'primary_only': primaryOnly},
       );
       final catalogAssets = response.data['catalog_assets'] as List<dynamic>;
       final assets = catalogAssets
@@ -1974,10 +1975,12 @@ class GroupVANCatalogs {
   Future<List<Asset>> getProductAssets({
     List<int>? catalogSkus,
     List<int>? memberSkus,
+    bool primaryOnly = true
   }) async {
     final result = await _client.getProductAssets(
       catalogSkus: catalogSkus,
       memberSkus: memberSkus,
+      primaryOnly: primaryOnly,
     );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
