@@ -4,6 +4,7 @@ library groupvan;
 export 'src/client.dart'
     show
         GroupVAN,
+        GroupVanDefaults,
         GroupVANClient,
         GroupVANAuth,
         GroupVANVehicles,
