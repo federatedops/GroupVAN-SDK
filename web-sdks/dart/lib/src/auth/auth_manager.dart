@@ -18,14 +18,14 @@ import 'auth_models.dart';
 import '../models/auth.dart' show User;
 
 /// Token storage interface for different storage backends
+///
+/// On web, only the access token is stored client-side.
+/// The refresh token is managed by the browser via HttpOnly cookies.
 abstract class TokenStorage {
-  /// Store tokens securely
-  Future<void> storeTokens({
-    required String accessToken,
-    required String refreshToken,
-  });
+  /// Store access token
+  Future<void> storeTokens({required String accessToken});
 
-  /// Retrieve stored tokens
+  /// Retrieve stored access token
   Future<Map<String, String?>> getTokens();
 
   /// Clear stored tokens
@@ -35,33 +35,69 @@ abstract class TokenStorage {
 /// In-memory token storage (not recommended for production)
 class MemoryTokenStorage implements TokenStorage {
   String? _accessToken;
-  String? _refreshToken;
 
   @override
-  Future<void> storeTokens({
-    required String accessToken,
-    required String refreshToken,
-  }) async {
+  Future<void> storeTokens({required String accessToken}) async {
     _accessToken = accessToken;
-    _refreshToken = refreshToken;
   }
 
   @override
   Future<Map<String, String?>> getTokens() async {
-    return {'accessToken': _accessToken, 'refreshToken': _refreshToken};
+    return {'accessToken': _accessToken};
   }
 
   @override
   Future<void> clearTokens() async {
     _accessToken = null;
-    _refreshToken = null;
   }
 }
 
-/// Secure token storage using flutter_secure_storage (recommended for production)
+/// Web token storage using sessionStorage
+///
+/// Only stores the access token. The refresh token is handled
+/// by the browser as an HttpOnly cookie (not accessible to JS).
+class WebTokenStorage implements TokenStorage {
+  static const String _accessTokenKey = 'groupvan_access_token';
+
+  @override
+  Future<void> storeTokens({required String accessToken}) async {
+    try {
+      window.sessionStorage.setItem(_accessTokenKey, accessToken);
+    } catch (e) {
+      GroupVanLogger.auth.severe(
+        'WebTokenStorage - Failed to store access token: $e',
+      );
+    }
+  }
+
+  @override
+  Future<Map<String, String?>> getTokens() async {
+    try {
+      final accessToken = window.sessionStorage.getItem(_accessTokenKey);
+      return {'accessToken': accessToken};
+    } catch (e) {
+      GroupVanLogger.auth.severe(
+        'WebTokenStorage - Failed to retrieve access token: $e',
+      );
+      return {'accessToken': null};
+    }
+  }
+
+  @override
+  Future<void> clearTokens() async {
+    try {
+      window.sessionStorage.removeItem(_accessTokenKey);
+    } catch (e) {
+      GroupVanLogger.auth.severe(
+        'WebTokenStorage - Failed to clear access token: $e',
+      );
+    }
+  }
+}
+
+/// Secure token storage using flutter_secure_storage (for mobile/desktop)
 class SecureTokenStorage implements TokenStorage {
   static const String _accessTokenKey = 'groupvan_access_token';
-  static const String _refreshTokenKey = 'groupvan_refresh_token';
 
   final FlutterSecureStorage _secureStorage;
 
@@ -97,57 +133,33 @@ class SecureTokenStorage implements TokenStorage {
              mOptions: macOsOptions ?? const MacOsOptions(),
            );
 
-  /// Create web-optimized secure token storage
-  factory SecureTokenStorage.forWeb() {
-    return SecureTokenStorage(
-      webOptions: const WebOptions(
-        dbName: 'groupvan_auth_tokens',
-        publicKey: 'groupvan_web_storage_key',
-      ),
-    );
-  }
-
   /// Create platform-optimized secure token storage
   /// Automatically configures best options for each platform
   factory SecureTokenStorage.platformOptimized() {
     return SecureTokenStorage(
-      // Enhanced Android options
       androidOptions: const AndroidOptions(encryptedSharedPreferences: true),
-      // Enhanced iOS options
       iosOptions: const IOSOptions(
         accessibility: KeychainAccessibility.first_unlock_this_device,
       ),
-      // Web-optimized options
-      webOptions: const WebOptions(
-        dbName: 'groupvan_auth_tokens',
-        publicKey: 'groupvan_web_storage_key',
-      ),
-      // Other platforms use defaults
     );
   }
 
   @override
-  Future<void> storeTokens({
-    required String accessToken,
-    required String refreshToken,
-  }) async {
+  Future<void> storeTokens({required String accessToken}) async {
     try {
       GroupVanLogger.auth.warning(
-        'DEBUG: SecureTokenStorage - Attempting to write tokens to secure storage...',
+        'DEBUG: SecureTokenStorage - Attempting to write access token to secure storage...',
       );
-      await Future.wait([
-        _secureStorage.write(key: _accessTokenKey, value: accessToken),
-        _secureStorage.write(key: _refreshTokenKey, value: refreshToken),
-      ]);
+      await _secureStorage.write(key: _accessTokenKey, value: accessToken);
       GroupVanLogger.auth.warning(
-        'DEBUG: SecureTokenStorage - Tokens written to secure storage successfully',
+        'DEBUG: SecureTokenStorage - Access token written to secure storage successfully',
       );
     } catch (e) {
       GroupVanLogger.auth.severe(
-        'DEBUG: SecureTokenStorage - Failed to store tokens: $e',
+        'DEBUG: SecureTokenStorage - Failed to store access token: $e',
       );
       throw ConfigurationException(
-        'Failed to store tokens securely: $e',
+        'Failed to store access token securely: $e',
         context: {'operation': 'storeTokens'},
       );
     }
@@ -157,36 +169,28 @@ class SecureTokenStorage implements TokenStorage {
   Future<Map<String, String?>> getTokens() async {
     try {
       GroupVanLogger.auth.warning(
-        'DEBUG: SecureTokenStorage - Attempting to read tokens from secure storage...',
+        'DEBUG: SecureTokenStorage - Attempting to read access token from secure storage...',
       );
 
-      final results = await Future.wait([
-        _secureStorage.read(key: _accessTokenKey),
-        _secureStorage.read(key: _refreshTokenKey),
-      ]);
-
-      final tokens = {'accessToken': results[0], 'refreshToken': results[1]};
+      final accessToken = await _secureStorage.read(key: _accessTokenKey);
 
       GroupVanLogger.auth.warning(
-        'DEBUG: SecureTokenStorage - Retrieved tokens: accessToken=${tokens['accessToken']?.substring(0, 10) ?? 'null'}..., refreshToken=${tokens['refreshToken']?.substring(0, 10) ?? 'null'}...',
+        'DEBUG: SecureTokenStorage - Retrieved accessToken=${accessToken?.substring(0, 10) ?? 'null'}...',
       );
 
-      return tokens;
+      return {'accessToken': accessToken};
     } catch (e) {
       GroupVanLogger.auth.severe(
-        'DEBUG: SecureTokenStorage - Failed to retrieve tokens: $e',
+        'DEBUG: SecureTokenStorage - Failed to retrieve access token: $e',
       );
-      return {'accessToken': null, 'refreshToken': null};
+      return {'accessToken': null};
     }
   }
 
   @override
   Future<void> clearTokens() async {
     try {
-      await Future.wait([
-        _secureStorage.delete(key: _accessTokenKey),
-        _secureStorage.delete(key: _refreshTokenKey),
-      ]);
+      await _secureStorage.delete(key: _accessTokenKey);
     } catch (e) {
       throw ConfigurationException(
         'Failed to clear tokens from secure storage: $e',
@@ -283,24 +287,21 @@ class AuthManager {
       final tokens = await _tokenStorage.getTokens();
 
       GroupVanLogger.auth.warning(
-        'DEBUG: Token retrieval result - accessToken: ${tokens['accessToken']?.substring(0, 10) ?? 'null'}..., refreshToken: ${tokens['refreshToken']?.substring(0, 10) ?? 'null'}...',
+        'DEBUG: Token retrieval result - accessToken: ${tokens['accessToken']?.substring(0, 10) ?? 'null'}...',
       );
 
-      if (tokens['accessToken'] != null && tokens['refreshToken'] != null) {
+      if (tokens['accessToken'] != null) {
         GroupVanLogger.auth.warning(
-          'DEBUG: Both tokens found, attempting to validate and restore...',
+          'DEBUG: Access token found, attempting to validate and restore...',
         );
-        await _validateAndRestoreTokens(
-          tokens['accessToken']!,
-          tokens['refreshToken']!,
-        );
+        await _validateAndRestoreTokens(tokens['accessToken']!);
         GroupVanLogger.auth.warning(
           'DEBUG: Token validation and restoration completed',
         );
       } else {
         // No stored tokens, start with unauthenticated state
         GroupVanLogger.auth.warning(
-          'DEBUG: No stored tokens found, setting unauthenticated state',
+          'DEBUG: No stored access token found, setting unauthenticated state',
         );
 
         final uri = Uri.parse(window.location.href);
@@ -430,20 +431,16 @@ class AuthManager {
     User? user,
   }) async {
     GroupVanLogger.auth.warning(
-      'DEBUG: Storing tokens after successful login...',
+      'DEBUG: Storing access token after successful login...',
     );
-    await _tokenStorage.storeTokens(
-      accessToken: tokenResponse.accessToken,
-      refreshToken: tokenResponse.refreshToken,
-    );
-    GroupVanLogger.auth.warning('DEBUG: Tokens stored successfully');
+    await _tokenStorage.storeTokens(accessToken: tokenResponse.accessToken);
+    GroupVanLogger.auth.warning('DEBUG: Access token stored successfully');
 
     // Update authentication status
     final claims = _decodeToken(tokenResponse.accessToken);
     await _updateStatus(
       AuthStatus.authenticated(
         accessToken: tokenResponse.accessToken,
-        refreshToken: tokenResponse.refreshToken,
         claims: claims,
         userInfo: user ?? _currentStatus.userInfo,
       ),
@@ -455,7 +452,10 @@ class AuthManager {
     );
   }
 
-  /// Refresh access token using refresh token
+  /// Refresh access token
+  ///
+  /// On web, the browser automatically sends the refresh_token HttpOnly cookie.
+  /// The server responds with a new access token (and updates the cookie).
   Future<void> refreshToken() async {
     // Prevent concurrent refresh operations
     if (_refreshCompleter != null) {
@@ -466,21 +466,9 @@ class AuthManager {
     _refreshCompleter = Completer<void>();
 
     try {
-      final currentTokens = await _tokenStorage.getTokens();
-      if (currentTokens['refreshToken'] == null) {
-        throw AuthenticationException(
-          'No refresh token available',
-          errorType: AuthErrorType.missingToken,
-        );
-      }
-
-      final request = RefreshTokenRequest(
-        refreshToken: currentTokens['refreshToken']!,
-      );
-
+      // POST with empty body — browser sends refresh_token cookie automatically
       final response = await _httpClient.post<Map<String, dynamic>>(
         '/auth/refresh',
-        data: request.toJson(),
         decoder: (data) => data as Map<String, dynamic>,
       );
 
@@ -489,22 +477,24 @@ class AuthManager {
 
       await _handleTokenResponse(tokenResponse, user: user);
 
-      GroupVanLogger.auth.info('Successfully refreshed tokens');
+      GroupVanLogger.auth.info('Successfully refreshed access token');
       _refreshCompleter!.complete();
     } catch (e) {
       final error = 'Token refresh failed: ${e.toString()}';
       GroupVanLogger.auth.severe(error);
 
       // If refresh fails, mark as expired and clear tokens
-      await _updateStatus(
-        AuthStatus.expired(
-          error: error,
-          accessToken: _currentStatus.accessToken!,
-          refreshToken: _currentStatus.refreshToken!,
-          authenticatedAt: _currentStatus.authenticatedAt!,
-          refreshedAt: _currentStatus.refreshedAt,
-        ),
-      );
+      if (_currentStatus.accessToken != null &&
+          _currentStatus.authenticatedAt != null) {
+        await _updateStatus(
+          AuthStatus.expired(
+            error: error,
+            accessToken: _currentStatus.accessToken!,
+            authenticatedAt: _currentStatus.authenticatedAt!,
+            refreshedAt: _currentStatus.refreshedAt,
+          ),
+        );
+      }
       await _tokenStorage.clearTokens();
 
       _refreshCompleter!.completeError(e);
@@ -515,25 +505,23 @@ class AuthManager {
   }
 
   /// Logout and clear all authentication state
+  ///
+  /// Browser sends refresh_token cookie automatically.
+  /// Server blacklists tokens and clears the cookie via Set-Cookie with max-age=0.
   Future<void> logout() async {
     try {
       final currentTokens = await _tokenStorage.getTokens();
-      if (currentTokens['refreshToken'] != null) {
-        // Notify server to blacklist tokens
-        final request = LogoutRequest(
-          refreshToken: currentTokens['refreshToken']!,
-        );
-        await _httpClient.post<Map<String, dynamic>>(
-          '/auth/logout',
-          data: request.toJson(),
-          decoder: (data) => data as Map<String, dynamic>,
-          options: Options(
-            headers: {
+      // POST with no body — browser sends refresh_token cookie automatically
+      await _httpClient.post<Map<String, dynamic>>(
+        '/auth/logout',
+        decoder: (data) => data as Map<String, dynamic>,
+        options: Options(
+          headers: {
+            if (currentTokens['accessToken'] != null)
               'Authorization': 'Bearer ${currentTokens['accessToken']}',
-            },
-          ),
-        );
-      }
+          },
+        ),
+      );
     } catch (e) {
       GroupVanLogger.auth.warning('Logout request failed: $e');
       // Continue with local cleanup even if server request fails
@@ -562,10 +550,10 @@ class AuthManager {
   }
 
   /// Validate and restore tokens from storage
-  Future<void> _validateAndRestoreTokens(
-    String accessToken,
-    String refreshToken,
-  ) async {
+  ///
+  /// On web, only the access token is stored locally.
+  /// Attempts a refresh to get a fresh access token (browser sends cookie).
+  Future<void> _validateAndRestoreTokens(String accessToken) async {
     try {
       GroupVanLogger.auth.warning('DEBUG: Decoding access token...');
       final claims = _decodeToken(accessToken);
@@ -574,10 +562,7 @@ class AuthManager {
         'DEBUG: Token claims - userId: ${claims.userId}, expiration: ${DateTime.fromMillisecondsSinceEpoch(claims.expiration * 1000)}, isExpired: ${claims.isExpired}',
       );
 
-      await _tokenStorage.storeTokens(
-        accessToken: accessToken,
-        refreshToken: refreshToken,
-      );
+      await _tokenStorage.storeTokens(accessToken: accessToken);
       await this.refreshToken();
       GroupVanLogger.auth.warning('DEBUG: Token refresh completed');
     } catch (e) {

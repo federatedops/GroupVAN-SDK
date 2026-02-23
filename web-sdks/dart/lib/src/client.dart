@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:dio/dio.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -58,7 +59,8 @@ class GroupVanClientConfig {
            httpClientConfig ??
            const HttpClientConfig(baseUrl: 'https://api.staging.groupvan.com');
 
-  /// Create production configuration (uses secure storage by default)
+  /// Create production configuration
+  /// Uses WebTokenStorage on web, SecureTokenStorage on mobile/desktop
   factory GroupVanClientConfig.production({
     TokenStorage? tokenStorage,
     String? clientId,
@@ -72,7 +74,8 @@ class GroupVanClientConfig {
         baseUrl: 'https://api.groupvan.com',
         enableLogging: false,
       ),
-      tokenStorage: tokenStorage ?? SecureTokenStorage.platformOptimized(),
+      tokenStorage: tokenStorage ??
+          (kIsWeb ? WebTokenStorage() : SecureTokenStorage.platformOptimized()),
       clientId: clientId,
       autoRefreshTokens: autoRefreshTokens,
       enableLogging: enableLogging,
@@ -80,7 +83,8 @@ class GroupVanClientConfig {
     );
   }
 
-  /// Create staging configuration (uses secure storage by default)
+  /// Create staging configuration
+  /// Uses WebTokenStorage on web, SecureTokenStorage on mobile/desktop
   factory GroupVanClientConfig.staging({
     TokenStorage? tokenStorage,
     String? clientId,
@@ -94,7 +98,8 @@ class GroupVanClientConfig {
         baseUrl: 'https://api.staging.groupvan.com',
         enableLogging: true,
       ),
-      tokenStorage: tokenStorage ?? SecureTokenStorage.platformOptimized(),
+      tokenStorage: tokenStorage ??
+          (kIsWeb ? WebTokenStorage() : SecureTokenStorage.platformOptimized()),
       clientId: clientId,
       autoRefreshTokens: autoRefreshTokens,
       enableLogging: enableLogging,
@@ -1533,6 +1538,8 @@ class GroupVAN {
           );
 
     // Override base URL if provided
+    final defaultStorage = tokenStorage ??
+        (kIsWeb ? WebTokenStorage() : SecureTokenStorage.platformOptimized());
     final finalConfig = baseUrl != null || httpClientConfig != null
         ? GroupVanClientConfig(
             baseUrl:
@@ -1551,7 +1558,7 @@ class GroupVAN {
                   enableLogging: enableLogging ?? !isProduction,
                   enableCaching: enableCaching ?? true,
                 ),
-            tokenStorage: tokenStorage,
+            tokenStorage: defaultStorage,
             clientId: clientId,
             autoRefreshTokens: autoRefreshTokens ?? true,
             enableLogging: enableLogging ?? !isProduction,
@@ -2041,7 +2048,7 @@ class GroupVANCatalogs {
     }
     return result.value;
   }
-  
+
   Future<FlatBuyersGuideResponse> getFlatBuyersGuide({
     required FlatBuyersGuideRequest request,
   }) async {
@@ -2190,16 +2197,17 @@ class AuthUser {
 }
 
 /// Authentication session information
+///
+/// Note: refreshToken is no longer exposed. It is managed by the browser
+/// via HttpOnly cookies on web platforms.
 @immutable
 class AuthSession {
   final String accessToken;
-  final String refreshToken;
   final DateTime? expiresAt;
   final User user;
 
   const AuthSession({
     required this.accessToken,
-    required this.refreshToken,
     this.expiresAt,
     required this.user,
   });
@@ -2209,7 +2217,6 @@ class AuthSession {
     String? clientId,
   }) => AuthSession(
     accessToken: status.accessToken!,
-    refreshToken: status.refreshToken!,
     expiresAt: status.claims != null
         ? DateTime.fromMillisecondsSinceEpoch(status.claims!.expiration * 1000)
         : null,
