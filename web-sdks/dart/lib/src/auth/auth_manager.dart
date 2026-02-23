@@ -52,46 +52,29 @@ class MemoryTokenStorage implements TokenStorage {
   }
 }
 
-/// Web token storage using sessionStorage
+/// Web token storage — in-memory only
 ///
-/// Only stores the access token. The refresh token is handled
-/// by the browser as an HttpOnly cookie (not accessible to JS).
+/// The refresh token is managed by the browser as an HttpOnly cookie.
+/// The access token (returned in the API response body) is held in
+/// memory only for the Authorization header during the current session.
+/// Nothing is written to localStorage, sessionStorage, or any other
+/// JS-accessible persistence.
 class WebTokenStorage implements TokenStorage {
-  static const String _accessTokenKey = 'groupvan_access_token';
+  String? _accessToken;
 
   @override
   Future<void> storeTokens({required String accessToken}) async {
-    try {
-      window.sessionStorage.setItem(_accessTokenKey, accessToken);
-    } catch (e) {
-      GroupVanLogger.auth.severe(
-        'WebTokenStorage - Failed to store access token: $e',
-      );
-    }
+    _accessToken = accessToken;
   }
 
   @override
   Future<Map<String, String?>> getTokens() async {
-    try {
-      final accessToken = window.sessionStorage.getItem(_accessTokenKey);
-      return {'accessToken': accessToken};
-    } catch (e) {
-      GroupVanLogger.auth.severe(
-        'WebTokenStorage - Failed to retrieve access token: $e',
-      );
-      return {'accessToken': null};
-    }
+    return {'accessToken': _accessToken};
   }
 
   @override
   Future<void> clearTokens() async {
-    try {
-      window.sessionStorage.removeItem(_accessTokenKey);
-    } catch (e) {
-      GroupVanLogger.auth.severe(
-        'WebTokenStorage - Failed to clear access token: $e',
-      );
-    }
+    _accessToken = null;
   }
 }
 
