@@ -32,15 +32,14 @@ class LoginRequest extends Equatable {
 }
 
 /// Token response from authentication endpoints
+///
+/// Note: refresh_token is no longer returned in API responses.
+/// It is now set as an HttpOnly cookie by the server.
 @JsonSerializable()
 class TokenResponse extends Equatable {
   /// JWT access token for API requests
   @JsonKey(name: 'access_token')
   final String accessToken;
-
-  /// JWT refresh token for obtaining new access tokens
-  @JsonKey(name: 'refresh_token')
-  final String refreshToken;
 
   /// Token expiration time in seconds
   @JsonKey(name: 'expires_in')
@@ -52,7 +51,6 @@ class TokenResponse extends Equatable {
 
   const TokenResponse({
     required this.accessToken,
-    required this.refreshToken,
     required this.expiresIn,
     this.tokenType = 'Bearer',
   });
@@ -63,43 +61,7 @@ class TokenResponse extends Equatable {
   Map<String, dynamic> toJson() => _$TokenResponseToJson(this);
 
   @override
-  List<Object?> get props => [accessToken, refreshToken, expiresIn, tokenType];
-}
-
-/// Refresh token request
-@JsonSerializable()
-class RefreshTokenRequest extends Equatable {
-  /// Refresh token to use for generating new access token
-  @JsonKey(name: 'refresh_token')
-  final String refreshToken;
-
-  const RefreshTokenRequest({required this.refreshToken});
-
-  factory RefreshTokenRequest.fromJson(Map<String, dynamic> json) =>
-      _$RefreshTokenRequestFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RefreshTokenRequestToJson(this);
-
-  @override
-  List<Object?> get props => [refreshToken];
-}
-
-/// Logout request
-@JsonSerializable()
-class LogoutRequest extends Equatable {
-  /// Refresh token to blacklist
-  @JsonKey(name: 'refresh_token')
-  final String refreshToken;
-
-  const LogoutRequest({required this.refreshToken});
-
-  factory LogoutRequest.fromJson(Map<String, dynamic> json) =>
-      _$LogoutRequestFromJson(json);
-
-  Map<String, dynamic> toJson() => _$LogoutRequestToJson(this);
-
-  @override
-  List<Object?> get props => [refreshToken];
+  List<Object?> get props => [accessToken, expiresIn, tokenType];
 }
 
 /// JWT token claims decoded from access token
@@ -194,6 +156,9 @@ enum AuthState {
 }
 
 /// Current authentication status
+///
+/// Note: refreshToken is no longer stored client-side on web.
+/// The browser manages the refresh token via HttpOnly cookies.
 @immutable
 class AuthStatus extends Equatable {
   /// Current authentication state
@@ -201,9 +166,6 @@ class AuthStatus extends Equatable {
 
   /// Access token if authenticated
   final String? accessToken;
-
-  /// Refresh token if authenticated
-  final String? refreshToken;
 
   /// Decoded token claims if available
   final TokenClaims? claims;
@@ -225,7 +187,6 @@ class AuthStatus extends Equatable {
   const AuthStatus({
     required this.state,
     this.accessToken,
-    this.refreshToken,
     this.claims,
     this.userInfo,
     this.error,
@@ -238,7 +199,6 @@ class AuthStatus extends Equatable {
   const AuthStatus.unauthenticated()
     : state = AuthState.unauthenticated,
       accessToken = null,
-      refreshToken = null,
       claims = null,
       userInfo = null,
       error = null,
@@ -250,7 +210,6 @@ class AuthStatus extends Equatable {
   const AuthStatus.authenticating()
     : state = AuthState.authenticating,
       accessToken = null,
-      refreshToken = null,
       claims = null,
       userInfo = null,
       error = null,
@@ -261,12 +220,10 @@ class AuthStatus extends Equatable {
   /// Create authenticated status
   AuthStatus.authenticated({
     required String accessToken,
-    required String refreshToken,
     required TokenClaims claims,
     User? userInfo,
   }) : state = AuthState.authenticated,
        accessToken = accessToken,
-       refreshToken = refreshToken,
        claims = claims,
        userInfo = userInfo,
        error = null,
@@ -277,13 +234,11 @@ class AuthStatus extends Equatable {
   /// Create refreshing status
   AuthStatus.refreshing({
     required String accessToken,
-    required String refreshToken,
     required TokenClaims claims,
     required DateTime authenticatedAt,
     User? userInfo,
   }) : state = AuthState.refreshing,
        accessToken = accessToken,
-       refreshToken = refreshToken,
        claims = claims,
        userInfo = userInfo,
        error = null,
@@ -295,13 +250,11 @@ class AuthStatus extends Equatable {
   AuthStatus.expired({
     String? error,
     required String accessToken,
-    required String refreshToken,
     required DateTime authenticatedAt,
     DateTime? refreshedAt,
     User? userInfo,
   }) : state = AuthState.expired,
        accessToken = accessToken,
-       refreshToken = refreshToken,
        claims = null,
        userInfo = userInfo,
        error = error,
@@ -313,7 +266,6 @@ class AuthStatus extends Equatable {
   AuthStatus.failed({required String error, Map<String, dynamic>? metadata})
     : state = AuthState.failed,
       accessToken = null,
-      refreshToken = null,
       claims = null,
       userInfo = null,
       error = error,
@@ -324,8 +276,8 @@ class AuthStatus extends Equatable {
   /// Whether currently authenticated
   bool get isAuthenticated => state == AuthState.authenticated;
 
-  /// Whether tokens are available (even if expired)
-  bool get hasTokens => accessToken != null && refreshToken != null;
+  /// Whether an access token is available (even if expired)
+  bool get hasTokens => accessToken != null;
 
   /// Whether authentication is in progress
   bool get isLoading =>
@@ -341,7 +293,6 @@ class AuthStatus extends Equatable {
   AuthStatus copyWith({
     AuthState? state,
     String? accessToken,
-    String? refreshToken,
     TokenClaims? claims,
     User? userInfo,
     String? error,
@@ -352,7 +303,6 @@ class AuthStatus extends Equatable {
     return AuthStatus(
       state: state ?? this.state,
       accessToken: accessToken ?? this.accessToken,
-      refreshToken: refreshToken ?? this.refreshToken,
       claims: claims ?? this.claims,
       userInfo: userInfo ?? this.userInfo,
       error: error ?? this.error,
@@ -366,7 +316,6 @@ class AuthStatus extends Equatable {
   List<Object?> get props => [
     state,
     accessToken,
-    refreshToken,
     claims,
     userInfo,
     error,

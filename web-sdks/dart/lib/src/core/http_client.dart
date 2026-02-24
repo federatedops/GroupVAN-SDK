@@ -4,8 +4,12 @@
 /// retry logic, caching, and comprehensive error handling.
 library http_client;
 
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:web/web.dart' hide Response;
 import 'package:dio/dio.dart';
+import 'package:dio/browser.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:uuid/uuid.dart';
 
@@ -120,6 +124,12 @@ class GroupVanHttpClient {
         },
       ),
     );
+
+    // On web, enable withCredentials so the browser includes HttpOnly cookies
+    // (refresh_token) in cross-origin requests to *.groupvan.com
+    if (kIsWeb) {
+      _dio.httpClientAdapter = BrowserHttpClientAdapter(withCredentials: true);
+    }
 
     // Sanitize sendTimeout for requests without a body (esp. required on Web)
     _dio.interceptors.add(SendTimeoutSanitizerInterceptor());

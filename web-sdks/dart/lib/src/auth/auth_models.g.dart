@@ -17,7 +17,6 @@ Map<String, dynamic> _$LoginRequestToJson(LoginRequest instance) =>
 TokenResponse _$TokenResponseFromJson(Map<String, dynamic> json) =>
     TokenResponse(
       accessToken: json['access_token'] as String,
-      refreshToken: json['refresh_token'] as String,
       expiresIn: (json['expires_in'] as num).toInt(),
       tokenType: json['token_type'] as String? ?? 'Bearer',
     );
@@ -25,23 +24,9 @@ TokenResponse _$TokenResponseFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$TokenResponseToJson(TokenResponse instance) =>
     <String, dynamic>{
       'access_token': instance.accessToken,
-      'refresh_token': instance.refreshToken,
       'expires_in': instance.expiresIn,
       'token_type': instance.tokenType,
     };
-
-RefreshTokenRequest _$RefreshTokenRequestFromJson(Map<String, dynamic> json) =>
-    RefreshTokenRequest(refreshToken: json['refresh_token'] as String);
-
-Map<String, dynamic> _$RefreshTokenRequestToJson(
-  RefreshTokenRequest instance,
-) => <String, dynamic>{'refresh_token': instance.refreshToken};
-
-LogoutRequest _$LogoutRequestFromJson(Map<String, dynamic> json) =>
-    LogoutRequest(refreshToken: json['refresh_token'] as String);
-
-Map<String, dynamic> _$LogoutRequestToJson(LogoutRequest instance) =>
-    <String, dynamic>{'refresh_token': instance.refreshToken};
 
 TokenClaims _$TokenClaimsFromJson(Map<String, dynamic> json) => TokenClaims(
   userId: json['sub'] as String,

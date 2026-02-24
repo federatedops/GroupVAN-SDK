@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:dio/dio.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -22,13 +23,26 @@ import 'core/validation.dart';
 import 'logging.dart';
 import 'models/models.dart';
 
+/// Default API base URLs for each environment
+class GroupVanDefaults {
+  GroupVanDefaults._();
+
+  /// Production API base URL
+  static const String productionBaseUrl = 'https://api.groupvan.com';
+
+  /// Staging API base URL
+  static const String stagingBaseUrl = 'https://api.staging.groupvan.com';
+}
+
 /// Configuration for the GroupVAN SDK client
-@immutable
 class GroupVanClientConfig {
-  /// API base URL (defaults to staging)
+  /// API base URL — single source of truth for all HTTP and WebSocket requests.
+  /// Defaults to [GroupVanDefaults.stagingBaseUrl].
+  /// Override at initialization to target any environment.
   final String baseUrl;
 
-  /// HTTP client configuration
+  /// HTTP client configuration (timeouts, retries, caching, headers).
+  /// The [baseUrl] on this config is always kept in sync with [GroupVanClientConfig.baseUrl].
   final HttpClientConfig httpClientConfig;
 
   /// Token storage implementation
@@ -46,8 +60,8 @@ class GroupVanClientConfig {
   /// Enable caching
   final bool enableCaching;
 
-  const GroupVanClientConfig({
-    this.baseUrl = 'https://api.staging.groupvan.com',
+  GroupVanClientConfig({
+    this.baseUrl = GroupVanDefaults.stagingBaseUrl,
     HttpClientConfig? httpClientConfig,
     this.tokenStorage,
     this.clientId,
@@ -55,11 +69,13 @@ class GroupVanClientConfig {
     this.enableLogging = true,
     this.enableCaching = true,
   }) : httpClientConfig =
-           httpClientConfig ??
-           const HttpClientConfig(baseUrl: 'https://api.staging.groupvan.com');
+           httpClientConfig?.copyWith(baseUrl: baseUrl) ??
+           HttpClientConfig(baseUrl: baseUrl);
 
-  /// Create production configuration (uses secure storage by default)
+  /// Create production configuration
+  /// Uses WebTokenStorage on web, SecureTokenStorage on mobile/desktop
   factory GroupVanClientConfig.production({
+    String? baseUrl,
     TokenStorage? tokenStorage,
     String? clientId,
     bool autoRefreshTokens = true,
@@ -67,12 +83,9 @@ class GroupVanClientConfig {
     bool enableCaching = true,
   }) {
     return GroupVanClientConfig(
-      baseUrl: 'https://api.groupvan.com',
-      httpClientConfig: const HttpClientConfig(
-        baseUrl: 'https://api.groupvan.com',
-        enableLogging: false,
-      ),
-      tokenStorage: tokenStorage ?? SecureTokenStorage.platformOptimized(),
+      baseUrl: baseUrl ?? GroupVanDefaults.productionBaseUrl,
+      tokenStorage: tokenStorage ??
+          (kIsWeb ? WebTokenStorage() : SecureTokenStorage.platformOptimized()),
       clientId: clientId,
       autoRefreshTokens: autoRefreshTokens,
       enableLogging: enableLogging,
@@ -80,8 +93,10 @@ class GroupVanClientConfig {
     );
   }
 
-  /// Create staging configuration (uses secure storage by default)
+  /// Create staging configuration
+  /// Uses WebTokenStorage on web, SecureTokenStorage on mobile/desktop
   factory GroupVanClientConfig.staging({
+    String? baseUrl,
     TokenStorage? tokenStorage,
     String? clientId,
     bool autoRefreshTokens = true,
@@ -89,12 +104,9 @@ class GroupVanClientConfig {
     bool enableCaching = true,
   }) {
     return GroupVanClientConfig(
-      baseUrl: 'https://api.staging.groupvan.com',
-      httpClientConfig: const HttpClientConfig(
-        baseUrl: 'https://api.staging.groupvan.com',
-        enableLogging: true,
-      ),
-      tokenStorage: tokenStorage ?? SecureTokenStorage.platformOptimized(),
+      baseUrl: baseUrl ?? GroupVanDefaults.stagingBaseUrl,
+      tokenStorage: tokenStorage ??
+          (kIsWeb ? WebTokenStorage() : SecureTokenStorage.platformOptimized()),
       clientId: clientId,
       autoRefreshTokens: autoRefreshTokens,
       enableLogging: enableLogging,
@@ -1484,7 +1496,8 @@ class GroupVAN {
   /// This must be called before using any GroupVAN functionality.
   /// Returns the same instance on subsequent calls.
   static Future<GroupVAN> initialize({
-    /// API base URL (defaults to production)
+    /// API base URL — override to target any environment.
+    /// Defaults to production or staging URL based on [isProduction].
     String? baseUrl,
 
     /// Client ID for this SDK instance
@@ -1502,7 +1515,7 @@ class GroupVAN {
     /// Custom token storage implementation
     TokenStorage? tokenStorage,
 
-    /// HTTP client configuration
+    /// HTTP client configuration (baseUrl will be overridden by [baseUrl] if both provided)
     HttpClientConfig? httpClientConfig,
 
     /// Whether this is a production environment
@@ -1515,9 +1528,11 @@ class GroupVAN {
 
     _instance = GroupVAN._();
 
-    // Create configuration based on environment
+    // Create configuration based on environment, passing baseUrl through
+    // so the factory + constructor keep httpClientConfig.baseUrl in sync.
     final config = isProduction
         ? GroupVanClientConfig.production(
+            baseUrl: baseUrl,
             tokenStorage: tokenStorage,
             clientId: clientId,
             autoRefreshTokens: autoRefreshTokens ?? true,
@@ -1525,6 +1540,7 @@ class GroupVAN {
             enableCaching: enableCaching ?? true,
           )
         : GroupVanClientConfig.staging(
+            baseUrl: baseUrl,
             tokenStorage: tokenStorage,
             clientId: clientId,
             autoRefreshTokens: autoRefreshTokens ?? true,
@@ -1532,35 +1548,8 @@ class GroupVAN {
             enableCaching: enableCaching ?? true,
           );
 
-    // Override base URL if provided
-    final finalConfig = baseUrl != null || httpClientConfig != null
-        ? GroupVanClientConfig(
-            baseUrl:
-                baseUrl ??
-                (isProduction
-                    ? 'https://api.groupvan.com'
-                    : 'https://api.staging.groupvan.com'),
-            httpClientConfig:
-                httpClientConfig ??
-                HttpClientConfig(
-                  baseUrl:
-                      baseUrl ??
-                      (isProduction
-                          ? 'https://api.groupvan.com'
-                          : 'https://api.staging.groupvan.com'),
-                  enableLogging: enableLogging ?? !isProduction,
-                  enableCaching: enableCaching ?? true,
-                ),
-            tokenStorage: tokenStorage,
-            clientId: clientId,
-            autoRefreshTokens: autoRefreshTokens ?? true,
-            enableLogging: enableLogging ?? !isProduction,
-            enableCaching: enableCaching ?? true,
-          )
-        : config;
-
     // Initialize client
-    _instance!._client = GroupVanClient(finalConfig);
+    _instance!._client = GroupVanClient(config);
     await _instance!._client.initialize();
     _instance!._isInitialized = true;
 
@@ -2041,7 +2030,7 @@ class GroupVANCatalogs {
     }
     return result.value;
   }
-  
+
   Future<FlatBuyersGuideResponse> getFlatBuyersGuide({
     required FlatBuyersGuideRequest request,
   }) async {
@@ -2190,16 +2179,17 @@ class AuthUser {
 }
 
 /// Authentication session information
+///
+/// Note: refreshToken is no longer exposed. It is managed by the browser
+/// via HttpOnly cookies on web platforms.
 @immutable
 class AuthSession {
   final String accessToken;
-  final String refreshToken;
   final DateTime? expiresAt;
   final User user;
 
   const AuthSession({
     required this.accessToken,
-    required this.refreshToken,
     this.expiresAt,
     required this.user,
   });
@@ -2209,7 +2199,6 @@ class AuthSession {
     String? clientId,
   }) => AuthSession(
     accessToken: status.accessToken!,
-    refreshToken: status.refreshToken!,
     expiresAt: status.claims != null
         ? DateTime.fromMillisecondsSinceEpoch(status.claims!.expiration * 1000)
         : null,

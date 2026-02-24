@@ -4,6 +4,7 @@ library groupvan;
 export 'src/client.dart'
     show
         GroupVAN,
+        GroupVanDefaults,
         GroupVANClient,
         GroupVANAuth,
         GroupVANVehicles,
@@ -17,7 +18,7 @@ export 'src/client.dart'
 
 // Token storage (for custom implementations)
 export 'src/auth/auth_manager.dart'
-    show TokenStorage, SecureTokenStorage, MemoryTokenStorage;
+    show TokenStorage, SecureTokenStorage, MemoryTokenStorage, WebTokenStorage;
 
 // Session management
 

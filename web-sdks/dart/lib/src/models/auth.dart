@@ -23,50 +23,31 @@ class V3LoginRequest extends LoginRequest {
 }
 
 /// Token response from login/refresh endpoints
+///
+/// Note: refresh_token is no longer returned in API responses.
+/// It is now set as an HttpOnly cookie by the server.
 class TokenResponse {
   final String accessToken;
-  final String refreshToken;
   final int expiresIn;
   final String tokenType;
 
   const TokenResponse({
     required this.accessToken,
-    required this.refreshToken,
     required this.expiresIn,
     this.tokenType = 'Bearer',
   });
 
   factory TokenResponse.fromJson(Map<String, dynamic> json) => TokenResponse(
     accessToken: json['access_token'],
-    refreshToken: json['refresh_token'],
     expiresIn: json['expires_in'],
     tokenType: json['token_type'] ?? 'Bearer',
   );
 
   Map<String, dynamic> toJson() => {
     'access_token': accessToken,
-    'refresh_token': refreshToken,
     'expires_in': expiresIn,
     'token_type': tokenType,
   };
-}
-
-/// Refresh token request
-class RefreshTokenRequest {
-  final String refreshToken;
-
-  const RefreshTokenRequest({required this.refreshToken});
-
-  Map<String, dynamic> toJson() => {'refresh_token': refreshToken};
-}
-
-/// Logout request
-class LogoutRequest {
-  final String refreshToken;
-
-  const LogoutRequest({required this.refreshToken});
-
-  Map<String, dynamic> toJson() => {'refresh_token': refreshToken};
 }
 
 /// Vehicle lookup types for catalog token
