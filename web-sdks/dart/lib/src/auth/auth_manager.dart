@@ -282,19 +282,32 @@ class AuthManager {
           'DEBUG: Token validation and restoration completed',
         );
       } else {
-        // No stored tokens, start with unauthenticated state
+        // No access token in memory — attempt to restore session from
+        // the HttpOnly refresh token cookie (persists across page refreshes)
         GroupVanLogger.auth.warning(
-          'DEBUG: No stored access token found, setting unauthenticated state',
+          'DEBUG: No stored access token found, attempting cookie-based refresh...',
         );
 
-        final uri = Uri.parse(window.location.href);
-        final code = uri.queryParameters['code'];
-        final state = uri.queryParameters['state'];
-        final provider = uri.queryParameters['provider'];
-        if (code != null && state != null && provider != null) {
-          await _handleProviderCallback(provider, code, state, clientId);
-        } else {
-          await _updateStatus(const AuthStatus.unauthenticated());
+        try {
+          await refreshToken();
+          GroupVanLogger.auth.warning(
+            'DEBUG: Session restored from refresh token cookie',
+          );
+        } catch (e) {
+          // Refresh failed (no cookie or expired) — check for OAuth callback
+          GroupVanLogger.auth.warning(
+            'DEBUG: Cookie refresh failed ($e), checking for OAuth callback...',
+          );
+
+          final uri = Uri.parse(window.location.href);
+          final code = uri.queryParameters['code'];
+          final state = uri.queryParameters['state'];
+          final provider = uri.queryParameters['provider'];
+          if (code != null && state != null && provider != null) {
+            await _handleProviderCallback(provider, code, state, clientId);
+          } else {
+            await _updateStatus(const AuthStatus.unauthenticated());
+          }
         }
       }
     } on AuthenticationException catch (e) {
