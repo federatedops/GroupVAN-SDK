@@ -576,9 +576,14 @@ class RetryInterceptor extends Interceptor {
       // Update retry count
       err.requestOptions.extra['retry_count'] = retryCount + 1;
 
-      // Retry the request
+      // Retry the request with a fresh Dio that preserves cookie credentials
       try {
-        final response = await Dio().fetch(err.requestOptions);
+        final retryDio = Dio();
+        if (kIsWeb) {
+          retryDio.httpClientAdapter =
+              BrowserHttpClientAdapter(withCredentials: true);
+        }
+        final response = await retryDio.fetch(err.requestOptions);
         handler.resolve(response);
       } on DioException catch (e) {
         handler.next(e);
