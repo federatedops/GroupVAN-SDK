@@ -187,6 +187,7 @@ class User {
   final bool canExportBuyersGuide;
   final List<String> roles;
   final bool showCartButtonWhenNoPrice;
+  final List<String> deliveryExpectations;
 
   const User({
     required this.id,
@@ -200,6 +201,7 @@ class User {
     this.picture,
     this.memberId,
     this.locations = const [],
+    this.deliveryExpectations = const [],
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -216,6 +218,7 @@ class User {
     locations: (json['locations'] as List?)
         ?.map((e) => Location.fromJson(e as Map<String, dynamic>))
         .toList() ?? [],
+    deliveryExpectations: List<String>.from(json['delivery_expectations'] as List? ?? []),
   );
 
   Map<String, dynamic> toJson() => {
@@ -230,5 +233,6 @@ class User {
     'has_identifix_access': hasIdentifixAccess,
     'can_export_buyers_guide': canExportBuyersGuide,
     'show_cart_button_when_no_price': showCartButtonWhenNoPrice,
+    'delivery_expectations': deliveryExpectations,
   };
 }
