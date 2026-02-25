@@ -133,6 +133,8 @@ class CatalogTokenResponse {
 
 class Location {
   final String id;
+  final String memberNumber;
+  final String accountId;
   final String name;
   final String address;
   final String city;
@@ -143,6 +145,8 @@ class Location {
 
   const Location({
     required this.id,
+    required this.memberNumber,
+    required this.accountId,
     required this.name,
     required this.address,
     required this.city,
@@ -154,6 +158,8 @@ class Location {
 
   factory Location.fromJson(Map<String, dynamic> json) => Location(
     id: json['id'],
+    memberNumber: json['member_number'],
+    accountId: json['account_id'],
     name: json['name'],
     address: json['address'],
     city: json['city'],
@@ -165,6 +171,8 @@ class Location {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'member_number': memberNumber,
+    'account_id': accountId,
     'name': name,
     'address': address,
     'city': city,
