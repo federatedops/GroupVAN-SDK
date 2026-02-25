@@ -1037,17 +1037,19 @@ class CatalogsClient extends ApiClient {
     }
   }
 
-  Future<Result<ItemPricing>> getProductPricing({
+  Future<Result<List<ItemPricing>>> getProductPricing({
     required ProductPricingRequest request,
   }) async {
     try {
-      final response = await get<Map<String, dynamic>>(
+      final response = await post<List<dynamic>>(
         '/v3/catalogs/product/pricing',
-        queryParameters: request.toJson(),
-        decoder: (data) => data as Map<String, dynamic>,
+        data: request.toJson(),
       );
 
-      return Success(ItemPricing.fromJson(response.data));
+      final items = response.data
+          .map((item) => ItemPricing.fromJson(item as Map<String, dynamic>))
+          .toList();
+      return Success(items);
     } catch (e) {
       GroupVanLogger.catalogs.severe('Failed to get product pricing: $e');
       return Failure(
@@ -1993,7 +1995,7 @@ class GroupVANCatalogs {
     return result.value;
   }
 
-  Future<ItemPricing> getProductPricing({
+  Future<List<ItemPricing>> getProductPricing({
     required ProductPricingRequest request,
   }) async {
     final result = await _client.getProductPricing(request: request);

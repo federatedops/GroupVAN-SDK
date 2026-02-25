@@ -1,5 +1,5 @@
-class ProductPricingRequest {
-  const ProductPricingRequest({
+class Product {
+  const Product({
     required this.mfrCode,
     required this.partNumber,
   });
@@ -9,5 +9,16 @@ class ProductPricingRequest {
   Map<String, dynamic> toJson() => {
     'mfr_code': mfrCode,
     'part_number': partNumber,
+  };
+}
+
+class ProductPricingRequest {
+  const ProductPricingRequest({
+    required this.products,
+  });
+  final List<Product> products;
+
+  Map<String, dynamic> toJson() => {
+    'products': products.map((product) => product.toJson()).toList(),
   };
 }
