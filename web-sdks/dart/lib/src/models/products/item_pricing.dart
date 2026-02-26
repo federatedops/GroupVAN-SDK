@@ -1,7 +1,7 @@
 import './item_pricing_location.dart';
 
 class ItemPricing {
-  const ItemPricing({
+  ItemPricing({
     required this.comment,
     required this.id,
     required this.locations,
@@ -13,7 +13,7 @@ class ItemPricing {
   });
   final String comment;
   final String id;
-  final List<ItemPricingLocation> locations;
+  List<ItemPricingLocation> locations;
   final String mfrCode;
   final String mfrDescription;
   final String? partDescription;

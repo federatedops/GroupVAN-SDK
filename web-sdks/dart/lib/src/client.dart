@@ -970,7 +970,15 @@ class CatalogsClient extends ApiClient {
           final pricing = data['pricing'];
           for (final product in products) {
             for (final part in product.parts) {
-              part.pricing = ItemPricing.fromJson(pricing[part.id.toString()]);
+              final pricingData = pricing[part.id.toString()];
+              if (pricingData != null) {
+                final newPricing = ItemPricing.fromJson(pricingData);
+                if (part.pricing != null) {
+                  part.pricing!.locations.addAll(newPricing.locations);
+                } else {
+                  part.pricing = newPricing;
+                }
+              }
             }
           }
           yield products;
@@ -1431,7 +1439,12 @@ class SearchClient extends ApiClient {
           for (final product in products) {
             final pricingData = pricing[product.id.toString()];
             if (pricingData != null) {
-              product.pricing = ItemPricing.fromJson(pricingData);
+              final newPricing = ItemPricing.fromJson(pricingData);
+              if (product.pricing != null) {
+                product.pricing!.locations.addAll(newPricing.locations);
+              } else {
+                product.pricing = newPricing;
+              }
             }
           }
           yield products;
