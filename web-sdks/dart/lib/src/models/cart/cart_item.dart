@@ -8,6 +8,7 @@ class CartItem {
   final double core;
   final double quantity;
   final String memberNumber;
+  final String accountId;
   final String locationId;
   final CartItemType type;
   final int? sku;
@@ -25,6 +26,7 @@ class CartItem {
     required this.core,
     required this.quantity,
     required this.memberNumber,
+    required this.accountId,
     required this.locationId,
     required this.type,
     this.sku,
@@ -43,6 +45,7 @@ class CartItem {
     core: json['core'],
     quantity: json['quantity'],
     memberNumber: json['member_number'],
+    accountId: json['account_id'],
     locationId: json['location_id'],
     type: CartItemType.values.byName(json['item_type']),
     sku: json['sku'],
@@ -61,6 +64,7 @@ class CartItem {
     'core': core,
     'quantity': quantity,
     'member_number': memberNumber,
+    'account_id': accountId,
     'location_id': locationId,
     'item_type': type.name,
     'sku': sku,
