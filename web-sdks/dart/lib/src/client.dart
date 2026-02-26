@@ -1050,7 +1050,7 @@ class CatalogsClient extends ApiClient {
   }) async {
     try {
       final response = await post<List<dynamic>>(
-        '/v3/catalogs/product/pricing',
+        '/v3/catalogs/products/pricing',
         data: request.toJson(),
       );
 
