@@ -23,6 +23,7 @@ class Part implements Comparable {
   final List<PartApplication> applications;
   Asset? assets;
   ItemPricing? pricing;
+  List<Part> equivalents;
 
   Part({
     required this.id,
@@ -44,7 +45,8 @@ class Part implements Comparable {
     required this.applications,
     this.assets,
     this.pricing,
-  });
+    List<Part>? equivalents,
+  }) : equivalents = equivalents ?? [];
 
   factory Part.fromJson(Map<String, dynamic> json) => Part(
     id: json['id'],

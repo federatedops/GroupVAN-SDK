@@ -982,6 +982,46 @@ class CatalogsClient extends ApiClient {
             }
           }
           yield products;
+        } else if (data.containsKey('equivalents')) {
+          final equivalents = data['equivalents'] as Map<String, dynamic>;
+          for (final product in products) {
+            for (final part in product.parts) {
+              final eqList = equivalents[part.id.toString()];
+              if (eqList != null) {
+                for (final eq in eqList) {
+                  part.equivalents.add(Part(
+                    id: 0,
+                    itemType: part.itemType,
+                    sku: 0,
+                    rank: 0,
+                    tier: 0,
+                    mfrCode: eq['mfr_code'],
+                    mfrName: '',
+                    partNumber: eq['part_number'],
+                    buyersGuide: false,
+                    productInfo: false,
+                    interchange: false,
+                    applications: [],
+                  ));
+                }
+              }
+            }
+          }
+          yield products;
+        } else if (data.containsKey('equivalent_pricing')) {
+          final eqPricing = data['equivalent_pricing'] as Map<String, dynamic>;
+          for (final product in products) {
+            for (final part in product.parts) {
+              for (final eq in part.equivalents) {
+                final eqId = '${eq.mfrCode}_${eq.partNumber}';
+                final pricingData = eqPricing[eqId];
+                if (pricingData != null) {
+                  eq.pricing = ItemPricing.fromJson(pricingData);
+                }
+              }
+            }
+          }
+          yield products;
         }
       }
     } catch (e, stackTrace) {
@@ -1444,6 +1484,42 @@ class SearchClient extends ApiClient {
                 product.pricing!.locations.addAll(newPricing.locations);
               } else {
                 product.pricing = newPricing;
+              }
+            }
+          }
+          yield products;
+        } else if (data.containsKey('equivalents')) {
+          final equivalents = data['equivalents'] as Map<String, dynamic>;
+          for (final product in products) {
+            final eqList = equivalents[product.id.toString()];
+            if (eqList != null) {
+              for (final eq in eqList) {
+                product.equivalents.add(Part(
+                  id: 0,
+                  itemType: product.itemType,
+                  sku: 0,
+                  rank: 0,
+                  tier: 0,
+                  mfrCode: eq['mfr_code'],
+                  mfrName: '',
+                  partNumber: eq['part_number'],
+                  buyersGuide: false,
+                  productInfo: false,
+                  interchange: false,
+                  applications: [],
+                ));
+              }
+            }
+          }
+          yield products;
+        } else if (data.containsKey('equivalent_pricing')) {
+          final eqPricing = data['equivalent_pricing'] as Map<String, dynamic>;
+          for (final product in products) {
+            for (final eq in product.equivalents) {
+              final eqId = '${eq.mfrCode}_${eq.partNumber}';
+              final pricingData = eqPricing[eqId];
+              if (pricingData != null) {
+                eq.pricing = ItemPricing.fromJson(pricingData);
               }
             }
           }
