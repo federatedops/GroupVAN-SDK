@@ -6,7 +6,7 @@ class CartItem {
   final double listPrice;
   final double cost;
   final double core;
-  final double quantity;
+  final int quantity;
   final String memberNumber;
   final String accountId;
   final String locationId;

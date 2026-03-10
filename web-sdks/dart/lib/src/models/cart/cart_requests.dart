@@ -31,7 +31,7 @@ class AddToCartRequest {
 
 class RemovalItem {
   final int id;
-  final double quantity;
+  final int quantity;
 
   const RemovalItem({required this.id, required this.quantity});
 
