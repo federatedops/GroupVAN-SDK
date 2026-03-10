@@ -115,6 +115,107 @@ class GroupVanClientConfig {
   }
 }
 
+/// Apply asset data from a WebSocket message to a list of parts.
+void _applyAssets(List<Part> parts, Map<String, dynamic> assets) {
+  for (final part in parts) {
+    final assetData = assets[part.id.toString()];
+    if (assetData != null) {
+      part.assets = Asset.fromJson(assetData as Map<String, dynamic>);
+    }
+  }
+}
+
+/// Apply pricing data from a WebSocket message to a list of parts.
+/// Also extracts equivalents (status_code 4) and nests them under their
+/// original part matched by original_mfr + original_part.
+void _applyPricing(List<Part> parts, Map<String, dynamic> pricing) {
+  final partLookup = <String, Part>{};
+  for (final part in parts) {
+    partLookup['${part.mfrCode}_${part.partNumber}'] = part;
+    final pricingData = pricing[part.id.toString()];
+    if (pricingData != null) {
+      final newPricing = ItemPricing.fromJson(pricingData as Map<String, dynamic>);
+      if (part.pricing != null) {
+        part.pricing!.locations.addAll(newPricing.locations);
+      } else {
+        part.pricing = newPricing;
+      }
+    }
+  }
+  for (final entry in pricing.entries) {
+    final item = entry.value as Map<String, dynamic>;
+    if (item['status_code'] != 4 ||
+        item['original_part'] == null ||
+        item['original_mfr'] == null) continue;
+    final parentPart = partLookup['${item['original_mfr']}_${item['original_part']}'];
+    if (parentPart == null) continue;
+    final existing = parentPart.equivalents.where(
+      (eq) => eq.mfrCode == item['mfr_code'] && eq.partNumber == item['part_number'],
+    );
+    if (existing.isEmpty) {
+      parentPart.equivalents.add(Part(
+        id: 0,
+        itemType: parentPart.itemType,
+        sku: 0,
+        rank: 0,
+        tier: 0,
+        mfrCode: item['mfr_code'],
+        mfrName: '',
+        partNumber: item['part_number'],
+        buyersGuide: false,
+        productInfo: false,
+        interchange: false,
+        applications: [],
+        pricing: ItemPricing.fromJson(item),
+      ));
+    } else {
+      final eq = existing.first;
+      final newPricing = ItemPricing.fromJson(item);
+      if (eq.pricing != null) {
+        eq.pricing!.locations.addAll(newPricing.locations);
+      } else {
+        eq.pricing = newPricing;
+      }
+    }
+  }
+}
+
+/// Apply equivalents data from a WebSocket message to a list of parts.
+void _applyEquivalents(List<Part> parts, Map<String, dynamic> equivalents) {
+  for (final part in parts) {
+    final eqList = equivalents[part.id.toString()];
+    if (eqList == null) continue;
+    for (final eq in eqList) {
+      part.equivalents.add(Part(
+        id: 0,
+        itemType: part.itemType,
+        sku: 0,
+        rank: 0,
+        tier: 0,
+        mfrCode: eq['mfr_code'],
+        mfrName: '',
+        partNumber: eq['part_number'],
+        buyersGuide: false,
+        productInfo: false,
+        interchange: false,
+        applications: [],
+      ));
+    }
+  }
+}
+
+/// Apply equivalent pricing data from a WebSocket message to a list of parts.
+void _applyEquivalentPricing(List<Part> parts, Map<String, dynamic> eqPricing) {
+  for (final part in parts) {
+    for (final eq in part.equivalents) {
+      final pricingData = eqPricing['${eq.mfrCode}_${eq.partNumber}'];
+      if (pricingData != null) {
+        eq.pricing = ItemPricing.fromJson(pricingData as Map<String, dynamic>);
+      }
+    }
+  }
+}
+
 /// Main GroupVAN SDK Client
 ///
 /// Provides a comprehensive, type-safe interface to the GroupVAN V3 API with:
@@ -957,115 +1058,19 @@ class CatalogsClient extends ApiClient {
           for (final product in data['product_listings']) {
             products.add(ProductListing.fromJson(product));
           }
-          yield products;
-        } else if (data.containsKey('assets')) {
-          final assets = data['assets'];
-          for (final product in products) {
-            for (final part in product.parts) {
-              part.assets = Asset.fromJson(assets[part.id.toString()]);
-            }
+        } else {
+          final allParts = products.expand((p) => p.parts).toList();
+          if (data.containsKey('assets')) {
+            _applyAssets(allParts, data['assets'] as Map<String, dynamic>);
+          } else if (data.containsKey('pricing')) {
+            _applyPricing(allParts, data['pricing'] as Map<String, dynamic>);
+          } else if (data.containsKey('equivalents')) {
+            _applyEquivalents(allParts, data['equivalents'] as Map<String, dynamic>);
+          } else if (data.containsKey('equivalent_pricing')) {
+            _applyEquivalentPricing(allParts, data['equivalent_pricing'] as Map<String, dynamic>);
           }
-          yield products;
-        } else if (data.containsKey('pricing')) {
-          final pricing = data['pricing'] as Map<String, dynamic>;
-          // Build a lookup of parts by mfr_code + part_number for equivalent matching
-          final partLookup = <String, Part>{};
-          for (final product in products) {
-            for (final part in product.parts) {
-              partLookup['${part.mfrCode}_${part.partNumber}'] = part;
-              final pricingData = pricing[part.id.toString()];
-              if (pricingData != null) {
-                final newPricing = ItemPricing.fromJson(pricingData);
-                if (part.pricing != null) {
-                  part.pricing!.locations.addAll(newPricing.locations);
-                } else {
-                  part.pricing = newPricing;
-                }
-              }
-            }
-          }
-          // Attach equivalents (status_code 4) to their original part
-          for (final entry in pricing.entries) {
-            final item = entry.value as Map<String, dynamic>;
-            if (item['status_code'] == 4 &&
-                item['original_part'] != null &&
-                item['original_mfr'] != null) {
-              final parentKey = '${item['original_mfr']}_${item['original_part']}';
-              final parentPart = partLookup[parentKey];
-              if (parentPart != null) {
-                final existing = parentPart.equivalents.where(
-                  (eq) => eq.mfrCode == item['mfr_code'] && eq.partNumber == item['part_number'],
-                );
-                if (existing.isEmpty) {
-                  parentPart.equivalents.add(Part(
-                    id: 0,
-                    itemType: parentPart.itemType,
-                    sku: 0,
-                    rank: 0,
-                    tier: 0,
-                    mfrCode: item['mfr_code'],
-                    mfrName: '',
-                    partNumber: item['part_number'],
-                    buyersGuide: false,
-                    productInfo: false,
-                    interchange: false,
-                    applications: [],
-                    pricing: ItemPricing.fromJson(item),
-                  ));
-                } else {
-                  final eq = existing.first;
-                  final newPricing = ItemPricing.fromJson(item);
-                  if (eq.pricing != null) {
-                    eq.pricing!.locations.addAll(newPricing.locations);
-                  } else {
-                    eq.pricing = newPricing;
-                  }
-                }
-              }
-            }
-          }
-          yield products;
-        } else if (data.containsKey('equivalents')) {
-          final equivalents = data['equivalents'] as Map<String, dynamic>;
-          for (final product in products) {
-            for (final part in product.parts) {
-              final eqList = equivalents[part.id.toString()];
-              if (eqList != null) {
-                for (final eq in eqList) {
-                  part.equivalents.add(Part(
-                    id: 0,
-                    itemType: part.itemType,
-                    sku: 0,
-                    rank: 0,
-                    tier: 0,
-                    mfrCode: eq['mfr_code'],
-                    mfrName: '',
-                    partNumber: eq['part_number'],
-                    buyersGuide: false,
-                    productInfo: false,
-                    interchange: false,
-                    applications: [],
-                  ));
-                }
-              }
-            }
-          }
-          yield products;
-        } else if (data.containsKey('equivalent_pricing')) {
-          final eqPricing = data['equivalent_pricing'] as Map<String, dynamic>;
-          for (final product in products) {
-            for (final part in product.parts) {
-              for (final eq in part.equivalents) {
-                final eqId = '${eq.mfrCode}_${eq.partNumber}';
-                final pricingData = eqPricing[eqId];
-                if (pricingData != null) {
-                  eq.pricing = ItemPricing.fromJson(pricingData);
-                }
-              }
-            }
-          }
-          yield products;
         }
+        yield products;
       }
     } catch (e, stackTrace) {
       GroupVanLogger.catalogs.severe('Failed to stream products: $e');
@@ -1507,110 +1512,16 @@ class SearchClient extends ApiClient {
           for (final product in data['products']) {
             products.add(Part.fromJson(product));
           }
-          yield products;
         } else if (data.containsKey('assets')) {
-          final assets = data['assets'] as Map<String, dynamic>;
-          for (final product in products) {
-            final assetData = assets[product.id.toString()];
-            if (assetData != null) {
-              product.assets = Asset.fromJson(assetData);
-            }
-          }
-          yield products;
+          _applyAssets(products, data['assets'] as Map<String, dynamic>);
         } else if (data.containsKey('pricing')) {
-          final pricing = data['pricing'] as Map<String, dynamic>;
-          // Build a lookup of parts by mfr_code + part_number for equivalent matching
-          final partLookup = <String, Part>{};
-          for (final product in products) {
-            partLookup['${product.mfrCode}_${product.partNumber}'] = product;
-            final pricingData = pricing[product.id.toString()];
-            if (pricingData != null) {
-              final newPricing = ItemPricing.fromJson(pricingData);
-              if (product.pricing != null) {
-                product.pricing!.locations.addAll(newPricing.locations);
-              } else {
-                product.pricing = newPricing;
-              }
-            }
-          }
-          // Attach equivalents (status_code 4) to their original part
-          for (final entry in pricing.entries) {
-            final item = entry.value as Map<String, dynamic>;
-            if (item['status_code'] == 4 &&
-                item['original_part'] != null &&
-                item['original_mfr'] != null) {
-              final parentKey = '${item['original_mfr']}_${item['original_part']}';
-              final parentPart = partLookup[parentKey];
-              if (parentPart != null) {
-                final existing = parentPart.equivalents.where(
-                  (eq) => eq.mfrCode == item['mfr_code'] && eq.partNumber == item['part_number'],
-                );
-                if (existing.isEmpty) {
-                  parentPart.equivalents.add(Part(
-                    id: 0,
-                    itemType: parentPart.itemType,
-                    sku: 0,
-                    rank: 0,
-                    tier: 0,
-                    mfrCode: item['mfr_code'],
-                    mfrName: '',
-                    partNumber: item['part_number'],
-                    buyersGuide: false,
-                    productInfo: false,
-                    interchange: false,
-                    applications: [],
-                    pricing: ItemPricing.fromJson(item),
-                  ));
-                } else {
-                  final eq = existing.first;
-                  final newPricing = ItemPricing.fromJson(item);
-                  if (eq.pricing != null) {
-                    eq.pricing!.locations.addAll(newPricing.locations);
-                  } else {
-                    eq.pricing = newPricing;
-                  }
-                }
-              }
-            }
-          }
-          yield products;
+          _applyPricing(products, data['pricing'] as Map<String, dynamic>);
         } else if (data.containsKey('equivalents')) {
-          final equivalents = data['equivalents'] as Map<String, dynamic>;
-          for (final product in products) {
-            final eqList = equivalents[product.id.toString()];
-            if (eqList != null) {
-              for (final eq in eqList) {
-                product.equivalents.add(Part(
-                  id: 0,
-                  itemType: product.itemType,
-                  sku: 0,
-                  rank: 0,
-                  tier: 0,
-                  mfrCode: eq['mfr_code'],
-                  mfrName: '',
-                  partNumber: eq['part_number'],
-                  buyersGuide: false,
-                  productInfo: false,
-                  interchange: false,
-                  applications: [],
-                ));
-              }
-            }
-          }
-          yield products;
+          _applyEquivalents(products, data['equivalents'] as Map<String, dynamic>);
         } else if (data.containsKey('equivalent_pricing')) {
-          final eqPricing = data['equivalent_pricing'] as Map<String, dynamic>;
-          for (final product in products) {
-            for (final eq in product.equivalents) {
-              final eqId = '${eq.mfrCode}_${eq.partNumber}';
-              final pricingData = eqPricing[eqId];
-              if (pricingData != null) {
-                eq.pricing = ItemPricing.fromJson(pricingData);
-              }
-            }
-          }
-          yield products;
+          _applyEquivalentPricing(products, data['equivalent_pricing'] as Map<String, dynamic>);
         }
+        yield products;
       }
     } catch (e, stackTrace) {
       GroupVanLogger.sdk.severe('Failed to search products: $e');
