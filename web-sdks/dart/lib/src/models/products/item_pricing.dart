@@ -10,6 +10,8 @@ class ItemPricing {
     required this.partDescription,
     required this.partNumber,
     required this.statusCode,
+    this.originalPart,
+    this.originalMfr,
   });
   final String comment;
   final String id;
@@ -19,6 +21,8 @@ class ItemPricing {
   final String? partDescription;
   final String partNumber;
   final int statusCode;
+  final String? originalPart;
+  final String? originalMfr;
 
   factory ItemPricing.fromJson(Map<String, dynamic> json) {
     return ItemPricing(
@@ -34,6 +38,8 @@ class ItemPricing {
       partDescription: json['part_description'],
       partNumber: json['part_number'],
       statusCode: json['status_code'],
+      originalPart: json['original_part'],
+      originalMfr: json['original_mfr'],
     );
   }
 }

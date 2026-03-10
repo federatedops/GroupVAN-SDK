@@ -967,9 +967,12 @@ class CatalogsClient extends ApiClient {
           }
           yield products;
         } else if (data.containsKey('pricing')) {
-          final pricing = data['pricing'];
+          final pricing = data['pricing'] as Map<String, dynamic>;
+          // Build a lookup of parts by mfr_code + part_number for equivalent matching
+          final partLookup = <String, Part>{};
           for (final product in products) {
             for (final part in product.parts) {
+              partLookup['${part.mfrCode}_${part.partNumber}'] = part;
               final pricingData = pricing[part.id.toString()];
               if (pricingData != null) {
                 final newPricing = ItemPricing.fromJson(pricingData);
@@ -977,6 +980,46 @@ class CatalogsClient extends ApiClient {
                   part.pricing!.locations.addAll(newPricing.locations);
                 } else {
                   part.pricing = newPricing;
+                }
+              }
+            }
+          }
+          // Attach equivalents (status_code 4) to their original part
+          for (final entry in pricing.entries) {
+            final item = entry.value as Map<String, dynamic>;
+            if (item['status_code'] == 4 &&
+                item['original_part'] != null &&
+                item['original_mfr'] != null) {
+              final parentKey = '${item['original_mfr']}_${item['original_part']}';
+              final parentPart = partLookup[parentKey];
+              if (parentPart != null) {
+                final existing = parentPart.equivalents.where(
+                  (eq) => eq.mfrCode == item['mfr_code'] && eq.partNumber == item['part_number'],
+                );
+                if (existing.isEmpty) {
+                  parentPart.equivalents.add(Part(
+                    id: 0,
+                    itemType: parentPart.itemType,
+                    sku: 0,
+                    rank: 0,
+                    tier: 0,
+                    mfrCode: item['mfr_code'],
+                    mfrName: '',
+                    partNumber: item['part_number'],
+                    buyersGuide: false,
+                    productInfo: false,
+                    interchange: false,
+                    applications: [],
+                    pricing: ItemPricing.fromJson(item),
+                  ));
+                } else {
+                  final eq = existing.first;
+                  final newPricing = ItemPricing.fromJson(item);
+                  if (eq.pricing != null) {
+                    eq.pricing!.locations.addAll(newPricing.locations);
+                  } else {
+                    eq.pricing = newPricing;
+                  }
                 }
               }
             }
@@ -1476,7 +1519,10 @@ class SearchClient extends ApiClient {
           yield products;
         } else if (data.containsKey('pricing')) {
           final pricing = data['pricing'] as Map<String, dynamic>;
+          // Build a lookup of parts by mfr_code + part_number for equivalent matching
+          final partLookup = <String, Part>{};
           for (final product in products) {
+            partLookup['${product.mfrCode}_${product.partNumber}'] = product;
             final pricingData = pricing[product.id.toString()];
             if (pricingData != null) {
               final newPricing = ItemPricing.fromJson(pricingData);
@@ -1484,6 +1530,46 @@ class SearchClient extends ApiClient {
                 product.pricing!.locations.addAll(newPricing.locations);
               } else {
                 product.pricing = newPricing;
+              }
+            }
+          }
+          // Attach equivalents (status_code 4) to their original part
+          for (final entry in pricing.entries) {
+            final item = entry.value as Map<String, dynamic>;
+            if (item['status_code'] == 4 &&
+                item['original_part'] != null &&
+                item['original_mfr'] != null) {
+              final parentKey = '${item['original_mfr']}_${item['original_part']}';
+              final parentPart = partLookup[parentKey];
+              if (parentPart != null) {
+                final existing = parentPart.equivalents.where(
+                  (eq) => eq.mfrCode == item['mfr_code'] && eq.partNumber == item['part_number'],
+                );
+                if (existing.isEmpty) {
+                  parentPart.equivalents.add(Part(
+                    id: 0,
+                    itemType: parentPart.itemType,
+                    sku: 0,
+                    rank: 0,
+                    tier: 0,
+                    mfrCode: item['mfr_code'],
+                    mfrName: '',
+                    partNumber: item['part_number'],
+                    buyersGuide: false,
+                    productInfo: false,
+                    interchange: false,
+                    applications: [],
+                    pricing: ItemPricing.fromJson(item),
+                  ));
+                } else {
+                  final eq = existing.first;
+                  final newPricing = ItemPricing.fromJson(item);
+                  if (eq.pricing != null) {
+                    eq.pricing!.locations.addAll(newPricing.locations);
+                  } else {
+                    eq.pricing = newPricing;
+                  }
+                }
               }
             }
           }
