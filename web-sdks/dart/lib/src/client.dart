@@ -126,7 +126,8 @@ void _applyAssets(List<Part> parts, Map<String, dynamic> assets) {
 }
 
 /// Apply pricing data from a WebSocket message to a list of parts.
-/// Also extracts equivalents (status_code 4) and nests them under their
+/// Also extracts alternates (status_code 2), supercessions (status_code 3),
+/// and equivalents (status_code 4) and nests them under their
 /// original part matched by original_mfr + original_part.
 void _applyPricing(List<Part> parts, Map<String, dynamic> pricing) {
   final partLookup = <String, Part>{};
@@ -144,16 +145,35 @@ void _applyPricing(List<Part> parts, Map<String, dynamic> pricing) {
   }
   for (final entry in pricing.entries) {
     final item = entry.value as Map<String, dynamic>;
-    if (item['status_code'] != 4 ||
+    final statusCode = item['status_code'];
+    if (statusCode == null ||
+        statusCode == 1 ||
         item['original_part'] == null ||
         item['original_mfr'] == null) continue;
     final parentPart = partLookup['${item['original_mfr']}_${item['original_part']}'];
     if (parentPart == null) continue;
-    final existing = parentPart.equivalents.where(
-      (eq) => eq.mfrCode == item['mfr_code'] && eq.partNumber == item['part_number'],
+
+    // Select the correct list based on status_code
+    final List<Part> targetList;
+    switch (statusCode) {
+      case 2:
+        targetList = parentPart.alternates;
+        break;
+      case 3:
+        targetList = parentPart.supercessions;
+        break;
+      case 4:
+        targetList = parentPart.equivalents;
+        break;
+      default:
+        continue;
+    }
+
+    final existing = targetList.where(
+      (p) => p.mfrCode == item['mfr_code'] && p.partNumber == item['part_number'],
     );
     if (existing.isEmpty) {
-      parentPart.equivalents.add(Part(
+      targetList.add(Part(
         id: 0,
         itemType: parentPart.itemType,
         sku: 0,
@@ -169,12 +189,12 @@ void _applyPricing(List<Part> parts, Map<String, dynamic> pricing) {
         pricing: ItemPricing.fromJson(item),
       ));
     } else {
-      final eq = existing.first;
+      final p = existing.first;
       final newPricing = ItemPricing.fromJson(item);
-      if (eq.pricing != null) {
-        eq.pricing!.locations.addAll(newPricing.locations);
+      if (p.pricing != null) {
+        p.pricing!.locations.addAll(newPricing.locations);
       } else {
-        eq.pricing = newPricing;
+        p.pricing = newPricing;
       }
     }
   }
