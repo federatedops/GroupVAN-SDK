@@ -58,3 +58,24 @@ class RemoveFromCartRequest {
     'items': items.map((item) => item.toJson()).toList(),
   };
 }
+
+class CheckoutRequest {
+  final String cartId;
+  final String? deliveryExpectations;
+
+  const CheckoutRequest({
+    required this.cartId,
+    this.deliveryExpectations,
+  });
+
+  factory CheckoutRequest.fromJson(Map<String, dynamic> json) =>
+      CheckoutRequest(
+        cartId: json['cart_id'],
+        deliveryExpectations: json['delivery_expectations'],
+      );
+
+  Map<String, dynamic> toJson() => {
+    'cart_id': cartId,
+    'delivery_expectations': deliveryExpectations,
+  };
+}

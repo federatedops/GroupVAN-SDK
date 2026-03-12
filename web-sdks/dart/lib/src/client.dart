@@ -1296,6 +1296,28 @@ class CartClient extends ApiClient {
       );
     }
   }
+
+  /// Checkout a cart, placing orders for all items
+  Future<Result<CheckoutResponse>> checkout({
+    required CheckoutRequest request,
+  }) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/cart/checkout',
+        data: request.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(CheckoutResponse.fromJson(response.data, response.statusCode));
+    } catch (e) {
+      GroupVanLogger.cart.severe('Failed to checkout cart: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to checkout cart: $e'),
+      );
+    }
+  }
 }
 
 class ReportsClient extends ApiClient {
@@ -2158,6 +2180,15 @@ class GroupVANCart {
   /// Remove items from cart
   Future<CartResponse> removeFromCart(RemoveFromCartRequest request) async {
     final result = await _client.removeFromCart(request: request);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Checkout a cart, placing orders for all items
+  Future<CheckoutResponse> checkout(CheckoutRequest request) async {
+    final result = await _client.checkout(request: request);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
