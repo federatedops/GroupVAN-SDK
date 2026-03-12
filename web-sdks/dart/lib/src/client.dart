@@ -1460,7 +1460,7 @@ class SearchClient extends ApiClient {
       final response = await get<Map<String, String>>(
         '/v3/search/vin',
         queryParameters: {'vin': vin},
-        decoder: (data) => Map<String, String>.from(data as Map),
+        decoder: (data) => (data as Map).map((key, value) => MapEntry(key.toString(), value?.toString() ?? '' )),
       );
 
       return Success(response.data);
