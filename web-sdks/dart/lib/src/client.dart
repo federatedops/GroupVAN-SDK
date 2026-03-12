@@ -1455,15 +1455,25 @@ class SearchClient extends ApiClient {
   }
 
   /// Get VIN data
-  Future<Result<Map<String, String>>> vinData(String vin) async {
+  Future<Result<List<Map<String, String>>>> vinData(String vin) async {
     try {
-      final response = await get<Map<String, String>>(
+      final response = await get<List<dynamic>>(
         '/v3/search/vin',
         queryParameters: {'vin': vin},
-        decoder: (data) => (data as Map).map((key, value) => MapEntry(key.toString(), value?.toString() ?? '' )),
+        decoder: (data) => data as List<dynamic>,
       );
 
-      return Success(response.data);
+      final vinData = response.data
+          .map((item) {
+            final map = item as Map<String, dynamic>;
+            return {
+              'display': map['display']?.toString() ?? '',
+              'value': map['value']?.toString() ?? '',
+            };
+          })
+          .toList();
+
+      return Success(vinData);
     } catch (e) {
       GroupVanLogger.sdk.severe('VIN data search failed: $e');
       return Failure(
@@ -2179,7 +2189,7 @@ class GroupVANSearch {
   OmniSearchSession startSession() => _client.startOmniSearchSession();
 
   /// Get VIN data
-  Future<Map<String, String>> vinData(String vin) async {
+  Future<List<Map<String, String>>> vinData(String vin) async {
     final result = await _client.vinData(vin);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
