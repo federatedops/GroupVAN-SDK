@@ -95,7 +95,9 @@ export 'src/models/models.dart'
         BuyersGuidePartTerm,
         FlatBuyersGuideRequest,
         FlatBuyersGuideResponse,
-        FlatBuyersGuideItem;
+        FlatBuyersGuideItem,
+        CheckoutRequest,
+        CheckoutResponse;
 
 // Constants
 export 'src/constants.dart' show CountryCode, CountryDivisionCode;
