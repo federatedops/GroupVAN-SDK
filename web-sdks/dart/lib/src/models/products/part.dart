@@ -17,7 +17,11 @@ class Part implements Comparable {
   final int? partTypeId;
   final String? partTypeName;
   final bool buyersGuide;
-  final bool productInfo;
+  final bool primaryImageExists;
+  final bool secondaryImageExists;
+  final bool documentExists;
+  final bool spinExists;
+  final bool attributeExists;
   final bool interchange;
   final String? memberNote;
   final List<PartApplication> applications;
@@ -41,7 +45,11 @@ class Part implements Comparable {
     this.partTypeId,
     this.partTypeName,
     required this.buyersGuide,
-    required this.productInfo,
+    required this.primaryImageExists,
+    required this.secondaryImageExists,
+    required this.documentExists,
+    required this.spinExists,
+    required this.attributeExists,
     required this.interchange,
     this.memberNote,
     required this.applications,
@@ -68,7 +76,11 @@ class Part implements Comparable {
     partTypeId: json['part_type_id'],
     partTypeName: json['part_type_name'],
     buyersGuide: json['buyers_guide'],
-    productInfo: json['product_info'],
+    primaryImageExists: json['primary_image_exists'],
+    secondaryImageExists: json['secondary_image_exists'],
+    documentExists: json['document_exists'],
+    spinExists: json['spin_exists'],
+    attributeExists: json['attribute_exists'],
     interchange: json['interchange'],
     memberNote: json['member_note'],
     applications: ((json['applications'] as List<dynamic>?) ?? [])
