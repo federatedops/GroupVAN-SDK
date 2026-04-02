@@ -1166,7 +1166,7 @@ class CatalogsClient extends ApiClient {
   }) async {
     try {
       final response = await post<Map<String, dynamic>>(
-        '/v3_2/item_inquiry',
+        'json/federated/v3_2/item_inquiry',
         data: {
           'items': request.products.asMap().entries.map((entry) => {
             'id': entry.key.toString(),
