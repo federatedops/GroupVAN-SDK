@@ -1165,12 +1165,18 @@ class CatalogsClient extends ApiClient {
     required ProductPricingRequest request,
   }) async {
     try {
-      final response = await post<List<dynamic>>(
-        '/v3/catalogs/products/pricing',
-        data: request.toJson(),
+      final response = await post<Map<String, dynamic>>(
+        '/v3_2/item_inquiry',
+        data: {
+          'items': request.products.asMap().entries.map((entry) => {
+            'id': entry.key.toString(),
+            'mfr_code': entry.value.mfrCode,
+            'part_number': entry.value.partNumber,
+          }).toList(),
+        },
       );
 
-      final items = response.data
+      final items = (response.data['items'] as List<dynamic>)
           .map((item) => ItemPricing.fromJson(item as Map<String, dynamic>))
           .toList();
       return Success(items);
