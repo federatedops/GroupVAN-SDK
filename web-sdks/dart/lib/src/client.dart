@@ -129,17 +129,31 @@ void _applyAssets(List<Part> parts, Map<String, dynamic> assets) {
 /// Also extracts alternates (status_code 2), supercessions (status_code 3),
 /// and equivalents (status_code 4) and nests them under their
 /// original part matched by original_mfr + original_part.
-void _applyPricing(List<Part> parts, Map<String, dynamic> pricing) {
+///
+/// When [isPrimary] is true, the pricing fields (comment, descriptions, etc.)
+/// are used to build the part's pricing model — any locations accumulated from
+/// earlier non-primary messages are preserved. When false, only locations are
+/// appended to the existing pricing.
+void _applyPricing(List<Part> parts, Map<String, dynamic> pricing, {required bool isPrimary}) {
   final partLookup = <String, Part>{};
   for (final part in parts) {
     partLookup['${part.mfrCode}_${part.partNumber}'] = part;
     final pricingData = pricing[part.id.toString()];
     if (pricingData != null) {
       final newPricing = ItemPricing.fromJson(pricingData as Map<String, dynamic>);
-      if (part.pricing != null) {
-        part.pricing!.locations.addAll(newPricing.locations);
-      } else {
+      if (isPrimary) {
+        // Primary response owns the part-level fields; keep any locations
+        // that arrived from earlier non-primary messages.
+        if (part.pricing != null) {
+          newPricing.locations.addAll(part.pricing!.locations);
+        }
         part.pricing = newPricing;
+      } else {
+        if (part.pricing != null) {
+          part.pricing!.locations.addAll(newPricing.locations);
+        } else {
+          part.pricing = newPricing;
+        }
       }
     }
   }
@@ -195,10 +209,17 @@ void _applyPricing(List<Part> parts, Map<String, dynamic> pricing) {
     } else {
       final p = existing.first;
       final newPricing = ItemPricing.fromJson(item);
-      if (p.pricing != null) {
-        p.pricing!.locations.addAll(newPricing.locations);
-      } else {
+      if (isPrimary) {
+        if (p.pricing != null) {
+          newPricing.locations.addAll(p.pricing!.locations);
+        }
         p.pricing = newPricing;
+      } else {
+        if (p.pricing != null) {
+          p.pricing!.locations.addAll(newPricing.locations);
+        } else {
+          p.pricing = newPricing;
+        }
       }
     }
   }
@@ -1091,7 +1112,7 @@ class CatalogsClient extends ApiClient {
           if (data.containsKey('assets')) {
             _applyAssets(allParts, data['assets'] as Map<String, dynamic>);
           } else if (data.containsKey('pricing')) {
-            _applyPricing(allParts, data['pricing'] as Map<String, dynamic>);
+            _applyPricing(allParts, data['pricing'] as Map<String, dynamic>, isPrimary: data['is_primary'] == true);
           } else if (data.containsKey('equivalents')) {
             _applyEquivalents(allParts, data['equivalents'] as Map<String, dynamic>);
           } else if (data.containsKey('equivalent_pricing')) {
@@ -1625,7 +1646,7 @@ class SearchClient extends ApiClient {
         } else if (data.containsKey('assets')) {
           _applyAssets(products, data['assets'] as Map<String, dynamic>);
         } else if (data.containsKey('pricing')) {
-          _applyPricing(products, data['pricing'] as Map<String, dynamic>);
+          _applyPricing(products, data['pricing'] as Map<String, dynamic>, isPrimary: data['is_primary'] == true);
         } else if (data.containsKey('equivalents')) {
           _applyEquivalents(products, data['equivalents'] as Map<String, dynamic>);
         } else if (data.containsKey('equivalent_pricing')) {

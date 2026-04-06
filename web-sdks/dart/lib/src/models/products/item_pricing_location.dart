@@ -11,6 +11,7 @@ class ItemPricingLocation {
     required this.sortOrder,
     required this.type,
     this.core,
+    this.memberNumber,
   });
 
   final bool canOrder;
@@ -24,6 +25,7 @@ class ItemPricingLocation {
   final int sortOrder;
   final int type;
   final double? core;
+  final String? memberNumber;
 
   factory ItemPricingLocation.fromJson(Map<String, dynamic> json) {
     return ItemPricingLocation(
@@ -38,6 +40,7 @@ class ItemPricingLocation {
       quantityAvailable: json['quantity_available'],
       sortOrder: json['sort_order'],
       type: json['type'],
+      memberNumber: json['member_number'],
     );
   }
 }
