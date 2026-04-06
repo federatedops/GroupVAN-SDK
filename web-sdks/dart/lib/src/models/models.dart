@@ -11,4 +11,6 @@ export 'interchange/models.dart';
 export 'product_info/product_info_response.dart';
 export 'search/search.dart';
 export 'cart/cart.dart';
+export 'invoices/invoices.dart';
+export 'statements/statements.dart';
 export 'user/location_details.dart';
