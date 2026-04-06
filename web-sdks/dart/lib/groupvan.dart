@@ -96,6 +96,14 @@ export 'src/models/models.dart'
         FlatBuyersGuideRequest,
         FlatBuyersGuideResponse,
         FlatBuyersGuideItem,
+        InvoiceRequest,
+        InvoiceResponse,
+        Invoice,
+        InvoiceDetail,
+        StatementRequest,
+        StatementResponse,
+        Statement,
+        StatementDetail,
         CheckoutRequest,
         CheckoutResponse;
 

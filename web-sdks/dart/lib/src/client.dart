@@ -1278,6 +1278,50 @@ class CatalogsClient extends ApiClient {
       );
     }
   }
+
+  /// Get invoices via the v3.2 gateway
+  Future<Result<InvoiceResponse>> getInvoices({
+    required InvoiceRequest request,
+  }) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/json/federated/v3_2/invoice',
+        data: request.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(InvoiceResponse.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catalogs.severe('Failed to get invoices: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get invoices: $e'),
+      );
+    }
+  }
+
+  /// Get statements via the v3.2 gateway
+  Future<Result<StatementResponse>> getStatements({
+    required StatementRequest request,
+  }) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/json/federated/v3_2/statement',
+        data: request.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(StatementResponse.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catalogs.severe('Failed to get statements: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get statements: $e'),
+      );
+    }
+  }
 }
 
 /// Cart API client for cart item management
@@ -2189,6 +2233,28 @@ class GroupVANCatalogs {
     required FlatBuyersGuideRequest request,
   }) async {
     final result = await _client.getFlatBuyersGuide(request: request);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get invoices via the v3.2 gateway
+  Future<InvoiceResponse> getInvoices({
+    required InvoiceRequest request,
+  }) async {
+    final result = await _client.getInvoices(request: request);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get statements via the v3.2 gateway
+  Future<StatementResponse> getStatements({
+    required StatementRequest request,
+  }) async {
+    final result = await _client.getStatements(request: request);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
