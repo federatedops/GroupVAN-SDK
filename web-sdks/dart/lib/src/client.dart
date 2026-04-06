@@ -152,7 +152,17 @@ void _applyPricing(List<Part> parts, Map<String, dynamic> pricing, {required boo
         if (part.pricing != null) {
           part.pricing!.locations.addAll(newPricing.locations);
         } else {
-          part.pricing = newPricing;
+          // Primary hasn't arrived yet — store a blank shell with just locations.
+          part.pricing = ItemPricing(
+            comment: '',
+            id: newPricing.id,
+            locations: newPricing.locations,
+            mfrCode: '',
+            mfrDescription: '',
+            partDescription: '',
+            partNumber: '',
+            statusCode: newPricing.statusCode,
+          );
         }
       }
     }
@@ -186,7 +196,20 @@ void _applyPricing(List<Part> parts, Map<String, dynamic> pricing, {required boo
     final existing = targetList.where(
       (p) => p.mfrCode == item['mfr_code'] && p.partNumber == item['part_number'],
     );
+    final newPricing = ItemPricing.fromJson(item);
     if (existing.isEmpty) {
+      final pricing = isPrimary
+          ? newPricing
+          : ItemPricing(
+              comment: '',
+              id: newPricing.id,
+              locations: newPricing.locations,
+              mfrCode: '',
+              mfrDescription: '',
+              partDescription: '',
+              partNumber: '',
+              statusCode: newPricing.statusCode,
+            );
       targetList.add(Part(
         id: 0,
         itemType: parentPart.itemType,
@@ -204,11 +227,10 @@ void _applyPricing(List<Part> parts, Map<String, dynamic> pricing, {required boo
         attributeExists: false,
         interchange: false,
         applications: [],
-        pricing: ItemPricing.fromJson(item),
+        pricing: pricing,
       ));
     } else {
       final p = existing.first;
-      final newPricing = ItemPricing.fromJson(item);
       if (isPrimary) {
         if (p.pricing != null) {
           newPricing.locations.addAll(p.pricing!.locations);
@@ -218,7 +240,16 @@ void _applyPricing(List<Part> parts, Map<String, dynamic> pricing, {required boo
         if (p.pricing != null) {
           p.pricing!.locations.addAll(newPricing.locations);
         } else {
-          p.pricing = newPricing;
+          p.pricing = ItemPricing(
+            comment: '',
+            id: newPricing.id,
+            locations: newPricing.locations,
+            mfrCode: '',
+            mfrDescription: '',
+            partDescription: '',
+            partNumber: '',
+            statusCode: newPricing.statusCode,
+          );
         }
       }
     }
