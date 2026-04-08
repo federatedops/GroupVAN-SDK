@@ -61,6 +61,22 @@ enum VehicleLookupType {
   final String value;
 }
 
+/// Cart behavior for a user's account
+enum CartBehavior {
+  placeOrder('place_order'),
+  export_('export'),
+  noButton('no_button');
+
+  const CartBehavior(this.value);
+  final String value;
+
+  static CartBehavior fromValue(String value) =>
+      CartBehavior.values.firstWhere(
+        (e) => e.value == value,
+        orElse: () => CartBehavior.noButton,
+      );
+}
+
 /// Catalog token request
 class CatalogTokenRequest {
   final String accountId;
@@ -195,6 +211,7 @@ class User {
   final bool canExportBuyersGuide;
   final List<String> roles;
   final bool showCartButtonWhenNoPrice;
+  final CartBehavior cartBehavior;
   final List<String> deliveryExpectations;
 
   const User({
@@ -206,6 +223,7 @@ class User {
     required this.hasIdentifixAccess,
     this.canExportBuyersGuide = false,
     this.showCartButtonWhenNoPrice = false,
+    this.cartBehavior = CartBehavior.noButton,
     this.picture,
     this.memberId,
     this.locations = const [],
@@ -221,6 +239,7 @@ class User {
     hasIdentifixAccess: json['has_identifix_access'],
     canExportBuyersGuide: json['can_export_buyers_guide'] ?? false,
     showCartButtonWhenNoPrice: json['show_cart_button_when_no_price'] ?? false,
+    cartBehavior: CartBehavior.fromValue(json['cart_behavior'] ?? 'no_button'),
     picture: json['picture'],
     memberId: json['member_id'],
     locations: (json['locations'] as List?)
@@ -241,6 +260,7 @@ class User {
     'has_identifix_access': hasIdentifixAccess,
     'can_export_buyers_guide': canExportBuyersGuide,
     'show_cart_button_when_no_price': showCartButtonWhenNoPrice,
+    'cart_behavior': cartBehavior.value,
     'delivery_expectations': deliveryExpectations,
   };
 }
