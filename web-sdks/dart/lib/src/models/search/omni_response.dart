@@ -6,13 +6,15 @@ import 'vehicle_and_part_type.dart';
 /// Omni search response
 class OmniSearchResponse {
   final List<PartType> partTypes;
-  final List<Part> parts;
+  final List<Part> catalogParts;
+  final List<Part> memberParts;
   final List<VehicleAndPartType> vehicles;
   final List<MemberCategory> memberCategories;
 
   const OmniSearchResponse({
     required this.partTypes,
-    required this.parts,
+    required this.catalogParts,
+    required this.memberParts,
     required this.vehicles,
     required this.memberCategories,
   });
@@ -22,7 +24,10 @@ class OmniSearchResponse {
         partTypes: ((json['part_types'] as List<dynamic>?) ?? [])
             .map((item) => PartType.fromJson(item as Map<String, dynamic>))
             .toList(),
-        parts: ((json['parts'] as List<dynamic>?) ?? [])
+        catalogParts: ((json['catalog_parts'] as List<dynamic>?) ?? [])
+            .map((item) => Part.fromJson(item as Map<String, dynamic>))
+            .toList(),
+        memberParts: ((json['member_parts'] as List<dynamic>?) ?? [])
             .map((item) => Part.fromJson(item as Map<String, dynamic>))
             .toList(),
         vehicles: ((json['vehicles'] as List<dynamic>?) ?? [])
@@ -37,7 +42,8 @@ class OmniSearchResponse {
 
   Map<String, dynamic> toJson() => {
     'part_types': partTypes.map((pt) => pt.toJson()).toList(),
-    'parts': parts,
+    'catalog_parts': catalogParts.map((p) => p.toJson()).toList(),
+    'member_parts': memberParts.map((p) => p.toJson()).toList(),
     'vehicles': vehicles.map((v) => v.toJson()).toList(),
   };
 }

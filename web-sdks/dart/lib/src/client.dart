@@ -1488,7 +1488,8 @@ class OmniSearchSession {
     : _streamController = StreamController<OmniSearchResponse>(),
       _currentResponse = OmniSearchResponse(
         partTypes: [],
-        parts: [],
+        catalogParts: [],
+        memberParts: [],
         vehicles: [],
         memberCategories: [],
       ) {
@@ -1507,12 +1508,21 @@ class OmniSearchSession {
             updated = true;
           }
 
-          if (data.containsKey('parts')) {
+          if (data.containsKey('catalog_parts')) {
             final list =
-                (data['parts'] as List)
+                (data['catalog_parts'] as List)
                     .map((e) => Part.fromJson(e as Map<String, dynamic>))
                     .toList();
-            _currentResponse.parts.addAll(list);
+            _currentResponse.catalogParts.addAll(list);
+            updated = true;
+          }
+
+          if (data.containsKey('member_parts')) {
+            final list =
+                (data['member_parts'] as List)
+                    .map((e) => Part.fromJson(e as Map<String, dynamic>))
+                    .toList();
+            _currentResponse.memberParts.addAll(list);
             updated = true;
           }
 
@@ -1562,7 +1572,8 @@ class OmniSearchSession {
     // Reset current response for new search
     _currentResponse = OmniSearchResponse(
       partTypes: [],
-      parts: [],
+      catalogParts: [],
+      memberParts: [],
       vehicles: [],
       memberCategories: [],
     );
