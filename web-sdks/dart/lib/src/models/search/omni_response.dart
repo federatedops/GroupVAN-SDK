@@ -42,8 +42,8 @@ class OmniSearchResponse {
 
   Map<String, dynamic> toJson() => {
     'part_types': partTypes.map((pt) => pt.toJson()).toList(),
-    'catalog_parts': catalogParts.map((p) => p.toJson()).toList(),
-    'member_parts': memberParts.map((p) => p.toJson()).toList(),
+    'catalog_parts': catalogParts, 
+    'member_parts': memberParts,
     'vehicles': vehicles.map((v) => v.toJson()).toList(),
   };
 }
