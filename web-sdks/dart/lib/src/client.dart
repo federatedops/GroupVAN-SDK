@@ -1374,6 +1374,27 @@ class CatalogsClient extends ApiClient {
       );
     }
   }
+
+  /// Get PDF bytes from a link URL
+  Future<Result<List<int>>> getPdfBytes({required String linkUrl}) async {
+    try {
+      final response = await get<List<dynamic>>(
+        '/internal/catalog/pdf_bytes',
+        queryParameters: {'link_url': linkUrl},
+        decoder: (data) => data as List<dynamic>,
+      );
+
+      final bytes = response.data.cast<int>();
+      return Success(bytes);
+    } catch (e) {
+      GroupVanLogger.catalogs.severe('Failed to get PDF bytes: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get PDF bytes: $e'),
+      );
+    }
+  }
 }
 
 /// Cart API client for cart item management
@@ -2318,6 +2339,15 @@ class GroupVANCatalogs {
     required StatementRequest request,
   }) async {
     final result = await _client.getStatements(request: request);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get PDF bytes from a link URL
+  Future<List<int>> getPdfBytes({required String linkUrl}) async {
+    final result = await _client.getPdfBytes(linkUrl: linkUrl);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
