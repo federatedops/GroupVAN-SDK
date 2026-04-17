@@ -82,6 +82,7 @@ class PartType {
   final DisplayTier? displayTier;
   final int id;
   final String name;
+  final String? categoryName;
   final int? popularityGroup;
   final List<String> slangList;
 
@@ -89,6 +90,7 @@ class PartType {
     required this.displayTier,
     required this.id,
     required this.name,
+    this.categoryName,
     required this.popularityGroup,
     required this.slangList,
   });
@@ -99,6 +101,7 @@ class PartType {
         : null,
     id: json['id'],
     name: json['name'],
+    categoryName: json['category_name'],
     popularityGroup: json['popularity_group'],
     slangList: List<String>.from(json['slang_list'] ?? []),
   );
@@ -107,6 +110,7 @@ class PartType {
     'display_tier': displayTier,
     'id': id,
     'name': name,
+    'category_name': categoryName,
     'popularity_group': popularityGroup,
     'slang_list': slangList,
   };
