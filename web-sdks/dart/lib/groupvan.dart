@@ -11,6 +11,8 @@ export 'src/client.dart'
         GroupVANCatalogs,
         GroupVANSearch,
         OmniSearchSession,
+        ProductsSearchSession,
+        ProductsListingSession,
         AuthUser,
         AuthSession,
         AuthChangeEvent,

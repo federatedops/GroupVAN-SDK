@@ -296,6 +296,270 @@ void _applyEquivalentPricing(List<Part> parts, Map<String, dynamic> eqPricing) {
   }
 }
 
+/// Single persistent WebSocket to `/v3/ws/stream` that multiplexes every
+/// streaming feature (omni search, products search, products listing).
+///
+/// - Lazy-connects on first [ensureConnected].
+/// - Authenticates via a first-frame `{type: auth, token}` and waits for
+///   `{type: auth_ok}` before releasing queued sends.
+/// - Re-authenticates in-band on [AuthManager] token rotation, so the
+///   10-minute JWT never forces a reconnect.
+/// - Dispatches inbound frames to a registered handler per logical stream.
+class MultiplexedSocket {
+  static const _authTimeout = Duration(seconds: 10);
+
+  final GroupVanHttpClient _httpClient;
+  final AuthManager _authManager;
+
+  WebSocketChannel? _channel;
+  StreamSubscription<dynamic>? _channelSub;
+  StreamSubscription<auth_models.AuthStatus>? _authSub;
+  Completer<void>? _authReady;
+  String? _authedToken;
+
+  final Map<String, void Function(Map<String, dynamic>)> _handlers = {};
+
+  MultiplexedSocket(this._httpClient, this._authManager) {
+    _authSub = _authManager.statusStream.listen((status) {
+      final token = status.accessToken;
+      if (_channel == null || token == null || token == _authedToken) return;
+      _sendRaw({'type': 're_auth', 'token': token});
+      _authedToken = token;
+    });
+  }
+
+  /// Register a handler for a logical stream type (e.g. `omni_search`).
+  /// The handler is invoked for every inbound frame whose top-level keys
+  /// match that stream type. Only one handler per type is active at a time.
+  void registerHandler(
+    String streamType,
+    void Function(Map<String, dynamic>) handler,
+  ) {
+    _handlers[streamType] = handler;
+  }
+
+  void unregisterHandler(String streamType) {
+    _handlers.remove(streamType);
+  }
+
+  /// Send a request frame. Ensures the socket is connected and authenticated
+  /// before the payload goes out.
+  Future<void> send(String type, Map<String, dynamic> payload) async {
+    await ensureConnected();
+    _sendRaw({'type': type, 'payload': payload});
+  }
+
+  /// Open and authenticate the socket if it isn't already. Safe to call
+  /// repeatedly — subsequent calls return the cached ready future.
+  Future<void> ensureConnected() async {
+    if (_channel != null && _authReady != null) {
+      return _authReady!.future;
+    }
+
+    final token = _authManager.currentStatus.accessToken;
+    if (token == null) {
+      throw AuthenticationException(
+        'Not authenticated. Please call auth.login() first.',
+        errorType: AuthErrorType.missingToken,
+      );
+    }
+
+    final baseUri = Uri.parse(_httpClient.baseUrl);
+    final wsUri = Uri(
+      scheme: baseUri.scheme == 'http' ? 'ws' : 'wss',
+      host: baseUri.host,
+      port: baseUri.hasPort ? baseUri.port : null,
+      path: '/v3/ws/stream',
+    );
+
+    final channel = WebSocketChannel.connect(wsUri);
+    _channel = channel;
+    _authReady = Completer<void>();
+
+    _channelSub = channel.stream.listen(
+      _onMessage,
+      onError: _onChannelError,
+      onDone: _onChannelDone,
+    );
+
+    _sendRaw({'type': 'auth', 'token': token});
+    _authedToken = token;
+
+    return _authReady!.future.timeout(
+      _authTimeout,
+      onTimeout: () {
+        final err = NetworkException(
+          'Timed out waiting for WebSocket auth_ok frame.',
+        );
+        _failAndReset(err);
+        throw err;
+      },
+    );
+  }
+
+  void _sendRaw(Map<String, dynamic> frame) {
+    _channel?.sink.add(jsonEncode(frame));
+  }
+
+  void _onMessage(dynamic message) {
+    final Map<String, dynamic> data;
+    try {
+      data = jsonDecode(message as String) as Map<String, dynamic>;
+    } catch (e) {
+      GroupVanLogger.sdk.severe('Failed to decode multiplex frame: $e');
+      return;
+    }
+
+    final type = data['type'];
+
+    if (type == 'auth_ok') {
+      if (!(_authReady?.isCompleted ?? true)) _authReady!.complete();
+      return;
+    }
+
+    if (data.containsKey('error')) {
+      _failAndReset(_exceptionFromErrorFrame(data));
+      return;
+    }
+
+    for (final key in data.keys) {
+      final handler = _handlerForKey(key);
+      if (handler != null) {
+        handler(data);
+        return;
+      }
+    }
+  }
+
+  void Function(Map<String, dynamic>)? _handlerForKey(String key) {
+    const omniKeys = {
+      'member_categories',
+      'part_types',
+      'catalog_parts',
+      'member_parts',
+      'vehicles',
+    };
+    const productsSearchKeys = {'products'};
+    const productsListingKeys = {'product_listings'};
+    const sharedKeys = {'assets', 'pricing', 'equivalents', 'equivalent_pricing'};
+
+    if (omniKeys.contains(key)) return _handlers['omni_search'];
+    if (productsSearchKeys.contains(key)) return _handlers['products_search'];
+    if (productsListingKeys.contains(key)) return _handlers['products_listing'];
+    if (sharedKeys.contains(key)) {
+      return _handlers['products_search'] ??
+          _handlers['products_listing'] ??
+          _handlers['omni_search'];
+    }
+    return null;
+  }
+
+  GroupVanException _exceptionFromErrorFrame(Map<String, dynamic> data) {
+    final title = (data['error'] ?? '').toString();
+    final detail = (data['detail'] ?? '').toString();
+    final message = detail.isEmpty ? title : '$title: $detail';
+    final lower = title.toLowerCase();
+    if (lower.contains('token')) {
+      final isExpired = lower.contains('expired');
+      return AuthenticationException(
+        message,
+        errorType: isExpired
+            ? AuthErrorType.expiredToken
+            : AuthErrorType.invalidToken,
+      );
+    }
+    return NetworkException('WebSocket error: $message');
+  }
+
+  void _onChannelError(Object error) {
+    _failAndReset(error);
+  }
+
+  void _onChannelDone() {
+    final closeCode = _channel?.closeCode;
+    final closeReason = _channel?.closeReason ?? '';
+    final Object error;
+    if (closeCode == 1011 && closeReason.toLowerCase().contains('expired')) {
+      error = AuthenticationException(
+        'WebSocket closed by server: $closeReason',
+        errorType: AuthErrorType.expiredToken,
+      );
+    } else {
+      error = NetworkException(
+        'WebSocket closed by server.'
+        '${closeCode != null ? ' (code: $closeCode)' : ''}'
+        '${closeReason.isNotEmpty ? ' $closeReason' : ''}',
+      );
+    }
+    _failAndReset(error);
+  }
+
+  void _failAndReset(Object error) {
+    _tearDown();
+    if (error is AuthenticationException &&
+        error.errorType == AuthErrorType.expiredToken) {
+      // Don't fan the expired-token error out yet — try to refresh the
+      // access token and reconnect silently. Handlers only see an error if
+      // the refresh itself fails.
+      unawaited(_recoverFromExpiredToken(error));
+      return;
+    }
+    _surfaceError(error);
+  }
+
+  void _tearDown() {
+    _channelSub?.cancel();
+    _channelSub = null;
+    _channel?.sink.close();
+    _channel = null;
+    _authReady = null;
+    _authedToken = null;
+  }
+
+  void _surfaceError(Object error) {
+    if (!(_authReady?.isCompleted ?? true)) {
+      _authReady!.completeError(error);
+    }
+    for (final handler in _handlers.values) {
+      try {
+        handler({'__error': error});
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _recoverFromExpiredToken(
+    AuthenticationException original,
+  ) async {
+    try {
+      await _authManager.refreshToken();
+    } catch (_) {
+      _surfaceError(original);
+      return;
+    }
+    if (_handlers.isEmpty) {
+      // No one is listening — don't eagerly reopen the socket. It will
+      // lazily reconnect on the next send() via ensureConnected().
+      return;
+    }
+    try {
+      await ensureConnected();
+    } catch (e) {
+      _surfaceError(e);
+    }
+  }
+
+  Future<void> dispose() async {
+    await _authSub?.cancel();
+    _authSub = null;
+    await _channelSub?.cancel();
+    _channelSub = null;
+    await _channel?.sink.close();
+    _channel = null;
+    _authReady = null;
+    _handlers.clear();
+  }
+}
+
 /// Main GroupVAN SDK Client
 ///
 /// Provides a comprehensive, type-safe interface to the GroupVAN V3 API with:
@@ -308,6 +572,7 @@ class GroupVanClient {
   final GroupVanClientConfig _config;
   late final GroupVanHttpClient _httpClient;
   late final AuthManager _authManager;
+  late final MultiplexedSocket _multiplexedSocket;
   late final VehiclesClient _vehiclesClient;
   late final CatalogsClient _catalogsClient;
   late final ReportsClient _reportsClient;
@@ -378,11 +643,14 @@ class GroupVanClient {
     );
     GroupVanLogger.sdk.warning('DEBUG: Authentication manager created');
 
+    // Single multiplexed WebSocket shared by the streaming API clients.
+    _multiplexedSocket = MultiplexedSocket(httpClient, _authManager);
+
     // Initialize API clients
     _vehiclesClient = VehiclesClient(httpClient, _authManager);
-    _catalogsClient = CatalogsClient(httpClient, _authManager);
+    _catalogsClient = CatalogsClient(httpClient, _authManager, _multiplexedSocket);
     _reportsClient = ReportsClient(httpClient, _authManager);
-    _searchClient = SearchClient(httpClient, _authManager);
+    _searchClient = SearchClient(httpClient, _authManager, _multiplexedSocket);
     _cartClient = CartClient(httpClient, _authManager);
     _userClient = UserClient(httpClient, _authManager);
     GroupVanLogger.sdk.warning('DEBUG: API clients initialized');
@@ -397,6 +665,7 @@ class GroupVanClient {
 
   /// Clean up resources
   void dispose() {
+    _multiplexedSocket.dispose();
     _authManager.dispose();
     GroupVanLogger.sdk.info('GroupVAN SDK Client disposed');
   }
@@ -969,8 +1238,13 @@ class VehiclesClient extends ApiClient {
 
 /// Catalogs API client with comprehensive catalog management
 class CatalogsClient extends ApiClient {
+  final MultiplexedSocket _socket;
 
-  const CatalogsClient(super.httpClient, super.authManager);
+  CatalogsClient(super.httpClient, super.authManager, this._socket);
+
+  /// Start a catalog products-listing session over the shared multiplex socket.
+  ProductsListingSession startProductsListingSession() =>
+      ProductsListingSession(_socket);
 
   /// Get available catalogs
   Future<Result<List<Catalog>>> getCatalogs() async {
@@ -1106,60 +1380,6 @@ class CatalogsClient extends ApiClient {
             ? e
             : NetworkException('Failed to get application assets: $e'),
       );
-    }
-  }
-
-  /// Get product listings with validation
-  Stream<List<ProductListing>> getProducts({
-    required ProductListingRequest request,
-  }) async* {
-    WebSocketChannel? channel;
-
-    final baseUri = Uri.parse(httpClient.baseUrl);
-    final wsUri = Uri(
-      scheme: 'wss',
-      host: baseUri.host,
-      path: '/v3/catalogs/products',
-      queryParameters: {
-        'token': authManager.currentStatus.accessToken,
-      },
-    );
-
-    try {
-      channel = WebSocketChannel.connect(wsUri);
-
-      channel.sink.add(jsonEncode(request.toJson()));
-
-      List<ProductListing> products = [];
-
-      await for (final message in channel.stream) {
-        final data = jsonDecode(message);
-        if (data.containsKey('product_listings')) {
-          for (final product in data['product_listings']) {
-            products.add(ProductListing.fromJson(product));
-          }
-        } else {
-          final allParts = products.expand((p) => p.parts).toList();
-          if (data.containsKey('assets')) {
-            _applyAssets(allParts, data['assets'] as Map<String, dynamic>);
-          } else if (data.containsKey('pricing')) {
-            _applyPricing(allParts, data['pricing'] as Map<String, dynamic>, isPrimary: data['is_primary'] == true);
-          } else if (data.containsKey('equivalents')) {
-            _applyEquivalents(allParts, data['equivalents'] as Map<String, dynamic>);
-          } else if (data.containsKey('equivalent_pricing')) {
-            _applyEquivalentPricing(allParts, data['equivalent_pricing'] as Map<String, dynamic>);
-          }
-        }
-        yield products;
-      }
-    } catch (e, stackTrace) {
-      GroupVanLogger.catalogs.severe('Failed to stream products: $e');
-      Error.throwWithStackTrace(
-        NetworkException('Failed to stream products: $e'),
-        stackTrace,
-      );
-    } finally {
-      await channel?.sink.close();
     }
   }
 
@@ -1501,12 +1721,14 @@ class ReportsClient extends ApiClient {
 }
 
 class OmniSearchSession {
-  final WebSocketChannel _channel;
+  static const _streamType = 'omni_search';
+
+  final MultiplexedSocket _socket;
   final StreamController<OmniSearchResponse> _streamController;
   OmniSearchResponse _currentResponse;
 
-  OmniSearchSession(this._channel)
-    : _streamController = StreamController<OmniSearchResponse>(),
+  OmniSearchSession(this._socket)
+    : _streamController = StreamController<OmniSearchResponse>.broadcast(),
       _currentResponse = OmniSearchResponse(
         partTypes: [],
         catalogParts: [],
@@ -1514,83 +1736,63 @@ class OmniSearchSession {
         vehicles: [],
         memberCategories: [],
       ) {
-    _channel.stream.listen(
-      (message) {
-        try {
-          final data = jsonDecode(message);
-          bool updated = false;
+    _socket.registerHandler(_streamType, _handleFrame);
+  }
 
-          if (data.containsKey('part_types')) {
-            final list =
-                (data['part_types'] as List)
-                    .map((e) => PartType.fromJson(e as Map<String, dynamic>))
-                    .toList();
-            _currentResponse.partTypes.addAll(list);
-            updated = true;
-          }
+  void _handleFrame(Map<String, dynamic> data) {
+    if (data.containsKey('__error')) {
+      _streamController.addError(data['__error'] as Object);
+      return;
+    }
 
-          if (data.containsKey('catalog_parts')) {
-            final list =
-                (data['catalog_parts'] as List)
-                    .map((e) => Part.fromJson(e as Map<String, dynamic>))
-                    .toList();
-            _currentResponse.catalogParts.addAll(list);
-            updated = true;
-          }
+    bool updated = false;
 
-          if (data.containsKey('member_parts')) {
-            final list =
-                (data['member_parts'] as List)
-                    .map((e) => Part.fromJson(e as Map<String, dynamic>))
-                    .toList();
-            _currentResponse.memberParts.addAll(list);
-            updated = true;
-          }
+    if (data.containsKey('part_types')) {
+      _currentResponse.partTypes.addAll(
+        (data['part_types'] as List)
+            .map((e) => PartType.fromJson(e as Map<String, dynamic>)),
+      );
+      updated = true;
+    }
+    if (data.containsKey('catalog_parts')) {
+      _currentResponse.catalogParts.addAll(
+        (data['catalog_parts'] as List)
+            .map((e) => Part.fromJson(e as Map<String, dynamic>)),
+      );
+      updated = true;
+    }
+    if (data.containsKey('member_parts')) {
+      _currentResponse.memberParts.addAll(
+        (data['member_parts'] as List)
+            .map((e) => Part.fromJson(e as Map<String, dynamic>)),
+      );
+      updated = true;
+    }
+    if (data.containsKey('vehicles')) {
+      _currentResponse.vehicles.addAll(
+        (data['vehicles'] as List)
+            .map((e) => VehicleAndPartType.fromJson(e as Map<String, dynamic>)),
+      );
+      updated = true;
+    }
+    if (data.containsKey('member_categories')) {
+      _currentResponse.memberCategories.addAll(
+        (data['member_categories'] as List)
+            .map((e) => MemberCategory.fromJson(e as Map<String, dynamic>)),
+      );
+      updated = true;
+    }
 
-          if (data.containsKey('vehicles')) {
-            final list =
-                (data['vehicles'] as List)
-                    .map((e) => VehicleAndPartType.fromJson(e as Map<String, dynamic>))
-                    .toList();
-            _currentResponse.vehicles.addAll(list);
-            updated = true;
-          }
-
-          if (data.containsKey('member_categories')) {
-            final list =
-                (data['member_categories'] as List)
-                    .map(
-                      (e) => MemberCategory.fromJson(e as Map<String, dynamic>),
-                    )
-                    .toList();
-            _currentResponse.memberCategories.addAll(list);
-            updated = true;
-          }
-
-          if (updated) {
-            _streamController.add(_currentResponse);
-          }
-        } catch (e) {
-          _streamController.addError(e);
-        }
-      },
-      onError: (error) {
-        _streamController.addError(error);
-      },
-      onDone: () {
-        _streamController.close();
-      },
-    );
+    if (updated) _streamController.add(_currentResponse);
   }
 
   Stream<OmniSearchResponse> get stream => _streamController.stream;
 
-  void search({
+  Future<void> search({
     required String query,
     int? vehicleIndex,
     bool? disableFilters,
-  }) {
-    // Reset current response for new search
+  }) async {
     _currentResponse = OmniSearchResponse(
       partTypes: [],
       catalogParts: [],
@@ -1598,45 +1800,177 @@ class OmniSearchSession {
       vehicles: [],
       memberCategories: [],
     );
-    // Optionally emit the empty state immediately so UI clears previous results
     _streamController.add(_currentResponse);
 
-    final request = <String, dynamic>{'query': query};
+    final payload = <String, dynamic>{'query': query};
+    if (vehicleIndex != null) payload['vehicle_index'] = vehicleIndex;
+    if (disableFilters != null) payload['disable_filters'] = disableFilters;
 
-    if (vehicleIndex != null) {
-      request['vehicle_index'] = vehicleIndex;
+    try {
+      await _socket.send(_streamType, payload);
+    } catch (e) {
+      _streamController.addError(e);
     }
-    if (disableFilters != null) {
-      request['disable_filters'] = disableFilters;
-    }
-
-    _channel.sink.add(jsonEncode(request));
   }
 
   void dispose() {
-    _channel.sink.close();
+    _socket.unregisterHandler(_streamType);
+    _streamController.close();
+  }
+}
+
+/// Session for streaming product search results. Fire [search] to issue a
+/// query; results arrive on [stream]. Pricing is the last frame emitted
+/// per request — callers can treat its arrival as "results complete."
+class ProductsSearchSession {
+  static const _streamType = 'products_search';
+
+  final MultiplexedSocket _socket;
+  final StreamController<List<Part>> _streamController;
+  List<Part> _products;
+
+  ProductsSearchSession(this._socket)
+    : _streamController = StreamController<List<Part>>.broadcast(),
+      _products = <Part>[] {
+    _socket.registerHandler(_streamType, _handleFrame);
+  }
+
+  void _handleFrame(Map<String, dynamic> data) {
+    if (data.containsKey('__error')) {
+      _streamController.addError(data['__error'] as Object);
+      return;
+    }
+
+    if (data.containsKey('products')) {
+      for (final product in data['products']) {
+        _products.add(Part.fromJson(product as Map<String, dynamic>));
+      }
+    } else if (data.containsKey('assets')) {
+      _applyAssets(_products, data['assets'] as Map<String, dynamic>);
+    } else if (data.containsKey('pricing')) {
+      _applyPricing(
+        _products,
+        data['pricing'] as Map<String, dynamic>,
+        isPrimary: data['is_primary'] == true,
+      );
+    } else if (data.containsKey('equivalents')) {
+      _applyEquivalents(_products, data['equivalents'] as Map<String, dynamic>);
+    } else if (data.containsKey('equivalent_pricing')) {
+      _applyEquivalentPricing(
+        _products,
+        data['equivalent_pricing'] as Map<String, dynamic>,
+      );
+    }
+
+    _streamController.add(_products);
+  }
+
+  Stream<List<Part>> get stream => _streamController.stream;
+
+  Future<void> search({
+    required String query,
+    bool? disableFilters,
+  }) async {
+    _products = <Part>[];
+    _streamController.add(_products);
+
+    final payload = <String, dynamic>{'query': query};
+    if (disableFilters != null) payload['disable_filters'] = disableFilters;
+
+    try {
+      await _socket.send(_streamType, payload);
+    } catch (e) {
+      _streamController.addError(e);
+    }
+  }
+
+  void dispose() {
+    _socket.unregisterHandler(_streamType);
+    _streamController.close();
+  }
+}
+
+/// Session for streaming catalog product listings. Fire [fetch] with a
+/// [ProductListingRequest]; results arrive on [stream].
+class ProductsListingSession {
+  static const _streamType = 'products_listing';
+
+  final MultiplexedSocket _socket;
+  final StreamController<List<ProductListing>> _streamController;
+  List<ProductListing> _listings;
+
+  ProductsListingSession(this._socket)
+    : _streamController = StreamController<List<ProductListing>>.broadcast(),
+      _listings = <ProductListing>[] {
+    _socket.registerHandler(_streamType, _handleFrame);
+  }
+
+  void _handleFrame(Map<String, dynamic> data) {
+    if (data.containsKey('__error')) {
+      _streamController.addError(data['__error'] as Object);
+      return;
+    }
+
+    if (data.containsKey('product_listings')) {
+      for (final listing in data['product_listings']) {
+        _listings.add(
+          ProductListing.fromJson(listing as Map<String, dynamic>),
+        );
+      }
+    } else {
+      final allParts = _listings.expand((l) => l.parts).toList();
+      if (data.containsKey('assets')) {
+        _applyAssets(allParts, data['assets'] as Map<String, dynamic>);
+      } else if (data.containsKey('pricing')) {
+        _applyPricing(
+          allParts,
+          data['pricing'] as Map<String, dynamic>,
+          isPrimary: data['is_primary'] == true,
+        );
+      } else if (data.containsKey('equivalents')) {
+        _applyEquivalents(allParts, data['equivalents'] as Map<String, dynamic>);
+      } else if (data.containsKey('equivalent_pricing')) {
+        _applyEquivalentPricing(
+          allParts,
+          data['equivalent_pricing'] as Map<String, dynamic>,
+        );
+      }
+    }
+
+    _streamController.add(_listings);
+  }
+
+  Stream<List<ProductListing>> get stream => _streamController.stream;
+
+  Future<void> fetch({required ProductListingRequest request}) async {
+    _listings = <ProductListing>[];
+    _streamController.add(_listings);
+
+    try {
+      await _socket.send(_streamType, request.toJson());
+    } catch (e) {
+      _streamController.addError(e);
+    }
+  }
+
+  void dispose() {
+    _socket.unregisterHandler(_streamType);
     _streamController.close();
   }
 }
 
 /// Search API client for omni search functionality
 class SearchClient extends ApiClient {
+  final MultiplexedSocket _socket;
 
-  const SearchClient(super.httpClient, super.authManager);
+  SearchClient(super.httpClient, super.authManager, this._socket);
 
-  /// Start a persistent omni search session
-  OmniSearchSession startOmniSearchSession() {
-    final baseUri = Uri.parse(httpClient.baseUrl);
-    final wsUri = Uri(
-      scheme: 'wss',
-      host: baseUri.host,
-      path: '/v3/search/omni',
-      queryParameters: {'token': authManager.currentStatus.accessToken},
-    );
+  /// Start a persistent omni search session over the shared multiplex socket.
+  OmniSearchSession startOmniSearchSession() => OmniSearchSession(_socket);
 
-    final channel = WebSocketChannel.connect(wsUri);
-    return OmniSearchSession(channel);
-  }
+  /// Start a products search session over the shared multiplex socket.
+  ProductsSearchSession startProductsSearchSession() =>
+      ProductsSearchSession(_socket);
 
   /// Get VIN data
   Future<Result<List<Map<String, String>>>> vinData(String vin) async {
@@ -1666,67 +2000,6 @@ class SearchClient extends ApiClient {
     }
   }
 
-  /// Search products by query string
-  ///
-  /// Returns a stream of [Part] objects that updates as data is received.
-  /// The stream emits:
-  /// 1. Initial products list
-  /// 2. Products with assets attached
-  /// 3. Products with pricing attached
-  Stream<List<Part>> searchProducts({
-    required String query,
-    bool? disableFilters,
-  }) async* {
-    WebSocketChannel? channel;
-
-    final baseUri = Uri.parse(httpClient.baseUrl);
-    final wsUri = Uri(
-      scheme: 'wss',
-      host: baseUri.host,
-      path: '/v3/search/products',
-      queryParameters: {
-        'token': authManager.currentStatus.accessToken,
-      },
-    );
-
-    try {
-      channel = WebSocketChannel.connect(wsUri);
-
-      final request = <String, dynamic>{'query': query};
-      if (disableFilters != null) {
-        request['disable_filters'] = disableFilters;
-      }
-      channel.sink.add(jsonEncode(request));
-
-      List<Part> products = [];
-
-      await for (final message in channel.stream) {
-        final data = jsonDecode(message);
-        if (data.containsKey('products')) {
-          for (final product in data['products']) {
-            products.add(Part.fromJson(product));
-          }
-        } else if (data.containsKey('assets')) {
-          _applyAssets(products, data['assets'] as Map<String, dynamic>);
-        } else if (data.containsKey('pricing')) {
-          _applyPricing(products, data['pricing'] as Map<String, dynamic>, isPrimary: data['is_primary'] == true);
-        } else if (data.containsKey('equivalents')) {
-          _applyEquivalents(products, data['equivalents'] as Map<String, dynamic>);
-        } else if (data.containsKey('equivalent_pricing')) {
-          _applyEquivalentPricing(products, data['equivalent_pricing'] as Map<String, dynamic>);
-        }
-        yield products;
-      }
-    } catch (e, stackTrace) {
-      GroupVanLogger.sdk.severe('Failed to search products: $e');
-      Error.throwWithStackTrace(
-        NetworkException('Failed to search products: $e'),
-        stackTrace,
-      );
-    } finally {
-      await channel?.sink.close();
-    }
-  }
 }
 
 /// User API client
@@ -2236,12 +2509,12 @@ class GroupVANCatalogs {
     return result.value;
   }
 
-  /// Get product listings
-  Stream<List<ProductListing>> getProducts({
-    required ProductListingRequest request,
-  }) {
-    return _client.getProducts(request: request);
-  }
+  /// Start a catalog products-listing session over the shared multiplex socket.
+  ///
+  /// Returns a [ProductsListingSession] that can be used to issue multiple
+  /// listing requests over the single SDK WebSocket. Call [dispose] when done.
+  ProductsListingSession startProductsListingSession() =>
+      _client.startProductsListingSession();
 
   Future<List<Asset>> getProductAssets({
     List<int>? catalogSkus,
@@ -2421,16 +2694,12 @@ class GroupVANSearch {
     return result.value;
   }
 
-  /// Search products by query string
+  /// Start a products search session over the shared multiplex socket.
   ///
-  /// Returns a stream of [Part] objects that updates as data is received.
-  /// The stream emits updates as products, assets, and pricing data arrive.
-  Stream<List<Part>> searchProducts({
-    required String query,
-    bool? disableFilters,
-  }) {
-    return _client.searchProducts(query: query, disableFilters: disableFilters);
-  }
+  /// Returns a [ProductsSearchSession] that exposes a long-lived [Stream]
+  /// of results. Call `search(...)` to issue a query, `dispose()` when done.
+  ProductsSearchSession startProductsSearchSession() =>
+      _client.startProductsSearchSession();
 }
 
 /// Namespaced user API
