@@ -1504,10 +1504,12 @@ class CatalogsClient extends ApiClient {
         '/v3/catalogs/products/assets',
         data: {'catalog_skus': catalogSkus, 'member_skus': memberSkus, 'primary_only': primaryOnly},
       );
-      final catalogAssets = response.data['catalog_assets'] as List<dynamic>;
-      final assets = catalogAssets
-          .map((item) => Asset.fromJson(item as Map<String, dynamic>))
-          .toList();
+      final catalogAssets = response.data['catalog_assets'] as List<dynamic>? ?? const [];
+      final memberAssets = response.data['member_assets'] as List<dynamic>? ?? const [];
+      final assets = [
+        ...catalogAssets.map((item) => Asset.fromJson(item as Map<String, dynamic>)),
+        ...memberAssets.map((item) => Asset.fromJson(item as Map<String, dynamic>)),
+      ];
       return Success(assets);
     } catch (e) {
       GroupVanLogger.catalogs.severe('Failed to get product assets: $e');
