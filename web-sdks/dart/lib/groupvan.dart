@@ -30,7 +30,6 @@ export 'src/models/models.dart'
     show
         Vehicle,
         VehicleGroup,
-        VehicleSearchResponse,
         VehicleCategory,
         Catalog,
         CatalogType,
@@ -55,7 +54,6 @@ export 'src/models/models.dart'
         VehicleFilterOption,
         Fleet,
         EngineSearchRequest,
-        VehicleSearchRequest,
         VinSearchRequest,
         PlateSearchRequest,
         User,

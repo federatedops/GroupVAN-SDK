@@ -999,57 +999,6 @@ class VehiclesClient extends ApiClient {
     }
   }
 
-  /// Search vehicles with comprehensive validation
-  Future<Result<VehicleSearchResponse>> searchVehicles({
-    required String query,
-    int? groupId,
-    int page = 1,
-  }) async {
-    // Validate search parameters
-    try {
-      GroupVanValidators.searchQuery().validateAndThrow(query, 'query');
-      if (page < 1) {
-        throw ValidationException(
-          'Page must be greater than 0',
-          errors: [
-            ValidationError(
-              field: 'page',
-              message: 'Page must be greater than 0',
-              value: page,
-              rule: 'min',
-            ),
-          ],
-        );
-      }
-    } catch (e) {
-      return Failure(e as ValidationException);
-    }
-
-    try {
-      final queryParams = <String, dynamic>{'query': query, 'page': page};
-
-      if (groupId != null) {
-        queryParams['group_id'] = groupId;
-      }
-
-      final response = await get<Map<String, dynamic>>(
-        '/v3/vehicles/search',
-        queryParameters: queryParams,
-        decoder: (data) => data as Map<String, dynamic>,
-      );
-
-      final searchResponse = VehicleSearchResponse.fromJson(response.data);
-      return Success(searchResponse);
-    } catch (e) {
-      GroupVanLogger.vehicles.severe('Vehicle search failed: $e');
-      return Failure(
-        e is GroupVanException
-            ? e
-            : NetworkException('Vehicle search failed: $e'),
-      );
-    }
-  }
-
   /// Search by VIN with validation
   Future<Result<Vehicle?>> searchByVin(String vin) async {
     // Validate VIN format
@@ -2277,23 +2226,6 @@ class GroupVANVehicles {
     int limit = 20,
   }) async {
     final result = await _client.getUserVehicles(offset: offset, limit: limit);
-    if (result.isFailure) {
-      throw Exception('Unexpected error: ${result.error}');
-    }
-    return result.value;
-  }
-
-  /// Search vehicles
-  Future<VehicleSearchResponse> search({
-    required String query,
-    int? groupId,
-    int page = 1,
-  }) async {
-    final result = await _client.searchVehicles(
-      query: query,
-      groupId: groupId,
-      page: page,
-    );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }

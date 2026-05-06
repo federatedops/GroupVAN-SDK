@@ -25,47 +25,6 @@ class VehicleGroup {
   };
 }
 
-/// Vehicle search request
-class VehicleSearchRequest {
-  final String query;
-  final int? groupId;
-  final int pageNumber;
-
-  const VehicleSearchRequest({
-    required this.query,
-    this.groupId,
-    this.pageNumber = 1,
-  });
-
-  Map<String, dynamic> toJson() => {
-    'query': query,
-    if (groupId != null) 'group_id': groupId,
-    'page': pageNumber,
-  };
-}
-
-/// Vehicle search response
-class VehicleSearchResponse {
-  final List<Vehicle> vehicles;
-  final int totalCount;
-  final int page;
-
-  const VehicleSearchResponse({
-    required this.vehicles,
-    required this.totalCount,
-    required this.page,
-  });
-
-  factory VehicleSearchResponse.fromJson(Map<String, dynamic> json) =>
-      VehicleSearchResponse(
-        vehicles: (json['vehicles'] as List<dynamic>)
-            .map((v) => Vehicle.fromJson(v as Map<String, dynamic>))
-            .toList(),
-        totalCount: json['total_count'],
-        page: json['page'],
-      );
-}
-
 /// VIN search request
 class VinSearchRequest {
   final String vin;

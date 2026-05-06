@@ -28,7 +28,6 @@ void main() {
     test('exports model classes', () {
       expect(Vehicle, isA<Type>());
       expect(VehicleGroup, isA<Type>());
-      expect(VehicleSearchResponse, isA<Type>());
       expect(VehicleCategory, isA<Type>());
       expect(Catalog, isA<Type>());
       expect(SupplyCategory, isA<Type>());
@@ -47,7 +46,6 @@ void main() {
       expect(VehicleFilterOption, isA<Type>());
       expect(Fleet, isA<Type>());
       expect(EngineSearchRequest, isA<Type>());
-      expect(VehicleSearchRequest, isA<Type>());
       expect(VinSearchRequest, isA<Type>());
       expect(PlateSearchRequest, isA<Type>());
     });
@@ -148,7 +146,6 @@ void main() {
       
       // Test that all methods exist (method type checking)
       expect(vehicles.getUserVehicles, isA<Function>());
-      expect(vehicles.search, isA<Function>());
       expect(vehicles.searchByVin, isA<Function>());
       expect(vehicles.searchByPlate, isA<Function>());
       expect(vehicles.getGroups, isA<Function>());

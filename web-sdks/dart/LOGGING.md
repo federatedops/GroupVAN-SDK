@@ -182,11 +182,11 @@ The SDK uses `dart:developer.log()` internally, which integrates seamlessly with
 
 ```
 [INFO] GroupVAN.SDK: SDK initialized at level: INFO
-[INFO] GroupVAN.SDK.Vehicles: Searching vehicles: "Honda Civic" (group: 200)
-[FINE] GroupVAN.SDK.ApiClient: GET request: https://api.groupvan.com/v3/vehicles/search?query=Honda+Civic&page=1&group_id=200
-[FINE] GroupVAN.SDK.ApiClient: GET (with session) response: 200 for v3/vehicles/search
-[FINE] GroupVAN.SDK.ApiClient: Session ID received: abc123-def456-ghi789 for v3/vehicles/search
-[INFO] GroupVAN.SDK: Search returned 15 results
+[INFO] GroupVAN.SDK.Vehicles: Filtering vehicles (group: 200)
+[FINE] GroupVAN.SDK.ApiClient: GET request: https://api.groupvan.com/v3/vehicles/filter?group_id=200
+[FINE] GroupVAN.SDK.ApiClient: GET (with session) response: 200 for v3/vehicles/filter
+[FINE] GroupVAN.SDK.ApiClient: Session ID received: abc123-def456-ghi789 for v3/vehicles/filter
+[INFO] GroupVAN.SDK: Filter returned 15 results
 ```
 
 ## Troubleshooting
