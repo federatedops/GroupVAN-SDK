@@ -71,11 +71,13 @@ class VehicleFilterOption {
   final int id;
   final String name;
   final List<String> regions;
+  final int? rank;
 
   const VehicleFilterOption({
     required this.id,
     required this.name,
     required this.regions,
+    this.rank,
   });
 
   factory VehicleFilterOption.fromJson(Map<String, dynamic> json, String type) {
@@ -83,6 +85,7 @@ class VehicleFilterOption {
       id: json['${type}_id'],
       name: json['${type}_name'],
       regions: List<String>.from(json['${type}_regions'] ?? []),
+      rank: json['${type}_rank'] as int?,
     );
   }
 }
