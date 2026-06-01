@@ -1844,9 +1844,10 @@ class SearchClient extends ApiClient {
 
   /// Stream product search results for [query].
   ///
-  /// Emits a growing `List<Part>` as the server pushes products, then
-  /// assets, then pricing (and equivalents/equivalent pricing, when
-  /// available) onto the same list. Closes on done or cancellation.
+  /// Emits a growing `List<Part>` as the server pushes catalog and member
+  /// parts (with assets embedded), then pricing (and equivalents/equivalent
+  /// pricing, when available) onto the same list. Closes on done or
+  /// cancellation.
   Stream<List<Part>> searchProducts({
     required String query,
     bool? disableFilters,
@@ -1860,12 +1861,14 @@ class SearchClient extends ApiClient {
       type: 'products_search',
       payload: payload,
       onData: (data) {
-        if (data.containsKey('products')) {
-          for (final product in data['products'] as List) {
+        if (data.containsKey('catalog_parts')) {
+          for (final product in data['catalog_parts'] as List) {
             products.add(Part.fromJson(product as Map<String, dynamic>));
           }
-        } else if (data.containsKey('assets')) {
-          _applyAssets(products, data['assets'] as Map<String, dynamic>);
+        } else if (data.containsKey('member_parts')) {
+          for (final product in data['member_parts'] as List) {
+            products.add(Part.fromJson(product as Map<String, dynamic>));
+          }
         } else if (data.containsKey('pricing')) {
           _applyPricing(
             products,
