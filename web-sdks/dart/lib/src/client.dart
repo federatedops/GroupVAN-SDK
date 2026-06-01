@@ -1851,10 +1851,12 @@ class SearchClient extends ApiClient {
   Stream<List<Part>> searchProducts({
     required String query,
     bool? disableFilters,
+    int? vehicleIndex,
   }) {
     final products = <Part>[];
     final payload = <String, dynamic>{'query': query};
     if (disableFilters != null) payload['disable_filters'] = disableFilters;
+    if (vehicleIndex != null) payload['vehicle_index'] = vehicleIndex;
 
     return _streamMultiplexRequest<List<Part>>(
       socket: _socket,
@@ -2613,7 +2615,12 @@ class GroupVANSearch {
   Stream<List<Part>> searchProducts({
     required String query,
     bool? disableFilters,
-  }) => _client.searchProducts(query: query, disableFilters: disableFilters);
+    int? vehicleIndex,
+  }) => _client.searchProducts(
+        query: query,
+        disableFilters: disableFilters,
+        vehicleIndex: vehicleIndex,
+      );
 }
 
 /// Namespaced user API
