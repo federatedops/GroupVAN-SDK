@@ -802,9 +802,11 @@ abstract class ApiClient {
     T Function(dynamic)? decoder,
     Options? options,
   }) async {
-    // Merge headers from options with auth header
+    // Ensure we have a valid (non-expired) token, refreshing if necessary,
+    // before merging it into the request headers.
+    final token = await authManager.getValidAccessToken();
     final headers = <String, dynamic>{
-      'Authorization': 'Bearer ${authManager.currentStatus.accessToken}',
+      'Authorization': 'Bearer $token',
       ...?options?.headers,
     };
 
@@ -837,9 +839,11 @@ abstract class ApiClient {
     T Function(dynamic)? decoder,
     Options? options,
   }) async {
-    // Merge headers from options with auth header
+    // Ensure we have a valid (non-expired) token, refreshing if necessary,
+    // before merging it into the request headers.
+    final token = await authManager.getValidAccessToken();
     final headers = <String, dynamic>{
-      'Authorization': 'Bearer ${authManager.currentStatus.accessToken}',
+      'Authorization': 'Bearer $token',
       ...?options?.headers,
     };
 
@@ -873,9 +877,11 @@ abstract class ApiClient {
     T Function(dynamic)? decoder,
     Options? options,
   }) async {
-    // Merge headers from options with auth header
+    // Ensure we have a valid (non-expired) token, refreshing if necessary,
+    // before merging it into the request headers.
+    final token = await authManager.getValidAccessToken();
     final headers = <String, dynamic>{
-      'Authorization': 'Bearer ${authManager.currentStatus.accessToken}',
+      'Authorization': 'Bearer $token',
       ...?options?.headers,
     };
 
@@ -909,8 +915,11 @@ abstract class ApiClient {
     T Function(dynamic)? decoder,
     Options? options,
   }) async {
+    // Ensure we have a valid (non-expired) token, refreshing if necessary,
+    // before merging it into the request headers.
+    final token = await authManager.getValidAccessToken();
     final headers = <String, dynamic>{
-      'Authorization': 'Bearer ${authManager.currentStatus.accessToken}',
+      'Authorization': 'Bearer $token',
       ...?options?.headers,
     };
 
