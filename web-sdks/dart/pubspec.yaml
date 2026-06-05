@@ -1,6 +1,6 @@
 name: groupvan
 description: "GroupVAN SDK for Flutter/Dart applications - comprehensive toolkit for GroupVAN V3 API integration."
-version: 1.0.1
+version: 1.0.2  
 homepage: https://github.com/federatedops/GroupVAN-SDK
 publish_to: none
 
