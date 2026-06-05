@@ -147,6 +147,28 @@ class SearchClient extends ApiClient {
     }
   }
 
+  /// Get search suggestions
+  ///
+  /// Returns the most popular part terms and the member's most-looked-up
+  /// categories, used to seed an empty search box with suggestions.
+  Future<Result<SuggestionsResponse>> suggestions() async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/search/suggestions',
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(SuggestionsResponse.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.sdk.severe('Failed to get search suggestions: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get search suggestions: $e'),
+      );
+    }
+  }
+
 }
 
 /// Namespaced search API
@@ -192,4 +214,16 @@ class GroupVANSearch {
         disableFilters: disableFilters,
         vehicleIndex: vehicleIndex,
       );
+
+  /// Get search suggestions.
+  ///
+  /// Returns the most popular part terms and the member's most-looked-up
+  /// categories, used to seed an empty search box with suggestions.
+  Future<SuggestionsResponse> suggestions() async {
+    final result = await _client.suggestions();
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
 }
