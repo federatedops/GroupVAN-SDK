@@ -76,6 +76,7 @@ export 'src/models/models.dart'
         OmniSearchResponse,
         VehicleAndPartType,
         MemberCategory,
+        SuggestionsResponse,
         AddToCartRequest,
         RemoveFromCartRequest,
         CartResponse,
