@@ -14,4 +14,10 @@ class MemberCategory {
     subcategoryId: json['subcategory_id'],
     subcategoryName: json['subcategory_name'],
   );
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'subcategory_id': subcategoryId,
+    'subcategory_name': subcategoryName,
+  };
 }
