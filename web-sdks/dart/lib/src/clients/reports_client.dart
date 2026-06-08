@@ -15,7 +15,8 @@ class ReportsClient extends ApiClient {
 
   Future<Result<void>> createReport({
     required Uint8List screenshot,
-    String? message,
+    String? title,
+    String? body,
   }) async {
     try {
       FormData formData = FormData.fromMap({
@@ -23,7 +24,8 @@ class ReportsClient extends ApiClient {
           screenshot,
           filename: 'screenshot.png',
         ),
-        'message': message,
+        'title': title,
+        'body': body,
       });
 
       await post('/v3/reports/', data: formData);
@@ -45,6 +47,10 @@ class GroupVANReports {
 
   const GroupVANReports(this._client);
 
-  Future<void> createReport({required Uint8List screenshot, String? message}) =>
-      _client.createReport(screenshot: screenshot, message: message);
+  Future<void> createReport({
+    required Uint8List screenshot,
+    String? title,
+    String? body,
+  }) =>
+      _client.createReport(screenshot: screenshot, title: title, body: body);
 }
