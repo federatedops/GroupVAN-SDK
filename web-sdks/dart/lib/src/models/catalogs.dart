@@ -85,6 +85,7 @@ class PartType {
   final String? categoryName;
   final int? popularityGroup;
   final List<String> slangList;
+  final List<Map<String, dynamic>> highlights;
 
   const PartType({
     required this.displayTier,
@@ -93,6 +94,7 @@ class PartType {
     this.categoryName,
     required this.popularityGroup,
     required this.slangList,
+    this.highlights = const [],
   });
 
   factory PartType.fromJson(Map<String, dynamic> json) => PartType(
@@ -104,6 +106,9 @@ class PartType {
     categoryName: json['category_name'],
     popularityGroup: json['popularity_group'],
     slangList: List<String>.from(json['slang_list'] ?? []),
+    highlights: (json['highlights'] as List<dynamic>?)
+        ?.map((e) => Map<String, dynamic>.from(e as Map))
+        .toList() ?? [],
   );
 
   Map<String, dynamic> toJson() => {
@@ -113,6 +118,7 @@ class PartType {
     'category_name': categoryName,
     'popularity_group': popularityGroup,
     'slang_list': slangList,
+    'highlights': highlights,
   };
 }
 

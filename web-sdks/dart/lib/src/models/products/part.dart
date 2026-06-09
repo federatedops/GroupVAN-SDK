@@ -27,6 +27,7 @@ class Part implements Comparable {
   final List<PartApplication> applications;
   final String? categoryName;
   final String? subcategoryName;
+  final List<Map<String, dynamic>> highlights;
   Asset? assets;
   ItemPricing? pricing;
   List<Part> equivalents;
@@ -57,6 +58,7 @@ class Part implements Comparable {
     required this.applications,
     this.categoryName,
     this.subcategoryName,
+    this.highlights = const [],
     this.assets,
     this.pricing,
     List<Part>? equivalents,
@@ -92,6 +94,9 @@ class Part implements Comparable {
         .toList(),
     categoryName: json['category_name'],
     subcategoryName: json['subcategory_name'],
+    highlights: (json['highlights'] as List<dynamic>?)
+        ?.map((e) => Map<String, dynamic>.from(e as Map))
+        .toList() ?? [],
     assets: json['asset'] != null
         ? Asset.fromJson(json['asset'] as Map<String, dynamic>)
         : null,
