@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart' show Colors, Color;
 import 'part_application.dart';
 import './item_pricing.dart';
 import './item_pricing_location.dart';
@@ -143,22 +142,6 @@ class Part implements Comparable {
     final sorted = [...locations]
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     return sorted.first;
-  }
-
-  Color quantityAtLocationColor() {
-    Color color = Colors.grey;
-
-    double totalQuantityAvailable = pricing!.locations
-        .map((location) => location.quantityAvailable)
-        .reduce((value, element) => value + element);
-
-    if (totalQuantityAvailable == 0) return color;
-
-    double quantityAtFirstLocation = _primaryLocation!.quantityAvailable;
-
-    color = quantityAtFirstLocation > 0 ? Colors.green : Colors.amber;
-
-    return color;
   }
 
   String quantityAtLocationText() {
