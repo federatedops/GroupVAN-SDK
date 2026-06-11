@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' show Colors, Color;
 import 'part_application.dart';
 import './item_pricing.dart';
+import './item_pricing_location.dart';
 import '../assets/asset.dart';
 
 class Part implements Comparable {
@@ -135,6 +136,15 @@ class Part implements Comparable {
     return "1";
   }
 
+  ItemPricingLocation? get _primaryLocation {
+    final locations = pricing?.locations;
+    if (locations == null || locations.isEmpty) return null;
+
+    final sorted = [...locations]
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    return sorted.first;
+  }
+
   Color quantityAtLocationColor() {
     Color color = Colors.grey;
 
@@ -144,10 +154,7 @@ class Part implements Comparable {
 
     if (totalQuantityAvailable == 0) return color;
 
-    double quantityAtFirstLocation = pricing!.locations
-        .where((location) => location.sortOrder == 1)
-        .first
-        .quantityAvailable;
+    double quantityAtFirstLocation = _primaryLocation!.quantityAvailable;
 
     color = quantityAtFirstLocation > 0 ? Colors.green : Colors.amber;
 
@@ -155,10 +162,7 @@ class Part implements Comparable {
   }
 
   String quantityAtLocationText() {
-    double totalQuantityAvailable = pricing!.locations
-        .where((location) => location.sortOrder == 1)
-        .first
-        .quantityAvailable;
+    double totalQuantityAvailable = _primaryLocation!.quantityAvailable;
 
     return totalQuantityAvailable > 100
         ? '100+'
@@ -166,23 +170,14 @@ class Part implements Comparable {
   }
 
   double cost() {
-    return pricing!.locations
-        .where((location) => location.sortOrder == 1)
-        .first
-        .cost;
+    return _primaryLocation!.cost;
   }
 
   double list() {
-    return pricing!.locations
-        .where((location) => location.sortOrder == 1)
-        .first
-        .list;
+    return _primaryLocation!.list;
   }
 
   double? core() {
-    return pricing?.locations
-        .where((location) => location.sortOrder == 1)
-        .first
-        .core;
+    return _primaryLocation?.core;
   }
 }
