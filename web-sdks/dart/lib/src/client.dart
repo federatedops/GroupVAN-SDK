@@ -426,6 +426,18 @@ class GroupVANAuth {
 
   const GroupVANAuth._(this._authManager, this._client);
 
+  /// Authenticate with an externally-minted access token (e.g. a Service Pro
+  /// catalog "punchout" token from a trusted server-side exchange).
+  ///
+  /// Marks the session authenticated without a cookie-based refresh; see
+  /// [AuthManager.setSession]. Returns the resulting auth status.
+  Future<auth_models.AuthStatus> setSession({
+    required String accessToken,
+  }) async {
+    await _authManager.setSession(accessToken: accessToken);
+    return _authManager.currentStatus;
+  }
+
   /// Sign in with username and password
   Future<auth_models.AuthStatus> signInWithPassword({
     required String email,
