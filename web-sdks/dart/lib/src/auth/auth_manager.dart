@@ -448,6 +448,29 @@ class AuthManager {
     );
   }
 
+  /// Authenticate using an externally-minted access token.
+  ///
+  /// Use this for trusted server-side token exchanges (e.g. a Service Pro
+  /// catalog "punchout" where a backend mints a catalog access token). The
+  /// token is decoded, stored, and the session is marked authenticated
+  /// **without** attempting a cookie-based refresh — appropriate when the
+  /// refresh-token cookie is not available to the browser. The token is used
+  /// as-is until it expires; obtain a new one via the same exchange to renew.
+  Future<void> setSession({required String accessToken, User? user}) async {
+    final claims = _decodeToken(accessToken);
+    await _tokenStorage.storeTokens(accessToken: accessToken);
+    await _updateStatus(
+      AuthStatus.authenticated(
+        accessToken: accessToken,
+        claims: claims,
+        userInfo: user ?? _currentStatus.userInfo,
+      ),
+    );
+    GroupVanLogger.auth.info(
+      'Session set from external access token for user: ${claims.userId}',
+    );
+  }
+
   /// Refresh access token
   ///
   /// On web, the browser automatically sends the refresh_token HttpOnly cookie.
