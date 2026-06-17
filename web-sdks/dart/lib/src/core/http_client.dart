@@ -101,6 +101,9 @@ class GroupVanHttpClient {
   final HttpClientConfig _config;
   final Uuid _uuid = const Uuid();
 
+  /// Auth interceptor, kept in sync with the session via [updateAuthToken].
+  late final AuthInterceptor _authInterceptor;
+
   /// Cache store for HTTP responses
   CacheStore? _cacheStore;
 
@@ -135,7 +138,8 @@ class GroupVanHttpClient {
     _dio.interceptors.add(SendTimeoutSanitizerInterceptor());
 
     // Add authentication interceptor
-    _dio.interceptors.add(AuthInterceptor(_config.token));
+    _authInterceptor = AuthInterceptor(_config.token);
+    _dio.interceptors.add(_authInterceptor);
 
     // Add retry interceptor
     _dio.interceptors.add(RetryInterceptor(_config.maxRetries));
@@ -155,6 +159,11 @@ class GroupVanHttpClient {
 
     // Add error handling interceptor
     _dio.interceptors.add(ErrorHandlingInterceptor());
+  }
+
+  /// Update the interceptor's bearer token. Call on any token change; null clears it.
+  void updateAuthToken(String? token) {
+    _authInterceptor.updateToken(token);
   }
 
   /// Initialize cache store

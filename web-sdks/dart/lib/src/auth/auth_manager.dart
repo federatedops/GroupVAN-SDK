@@ -659,6 +659,8 @@ class AuthManager {
   /// Update authentication status and notify listeners
   Future<void> _updateStatus(AuthStatus newStatus) async {
     _currentStatus = newStatus;
+    // Keep the auth interceptor in sync so it never uses a stale token.
+    _httpClient.updateAuthToken(newStatus.accessToken);
     _statusController.add(newStatus);
   }
 
