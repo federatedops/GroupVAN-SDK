@@ -208,6 +208,13 @@ class AuthManager {
   final TokenStorage _tokenStorage;
   final StreamController<AuthStatus> _statusController;
 
+  /// When true, the Google OAuth callback is handled via the SSO
+  /// session-exchange flow ([ssoExchange]) rather than the standard
+  /// provider-callback flow. SSO is for first-party GroupVAN products;
+  /// third-party integrators use the standard flow. Set by the SDK consumer
+  /// via the client config.
+  final bool _useSso;
+
   /// Current authentication status
   AuthStatus _currentStatus = const AuthStatus.unauthenticated();
 
@@ -247,8 +254,10 @@ class AuthManager {
   AuthManager({
     required GroupVanHttpClient httpClient,
     TokenStorage? tokenStorage,
+    bool useSso = false,
   }) : _httpClient = httpClient,
        _tokenStorage = tokenStorage ?? MemoryTokenStorage(),
+       _useSso = useSso,
        _statusController = StreamController<AuthStatus>.broadcast() {
     // Emit initial state immediately so StreamBuilder doesn't wait
     _statusController.add(_currentStatus);
@@ -303,7 +312,12 @@ class AuthManager {
           final code = uri.queryParameters['code'];
           final state = uri.queryParameters['state'];
           final provider = uri.queryParameters['provider'];
-          if (code != null && state != null && provider != null) {
+          if (_useSso && provider != null) {
+            // SSO Google flow: the OAuth callback already completed
+            // server-side and set the gv_session cookie. Exchange it for
+            // this client's tokens.
+            await ssoExchange(clientId);
+          } else if (code != null && state != null && provider != null) {
             await _handleProviderCallback(provider, code, state, clientId);
           } else {
             await _updateStatus(const AuthStatus.unauthenticated());
@@ -359,6 +373,76 @@ class AuthManager {
   void loginWithGoogle() {
     window.location.href =
         '${_httpClient.baseUrl}/auth/google/login?catalog_uri=${_httpClient.origin}';
+  }
+
+  /// Sign in via SSO with email and password.
+  ///
+  /// Hits `/auth/sso/login`, which establishes a shared SSO session
+  /// (gv_session cookie) in addition to this client's tokens, enabling
+  /// single sign-on and cascade logout across GroupVAN clients.
+  Future<void> ssoLogin({
+    required String email,
+    required String password,
+    required String clientId,
+  }) async {
+    await _updateStatus(const AuthStatus.authenticating());
+
+    try {
+      final request = LoginRequest(email: email, password: password);
+
+      final response = await _httpClient.post<Map<String, dynamic>>(
+        '/auth/sso/login',
+        data: request.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+        options: Options(headers: {'gv-client-id': clientId}),
+      );
+
+      final user = User.fromJson(response.data['user']);
+      final tokenResponse = TokenResponse.fromJson(response.data);
+
+      await _handleTokenResponse(tokenResponse, user: user);
+    } catch (e) {
+      final error = 'SSO login failed: ${e.toString()}';
+      GroupVanLogger.auth.severe(error);
+      await _updateStatus(AuthStatus.failed(error: error));
+      rethrow;
+    }
+  }
+
+  /// Begin the SSO Google OAuth flow by redirecting the browser to the
+  /// server's SSO Google login endpoint. On return, [initialize] detects the
+  /// `provider=google` callback and completes the flow via [ssoExchange].
+  void ssoLoginWithGoogle() {
+    window.location.href =
+        '${_httpClient.baseUrl}/auth/sso/google/login?redirect_uri=${_httpClient.origin}?provider=google';
+  }
+
+  /// Exchange the current SSO session (gv_session cookie) for this client's
+  /// access and refresh tokens via `/auth/sso/exchange`.
+  ///
+  /// Used to complete the Google OAuth flow after the server-side callback,
+  /// and to obtain client-specific tokens when a shared session already exists.
+  Future<void> ssoExchange(String clientId) async {
+    await _updateStatus(const AuthStatus.authenticating());
+
+    try {
+      // Empty body — browser sends the gv_session cookie automatically.
+      final response = await _httpClient.post<Map<String, dynamic>>(
+        '/auth/sso/exchange',
+        decoder: (data) => data as Map<String, dynamic>,
+        options: Options(headers: {'gv-client-id': clientId}),
+      );
+
+      final user = User.fromJson(response.data['user']);
+      final tokenResponse = TokenResponse.fromJson(response.data);
+
+      await _handleTokenResponse(tokenResponse, user: user);
+    } catch (e) {
+      final error = 'SSO exchange failed: ${e.toString()}';
+      GroupVanLogger.auth.severe(error);
+      await _updateStatus(AuthStatus.failed(error: error));
+      rethrow;
+    }
   }
 
   Future<void> _handleProviderCallback(
@@ -549,6 +633,35 @@ class AuthManager {
     // Clear local state
     await _clearAuthenticationState();
     GroupVanLogger.auth.info('Successfully logged out');
+  }
+
+  /// Log out of the SSO session and clear all authentication state.
+  ///
+  /// Hits `/auth/sso/logout`, which revokes the shared SSO session and
+  /// blacklists every refresh token linked to it — cascading the logout
+  /// across all GroupVAN clients on that session. Browser sends the
+  /// gv_session cookie automatically.
+  Future<void> ssoLogout() async {
+    try {
+      final currentTokens = await _tokenStorage.getTokens();
+      // POST with no body — browser sends gv_session cookie automatically.
+      await _httpClient.post<Map<String, dynamic>>(
+        '/auth/sso/logout',
+        decoder: (data) => data as Map<String, dynamic>,
+        options: Options(
+          headers: {
+            if (currentTokens['accessToken'] != null)
+              'Authorization': 'Bearer ${currentTokens['accessToken']}',
+          },
+        ),
+      );
+    } catch (e) {
+      GroupVanLogger.auth.warning('SSO logout request failed: $e');
+      // Continue with local cleanup even if server request fails
+    }
+
+    await _clearAuthenticationState();
+    GroupVanLogger.auth.info('Successfully logged out of SSO session');
   }
 
   /// Get current valid access token, refreshing if necessary

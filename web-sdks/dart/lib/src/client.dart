@@ -71,6 +71,13 @@ class GroupVanClientConfig {
   /// Enable caching
   final bool enableCaching;
 
+  /// Use the SSO authentication flow (`/auth/sso/*`).
+  ///
+  /// When true, the Google OAuth callback is completed via SSO session
+  /// exchange. Required for [GroupVANAuth.signInWithSso] /
+  /// [GroupVANAuth.signInWithGoogleSso] / [GroupVANAuth.signOutSso].
+  final bool useSso;
+
   GroupVanClientConfig({
     this.baseUrl = GroupVanDefaults.stagingBaseUrl,
     HttpClientConfig? httpClientConfig,
@@ -79,6 +86,7 @@ class GroupVanClientConfig {
     this.autoRefreshTokens = true,
     this.enableLogging = true,
     this.enableCaching = true,
+    this.useSso = false,
   }) : httpClientConfig =
            httpClientConfig?.copyWith(baseUrl: baseUrl) ??
            HttpClientConfig(baseUrl: baseUrl);
@@ -92,6 +100,7 @@ class GroupVanClientConfig {
     bool autoRefreshTokens = true,
     bool enableLogging = false,
     bool enableCaching = true,
+    bool useSso = false,
   }) {
     return GroupVanClientConfig(
       baseUrl: baseUrl ?? GroupVanDefaults.productionBaseUrl,
@@ -101,6 +110,7 @@ class GroupVanClientConfig {
       autoRefreshTokens: autoRefreshTokens,
       enableLogging: enableLogging,
       enableCaching: enableCaching,
+      useSso: useSso,
     );
   }
 
@@ -113,6 +123,7 @@ class GroupVanClientConfig {
     bool autoRefreshTokens = true,
     bool enableLogging = true,
     bool enableCaching = true,
+    bool useSso = false,
   }) {
     return GroupVanClientConfig(
       baseUrl: baseUrl ?? GroupVanDefaults.stagingBaseUrl,
@@ -122,6 +133,7 @@ class GroupVanClientConfig {
       autoRefreshTokens: autoRefreshTokens,
       enableLogging: enableLogging,
       enableCaching: enableCaching,
+      useSso: useSso,
     );
   }
 }
@@ -206,6 +218,7 @@ class GroupVanClient {
     _authManager = AuthManager(
       httpClient: _httpClient,
       tokenStorage: _config.tokenStorage,
+      useSso: _config.useSso,
     );
     GroupVanLogger.sdk.warning('DEBUG: Authentication manager created');
 
@@ -345,6 +358,11 @@ class GroupVAN {
 
     /// Whether this is a production environment
     bool isProduction = true,
+
+    /// Use the SSO authentication flow (`/auth/sso/*`). Required for
+    /// [GroupVANAuth.signInWithSso] / [GroupVANAuth.signInWithGoogleSso] /
+    /// [GroupVANAuth.signOutSso].
+    bool useSso = false,
   }) async {
     // Return existing instance if already initialized
     if (_instance?._isInitialized == true) {
@@ -363,6 +381,7 @@ class GroupVAN {
             autoRefreshTokens: autoRefreshTokens ?? true,
             enableLogging: enableLogging ?? false,
             enableCaching: enableCaching ?? true,
+            useSso: useSso,
           )
         : GroupVanClientConfig.staging(
             baseUrl: baseUrl,
@@ -371,6 +390,7 @@ class GroupVAN {
             autoRefreshTokens: autoRefreshTokens ?? true,
             enableLogging: enableLogging ?? true,
             enableCaching: enableCaching ?? true,
+            useSso: useSso,
           );
 
     // Initialize client
@@ -485,6 +505,39 @@ class GroupVANAuth {
     _authManager.loginWithGoogle();
   }
 
+  /// Sign in via SSO with email and password.
+  ///
+  /// Establishes a shared SSO session in addition to this client's tokens,
+  /// enabling single sign-on and cascade logout across GroupVAN clients.
+  /// Requires the SDK to be initialized with `useSso: true`.
+  Future<auth_models.AuthStatus> signInWithSso({
+    required String email,
+    required String password,
+  }) async {
+    final clientId = _client.clientId;
+    if (clientId == null) {
+      throw StateError(
+        'Client ID not configured. Please initialize GroupVAN SDK with a clientId.',
+      );
+    }
+
+    await _authManager.ssoLogin(
+      email: email,
+      password: password,
+      clientId: clientId,
+    );
+    return _authManager.currentStatus;
+  }
+
+  /// Begin the SSO Google sign-in flow (browser redirect).
+  ///
+  /// On return, the SDK completes the flow by exchanging the SSO session for
+  /// this client's tokens. Requires the SDK to be initialized with
+  /// `useSso: true`.
+  void signInWithGoogleSso() {
+    _authManager.ssoLoginWithGoogle();
+  }
+
   Future<auth_models.AuthStatus> linkFedLinkAccount({
     required String email,
     required String username,
@@ -544,6 +597,13 @@ class GroupVANAuth {
   /// Sign out current user
   Future<void> signOut() async {
     await _authManager.logout();
+  }
+
+  /// Sign out of the SSO session.
+  ///
+  /// Cascades the logout across all GroupVAN clients sharing the SSO session.
+  Future<void> signOutSso() async {
+    await _authManager.ssoLogout();
   }
 
   /// Refresh the current session
