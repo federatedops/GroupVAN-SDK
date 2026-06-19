@@ -312,10 +312,9 @@ class AuthManager {
           final code = uri.queryParameters['code'];
           final state = uri.queryParameters['state'];
           final provider = uri.queryParameters['provider'];
-          if (_useSso && provider != null) {
-            // SSO Google flow: the OAuth callback already completed
-            // server-side and set the gv_session cookie. Exchange it for
-            // this client's tokens.
+          if (_useSso && provider != null && code != null && state != null) {
+            // SSO: create the session server-side, then exchange it for tokens.
+            await _ssoProviderCallback(provider, code, state);
             await ssoExchange(clientId);
           } else if (code != null && state != null && provider != null) {
             await _handleProviderCallback(provider, code, state, clientId);
@@ -443,6 +442,20 @@ class AuthManager {
       await _updateStatus(AuthStatus.failed(error: error));
       rethrow;
     }
+  }
+
+  /// Exchange the OAuth code server-side, creating the SSO session and
+  /// setting the gv_session cookie. `redirect_uri` is the catalog origin;
+  /// the backend rebuilds the registered redirect URI so the exchange
+  /// validates. Caller then runs [ssoExchange] for this client's tokens.
+  Future<void> _ssoProviderCallback(
+    String provider,
+    String code,
+    String state,
+  ) async {
+    await _httpClient.get<Map<String, dynamic>>(
+      '/auth/sso/$provider/callback?code=$code&state=$state&redirect_uri=${_httpClient.origin}',
+    );
   }
 
   Future<void> _handleProviderCallback(
