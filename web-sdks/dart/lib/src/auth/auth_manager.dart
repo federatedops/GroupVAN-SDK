@@ -414,7 +414,7 @@ class AuthManager {
   /// `provider=google` callback and completes the flow via [ssoExchange].
   void ssoLoginWithGoogle() {
     window.location.href =
-        '${_httpClient.baseUrl}/auth/sso/google/login?redirect_uri=${_httpClient.origin}?provider=google';
+        '${_httpClient.baseUrl}/auth/sso/google/login?redirect_uri=${_httpClient.origin}';
   }
 
   /// Exchange the current SSO session (gv_session cookie) for this client's
