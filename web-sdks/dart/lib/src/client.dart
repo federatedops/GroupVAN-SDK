@@ -12,6 +12,7 @@ import 'auth/auth_manager.dart';
 import 'auth/auth_models.dart' as auth_models;
 import 'clients/cart_client.dart';
 import 'clients/catalogs_client.dart';
+import 'clients/catman_client.dart';
 import 'clients/reports_client.dart';
 import 'clients/search_client.dart';
 import 'clients/user_client.dart';
@@ -28,6 +29,7 @@ import 'models/models.dart';
 export 'clients/base_client.dart' show ApiClient;
 export 'clients/cart_client.dart' show CartClient, GroupVANCart;
 export 'clients/catalogs_client.dart' show CatalogsClient, GroupVANCatalogs;
+export 'clients/catman_client.dart' show CatmanClient, GroupVANCatman;
 export 'clients/reports_client.dart' show ReportsClient, GroupVANReports;
 export 'clients/search_client.dart' show SearchClient, GroupVANSearch;
 export 'clients/user_client.dart' show UserClient, GroupVANUser;
@@ -157,6 +159,7 @@ class GroupVanClient {
   late final SearchClient _searchClient;
   late final CartClient _cartClient;
   late final UserClient _userClient;
+  late final CatmanClient _catmanClient;
 
   GroupVanClient(this._config);
 
@@ -183,6 +186,9 @@ class GroupVanClient {
 
   /// User API client
   UserClient get user => _userClient;
+
+  /// Catman API client
+  CatmanClient get catman => _catmanClient;
 
   /// Current authentication status
   auth_models.AuthStatus get authStatus => _authManager.currentStatus;
@@ -232,6 +238,7 @@ class GroupVanClient {
     _searchClient = SearchClient(httpClient, _authManager, _multiplexedSocket);
     _cartClient = CartClient(httpClient, _authManager);
     _userClient = UserClient(httpClient, _authManager);
+    _catmanClient = CatmanClient(httpClient, _authManager);
     GroupVanLogger.sdk.warning('DEBUG: API clients initialized');
 
     // Initialize authentication manager (restore tokens if available)
@@ -425,6 +432,9 @@ class GroupVAN {
 
   /// Quick access to user API (deprecated - use client.user instead)
   GroupVANUser get user => GroupVANUser(_client.user);
+
+  /// Quick access to catman API (deprecated - use client.catman instead)
+  GroupVANCatman get catman => GroupVANCatman(_client.catman);
 
   /// Check if SDK is initialized
   bool get isInitialized => _isInitialized;
@@ -667,6 +677,9 @@ class GroupVANClient {
 
   /// User operations
   GroupVANUser get user => GroupVANUser(_client.user);
+
+  /// Catman operations
+  GroupVANCatman get catman => GroupVANCatman(_client.catman);
 }
 
 /// Authentication user information

@@ -10,6 +10,7 @@ export 'src/client.dart'
         GroupVANVehicles,
         GroupVANCatalogs,
         GroupVANSearch,
+        GroupVANCatman,
         AuthUser,
         AuthSession,
         AuthChangeEvent,
@@ -105,7 +106,9 @@ export 'src/models/models.dart'
         Statement,
         StatementDetail,
         CheckoutRequest,
-        CheckoutResponse;
+        CheckoutResponse,
+        Ad,
+        Campaign;
 
 // Constants
 export 'src/constants.dart' show CountryCode, CountryDivisionCode;

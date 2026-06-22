@@ -26,6 +26,9 @@ class GroupVanLogger {
   /// Logger for reports operations
   static final Logger reports = Logger('GroupVAN.SDK.Reports');
 
+  /// Logger for catman operations
+  static final Logger catman = Logger('GroupVAN.SDK.Catman');
+
   /// Initialize the logging system
   ///
   /// Call this once during SDK initialization to configure logging.
