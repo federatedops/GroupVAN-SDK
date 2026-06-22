@@ -215,6 +215,11 @@ class AuthManager {
   /// via the client config.
   final bool _useSso;
 
+  /// This SDK instance's client id, captured on [initialize]. Sent as the
+  /// `gv-client-id` header on /auth/refresh so the server rotates only this
+  /// app's refresh cookie (the browser may hold several first-party apps').
+  String? _clientId;
+
   /// Current authentication status
   AuthStatus _currentStatus = const AuthStatus.unauthenticated();
 
@@ -268,6 +273,7 @@ class AuthManager {
   /// Attempts to restore authentication state from stored tokens
   /// Gracefully handles errors and continues with unauthenticated state
   Future<void> initialize(String clientId) async {
+    _clientId = clientId;
     GroupVanLogger.auth.warning(
       'DEBUG: Starting authentication initialization...',
     );
@@ -291,21 +297,27 @@ class AuthManager {
           'DEBUG: Token validation and restoration completed',
         );
       } else {
-        // No access token in memory — attempt to restore session from
-        // the HttpOnly refresh token cookie (persists across page refreshes)
+        // No access token in memory — restore the session from cookies.
         GroupVanLogger.auth.warning(
-          'DEBUG: No stored access token found, attempting cookie-based refresh...',
+          'DEBUG: No stored access token found, attempting to restore session...',
         );
 
         try {
+          // Restore from this app's own HttpOnly refresh_token cookie. This is
+          // safe across first-party apps because /auth/refresh is client-scoped:
+          // refreshToken() sends gv-client-id, so the server rotates only THIS
+          // client's cookie and never a co-resident app's (e.g. catman's).
           await refreshToken();
           GroupVanLogger.auth.warning(
             'DEBUG: Session restored from refresh token cookie',
           );
-        } catch (e) {
-          // Refresh failed (no cookie or expired) — check for OAuth callback
+        } catch (refreshError) {
+          // Per-app refresh failed (no/expired cookie). Try, in order:
+          // 1) SSO session exchange — gv_session may still be valid for THIS client;
+          // 2) an OAuth callback in the URL;
+          // 3) otherwise, stay unauthenticated.
           GroupVanLogger.auth.warning(
-            'DEBUG: Cookie refresh failed ($e), checking for OAuth callback...',
+            'DEBUG: Refresh failed ($refreshError), trying SSO exchange / OAuth callback...',
           );
 
           final uri = Uri.parse(window.location.href);
@@ -316,8 +328,15 @@ class AuthManager {
             // SSO: create the session server-side, then exchange it for tokens.
             await _ssoProviderCallback(provider, code, state);
             await ssoExchange(clientId);
-          } else if (code != null && state != null && provider != null) {
+          } else if (provider != null && code != null && state != null) {
             await _handleProviderCallback(provider, code, state, clientId);
+          } else if (_useSso) {
+            // No OAuth callback, but a shared SSO session may still exist —
+            // exchange gv_session for THIS client's tokens.
+            await ssoExchange(clientId);
+            GroupVanLogger.auth.warning(
+              'DEBUG: Session restored via SSO exchange',
+            );
           } else {
             await _updateStatus(const AuthStatus.unauthenticated());
           }
@@ -582,10 +601,15 @@ class AuthManager {
     _refreshCompleter = Completer<void>();
 
     try {
-      // POST with empty body — browser sends refresh_token cookie automatically
+      // POST with empty body — browser sends the refresh_token cookie
+      // automatically. gv-client-id tells the server which app's cookie to
+      // rotate, so a co-resident first-party cookie can't be picked up.
       final response = await _httpClient.post<Map<String, dynamic>>(
         '/auth/refresh',
         decoder: (data) => data as Map<String, dynamic>,
+        options: _clientId != null
+            ? Options(headers: {'gv-client-id': _clientId})
+            : null,
       );
 
       final user = User.fromJson(response.data['user']);
