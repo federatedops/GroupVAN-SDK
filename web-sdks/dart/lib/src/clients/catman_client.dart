@@ -34,6 +34,26 @@ class CatmanClient extends ApiClient {
     }
   }
 
+  /// Create a campaign, returning the created [Campaign].
+  Future<Result<Campaign>> createCampaign(CampaignCreate campaign) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/catman/ads/campaigns',
+        data: campaign.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(Campaign.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to create campaign: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to create campaign: $e'),
+      );
+    }
+  }
+
   /// Update a campaign, returning the updated [Campaign].
   Future<Result<Campaign>> updateCampaign(
     int campaignId,
@@ -145,6 +165,15 @@ class GroupVANCatman {
   /// Get active ad campaigns for the authenticated member.
   Future<List<Campaign>> getCampaigns() async {
     final result = await _client.getCampaigns();
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Create a campaign, returning the created [Campaign].
+  Future<Campaign> createCampaign(CampaignCreate campaign) async {
+    final result = await _client.createCampaign(campaign);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }

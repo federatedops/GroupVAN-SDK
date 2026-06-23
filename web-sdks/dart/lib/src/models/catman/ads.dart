@@ -1,6 +1,8 @@
 /// Catman ads models: [Ad] and [Campaign].
 library;
 
+import '../../auth/auth_models.dart' show UserType;
+
 /// A single ad within a campaign.
 class Ad {
   final int id;
@@ -75,7 +77,29 @@ class Campaign {
   };
 }
 
-/// Fields to update on a [Campaign]. Omitted fields are left unchanged.
+/// Fields to create a [Campaign]. [usertypes] must contain at least one value.
+class CampaignCreate {
+  final String name;
+  final DateTime start;
+  final DateTime end;
+  final List<UserType> usertypes;
+
+  const CampaignCreate({
+    required this.name,
+    required this.start,
+    required this.end,
+    required this.usertypes,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'start': start.toUtc().toIso8601String(),
+    'end': end.toUtc().toIso8601String(),
+    'usertypes': usertypes.map((t) => t.value).toList(),
+  };
+}
+
+/// Fields to update on a [Campaign]. Omitted fields are left unchanged (PATCH).
 class CampaignUpdate {
   final String? name;
   final DateTime? start;
@@ -84,13 +108,14 @@ class CampaignUpdate {
   const CampaignUpdate({this.name, this.start, this.end});
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    'start': start?.toUtc().toIso8601String(),
-    'end': end?.toUtc().toIso8601String(),
+    if (name != null) 'name': name,
+    if (start != null) 'start': start!.toUtc().toIso8601String(),
+    if (end != null) 'end': end!.toUtc().toIso8601String(),
   };
 }
 
-/// Fields to create or update an [Ad]. Omitted fields are left unchanged.
+/// Fields to create or update an [Ad]. On update, omitted fields are left
+/// unchanged (PATCH).
 ///
 /// Provide either [imageUrl] or [imageData] (base64), not both. When
 /// [imageData] is given, [imageFilename] is required; the image is uploaded
@@ -115,12 +140,12 @@ class AdUpdate {
   });
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    'headline': headline,
-    'body': body,
-    'url': url,
-    'image_url': imageUrl,
-    'image_data': imageData,
-    'image_filename': imageFilename,
+    if (name != null) 'name': name,
+    if (headline != null) 'headline': headline,
+    if (body != null) 'body': body,
+    if (url != null) 'url': url,
+    if (imageUrl != null) 'image_url': imageUrl,
+    if (imageData != null) 'image_data': imageData,
+    if (imageFilename != null) 'image_filename': imageFilename,
   };
 }

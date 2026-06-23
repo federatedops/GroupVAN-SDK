@@ -110,7 +110,9 @@ export 'src/models/models.dart'
         Ad,
         Campaign,
         AdUpdate,
-        CampaignUpdate;
+        CampaignCreate,
+        CampaignUpdate,
+        UserType;
 
 // Constants
 export 'src/constants.dart' show CountryCode, CountryDivisionCode;

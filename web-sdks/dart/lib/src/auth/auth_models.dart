@@ -134,6 +134,22 @@ class TokenClaims extends Equatable {
   List<Object?> get props => [userId, type, issuedAt, expiration, jti, member];
 }
 
+/// User type ids, matching the server's user type enum.
+enum UserType {
+  installer(1),
+  groupMemberLocation(2),
+  jobber(3),
+  groupMemberEmployee(4),
+  groupCorporateUser(5),
+  vendor(6);
+
+  final int value;
+  const UserType(this.value);
+
+  static UserType fromValue(int value) =>
+      UserType.values.firstWhere((t) => t.value == value);
+}
+
 /// Authentication state
 enum AuthState {
   /// Not authenticated
