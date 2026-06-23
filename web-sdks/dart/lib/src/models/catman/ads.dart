@@ -3,6 +3,7 @@ library;
 
 /// A single ad within a campaign.
 class Ad {
+  final int id;
   final String? name;
   final String? headline;
   final String? body;
@@ -10,6 +11,7 @@ class Ad {
   final String? imageUrl;
 
   const Ad({
+    required this.id,
     this.name,
     this.headline,
     this.body,
@@ -18,6 +20,7 @@ class Ad {
   });
 
   factory Ad.fromJson(Map<String, dynamic> json) => Ad(
+    id: json['id'] as int,
     name: json['name'] as String?,
     headline: json['headline'] as String?,
     body: json['body'] as String?,
@@ -26,6 +29,7 @@ class Ad {
   );
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'name': name,
     'headline': headline,
     'body': body,
@@ -68,5 +72,55 @@ class Campaign {
     'start': start?.toUtc().toIso8601String(),
     'end': end?.toUtc().toIso8601String(),
     'ads': ads.map((a) => a.toJson()).toList(),
+  };
+}
+
+/// Fields to update on a [Campaign]. Omitted fields are left unchanged.
+class CampaignUpdate {
+  final String? name;
+  final DateTime? start;
+  final DateTime? end;
+
+  const CampaignUpdate({this.name, this.start, this.end});
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'start': start?.toUtc().toIso8601String(),
+    'end': end?.toUtc().toIso8601String(),
+  };
+}
+
+/// Fields to create or update an [Ad]. Omitted fields are left unchanged.
+///
+/// Provide either [imageUrl] or [imageData] (base64), not both. When
+/// [imageData] is given, [imageFilename] is required; the image is uploaded
+/// and its URL becomes the hero image.
+class AdUpdate {
+  final String? name;
+  final String? headline;
+  final String? body;
+  final String? url;
+  final String? imageUrl;
+  final String? imageData;
+  final String? imageFilename;
+
+  const AdUpdate({
+    this.name,
+    this.headline,
+    this.body,
+    this.url,
+    this.imageUrl,
+    this.imageData,
+    this.imageFilename,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'headline': headline,
+    'body': body,
+    'url': url,
+    'image_url': imageUrl,
+    'image_data': imageData,
+    'image_filename': imageFilename,
   };
 }
