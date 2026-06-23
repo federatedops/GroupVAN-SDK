@@ -108,7 +108,9 @@ export 'src/models/models.dart'
         CheckoutRequest,
         CheckoutResponse,
         Ad,
-        Campaign;
+        Campaign,
+        AdUpdate,
+        CampaignUpdate;
 
 // Constants
 export 'src/constants.dart' show CountryCode, CountryDivisionCode;
