@@ -205,7 +205,7 @@ class CatmanClient extends ApiClient {
     CatalogUpdateRequest update,
   ) async {
     try {
-      final response = await put<Map<String, dynamic>>(
+      final response = await patch<Map<String, dynamic>>(
         '/v3/catman/custom_catalogs/$catalogId',
         data: update.toJson(),
         decoder: (data) => data as Map<String, dynamic>,

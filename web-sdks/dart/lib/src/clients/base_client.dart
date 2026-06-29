@@ -88,44 +88,6 @@ abstract class ApiClient {
     );
   }
 
-  /// Make an authenticated PUT request
-  Future<GroupVanResponse<T>> put<T>(
-    String path, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    T Function(dynamic)? decoder,
-    Options? options,
-  }) async {
-    // Ensure we have a valid (non-expired) token, refreshing if necessary,
-    // before merging it into the request headers.
-    final token = await authManager.getValidAccessToken();
-    final headers = <String, dynamic>{
-      'Authorization': 'Bearer $token',
-      ...?options?.headers,
-    };
-
-    return await httpClient.put<T>(
-      path,
-      data: data,
-      queryParameters: queryParameters,
-      decoder: decoder,
-      options: Options(
-        headers: headers,
-        method: options?.method,
-        sendTimeout: options?.sendTimeout,
-        receiveTimeout: options?.receiveTimeout,
-        extra: options?.extra,
-        followRedirects: options?.followRedirects,
-        maxRedirects: options?.maxRedirects,
-        persistentConnection: options?.persistentConnection,
-        requestEncoder: options?.requestEncoder,
-        responseDecoder: options?.responseDecoder,
-        responseType: options?.responseType,
-        validateStatus: options?.validateStatus,
-      ),
-    );
-  }
-
   /// Make an authenticated PATCH request
   Future<GroupVanResponse<T>> patch<T>(
     String path, {
