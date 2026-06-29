@@ -502,6 +502,8 @@ class GroupVanHttpClient {
         );
 
       case DioExceptionType.unknown:
+      // ignore: unreachable_switch_default
+      default:
         return NetworkException(
           'Unknown error: ${e.message}',
           endpoint: e.requestOptions.path,
