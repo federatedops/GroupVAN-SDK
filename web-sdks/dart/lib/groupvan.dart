@@ -112,6 +112,16 @@ export 'src/models/models.dart'
         AdUpdate,
         CampaignCreate,
         CampaignUpdate,
+        CustomCatalog,
+        CatalogCreateRequest,
+        CatalogUpdateRequest,
+        CatalogImportRow,
+        CatalogImportRequest,
+        CatalogImportResult,
+        CommodityCategory,
+        CommoditySubCategory,
+        CommodityPart,
+        CatalogData,
         UserType;
 
 // Constants

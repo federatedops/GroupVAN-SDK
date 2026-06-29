@@ -154,6 +154,140 @@ class CatmanClient extends ApiClient {
       );
     }
   }
+
+  /// List the authenticated member's custom catalogs.
+  Future<Result<List<CustomCatalog>>> getCatalogs() async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/catman/custom_catalogs/',
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      final catalogs = (response.data['catalogs'] as List<dynamic>? ?? const [])
+          .map((c) => CustomCatalog.fromJson(c as Map<String, dynamic>))
+          .toList();
+
+      return Success(catalogs);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to get catalogs: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get catalogs: $e'),
+      );
+    }
+  }
+
+  /// Create a custom catalog, returning the new catalog id.
+  Future<Result<int>> createCatalog(CatalogCreateRequest catalog) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/catman/custom_catalogs/create',
+        data: catalog.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(response.data['catalog_id'] as int);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to create catalog: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to create catalog: $e'),
+      );
+    }
+  }
+
+  /// Update a custom catalog, returning the catalog id. Omitted fields on
+  /// [update] are left unchanged (PATCH).
+  Future<Result<int>> updateCatalog(
+    int catalogId,
+    CatalogUpdateRequest update,
+  ) async {
+    try {
+      final response = await put<Map<String, dynamic>>(
+        '/v3/catman/custom_catalogs/$catalogId',
+        data: update.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(response.data['catalog_id'] as int);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to update catalog: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to update catalog: $e'),
+      );
+    }
+  }
+
+  /// Soft-delete a custom catalog, returning the deleted catalog id.
+  Future<Result<int>> deleteCatalog(int catalogId) async {
+    try {
+      final response = await delete<Map<String, dynamic>>(
+        '/v3/catman/custom_catalogs/$catalogId',
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(response.data['catalog_id'] as int);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to delete catalog: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to delete catalog: $e'),
+      );
+    }
+  }
+
+  /// Import commodity rows into a catalog, returning the [CatalogImportResult].
+  Future<Result<CatalogImportResult>> importCatalog(
+    CatalogImportRequest request,
+  ) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/catman/custom_catalogs/import',
+        data: request.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(CatalogImportResult.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to import catalog: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to import catalog: $e'),
+      );
+    }
+  }
+
+  /// Get a catalog's contents (categories -> part types -> parts).
+  ///
+  /// [partTypeId] 0 (the default) returns the whole catalog; a specific id
+  /// filters to that part type.
+  Future<Result<CatalogData>> getCatalogData(
+    int catalogId, {
+    int partTypeId = 0,
+  }) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/catman/custom_catalogs/$catalogId/data',
+        queryParameters: {'part_type_id': partTypeId},
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(CatalogData.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to get catalog data: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get catalog data: $e'),
+      );
+    }
+  }
 }
 
 /// Namespaced catman API
@@ -219,6 +353,72 @@ class GroupVANCatman {
   /// Soft-delete an ad, returning the deleted ad id.
   Future<int> deleteAd(int adId) async {
     final result = await _client.deleteAd(adId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// List the authenticated member's custom catalogs.
+  Future<List<CustomCatalog>> getCatalogs() async {
+    final result = await _client.getCatalogs();
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Create a custom catalog, returning the new catalog id.
+  Future<int> createCatalog(CatalogCreateRequest catalog) async {
+    final result = await _client.createCatalog(catalog);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Update a custom catalog, returning the catalog id. Omitted fields on
+  /// [update] are left unchanged (PATCH).
+  Future<int> updateCatalog(int catalogId, CatalogUpdateRequest update) async {
+    final result = await _client.updateCatalog(catalogId, update);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Soft-delete a custom catalog, returning the deleted catalog id.
+  Future<int> deleteCatalog(int catalogId) async {
+    final result = await _client.deleteCatalog(catalogId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Import commodity rows into a catalog, returning the [CatalogImportResult].
+  Future<CatalogImportResult> importCatalog(
+    CatalogImportRequest request,
+  ) async {
+    final result = await _client.importCatalog(request);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get a catalog's contents (categories -> part types -> parts).
+  ///
+  /// [partTypeId] 0 (the default) returns the whole catalog; a specific id
+  /// filters to that part type.
+  Future<CatalogData> getCatalogData(
+    int catalogId, {
+    int partTypeId = 0,
+  }) async {
+    final result = await _client.getCatalogData(
+      catalogId,
+      partTypeId: partTypeId,
+    );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
