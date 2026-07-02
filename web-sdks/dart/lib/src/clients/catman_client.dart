@@ -341,6 +341,32 @@ class CatmanClient extends ApiClient {
       );
     }
   }
+
+  /// Get the locations assigned to the user [userId] within the authenticated
+  /// member.
+  Future<Result<List<Location>>> getUserLocations(String userId) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/catman/users/locations/',
+        queryParameters: {'user_id': userId},
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      final locations =
+          (response.data['locations'] as List<dynamic>? ?? const [])
+              .map((l) => Location.fromJson(l as Map<String, dynamic>))
+              .toList();
+
+      return Success(locations);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to get user locations: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get user locations: $e'),
+      );
+    }
+  }
 }
 
 /// Namespaced catman API
@@ -500,6 +526,16 @@ class GroupVANCatman {
   /// Get full detail for the user [userId] within the authenticated member.
   Future<UserDetail> getUserDetail(int userId) async {
     final result = await _client.getUserDetail(userId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get the locations assigned to the user [userId] within the authenticated
+  /// member.
+  Future<List<Location>> getUserLocations(String userId) async {
+    final result = await _client.getUserLocations(userId);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
