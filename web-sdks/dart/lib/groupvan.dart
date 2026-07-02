@@ -122,6 +122,8 @@ export 'src/models/models.dart'
         CommoditySubCategory,
         CommodityPart,
         CatalogData,
+        UserAccount,
+        UserDetail,
         UserType;
 
 // Constants

@@ -288,6 +288,59 @@ class CatmanClient extends ApiClient {
       );
     }
   }
+
+  /// Search the authenticated member's accounts matching [query] (username
+  /// substring). Optionally filter by [userType] and cap results with [limit]
+  /// (1-1500, default 100).
+  Future<Result<List<UserAccount>>> searchAccounts(
+    String query, {
+    UserType? userType,
+    int limit = 100,
+  }) async {
+    try {
+      final response = await get<List<dynamic>>(
+        '/v3/catman/users/search',
+        queryParameters: {
+          'query': query,
+          if (userType != null) 'user_type': userType.value,
+          'limit': limit,
+        },
+        decoder: (data) => data as List<dynamic>,
+      );
+
+      final accounts = response.data
+          .map((item) => UserAccount.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      return Success(accounts);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to search accounts: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to search accounts: $e'),
+      );
+    }
+  }
+
+  /// Get full detail for the user [userId] within the authenticated member.
+  Future<Result<UserDetail>> getUserDetail(int userId) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/catman/users/detail/$userId',
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(UserDetail.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to get user detail: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get user detail: $e'),
+      );
+    }
+  }
 }
 
 /// Namespaced catman API
@@ -419,6 +472,34 @@ class GroupVANCatman {
       catalogId,
       partTypeId: partTypeId,
     );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Search the authenticated member's accounts matching [query] (username
+  /// substring). Optionally filter by [userType] and cap results with [limit]
+  /// (1-1500, default 100).
+  Future<List<UserAccount>> searchAccounts(
+    String query, {
+    UserType? userType,
+    int limit = 100,
+  }) async {
+    final result = await _client.searchAccounts(
+      query,
+      userType: userType,
+      limit: limit,
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get full detail for the user [userId] within the authenticated member.
+  Future<UserDetail> getUserDetail(int userId) async {
+    final result = await _client.getUserDetail(userId);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
