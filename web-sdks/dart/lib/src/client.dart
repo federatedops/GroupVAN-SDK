@@ -15,7 +15,6 @@ import 'clients/catalogs_client.dart';
 import 'clients/catman_client.dart';
 import 'clients/reports_client.dart';
 import 'clients/search_client.dart';
-import 'clients/user_client.dart';
 import 'clients/vehicles_client.dart';
 import 'clients/websocket.dart';
 import 'core/exceptions.dart';
@@ -32,7 +31,6 @@ export 'clients/catalogs_client.dart' show CatalogsClient, GroupVANCatalogs;
 export 'clients/catman_client.dart' show CatmanClient, GroupVANCatman;
 export 'clients/reports_client.dart' show ReportsClient, GroupVANReports;
 export 'clients/search_client.dart' show SearchClient, GroupVANSearch;
-export 'clients/user_client.dart' show UserClient, GroupVANUser;
 export 'clients/vehicles_client.dart' show VehiclesClient, GroupVANVehicles;
 export 'clients/websocket.dart' show MultiplexedSocket;
 
@@ -158,7 +156,6 @@ class GroupVanClient {
   late final ReportsClient _reportsClient;
   late final SearchClient _searchClient;
   late final CartClient _cartClient;
-  late final UserClient _userClient;
   late final CatmanClient _catmanClient;
 
   GroupVanClient(this._config);
@@ -183,9 +180,6 @@ class GroupVanClient {
 
   /// Cart API client
   CartClient get cart => _cartClient;
-
-  /// User API client
-  UserClient get user => _userClient;
 
   /// Catman API client
   CatmanClient get catman => _catmanClient;
@@ -237,7 +231,6 @@ class GroupVanClient {
     _reportsClient = ReportsClient(httpClient, _authManager);
     _searchClient = SearchClient(httpClient, _authManager, _multiplexedSocket);
     _cartClient = CartClient(httpClient, _authManager);
-    _userClient = UserClient(httpClient, _authManager);
     _catmanClient = CatmanClient(httpClient, _authManager);
     GroupVanLogger.sdk.warning('DEBUG: API clients initialized');
 
@@ -429,9 +422,6 @@ class GroupVAN {
 
   /// Quick access to search API (deprecated - use client.search instead)
   GroupVANSearch get search => GroupVANSearch(_client.search);
-
-  /// Quick access to user API (deprecated - use client.user instead)
-  GroupVANUser get user => GroupVANUser(_client.user);
 
   /// Quick access to catman API (deprecated - use client.catman instead)
   GroupVANCatman get catman => GroupVANCatman(_client.catman);
@@ -674,9 +664,6 @@ class GroupVANClient {
 
   /// Search operations
   GroupVANSearch get search => GroupVANSearch(_client.search);
-
-  /// User operations
-  GroupVANUser get user => GroupVANUser(_client.user);
 
   /// Catman operations
   GroupVANCatman get catman => GroupVANCatman(_client.catman);

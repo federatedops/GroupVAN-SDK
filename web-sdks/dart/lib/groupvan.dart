@@ -84,7 +84,6 @@ export 'src/models/models.dart'
         CartItem,
         CartItemType,
         RemovalItem,
-        LocationDetails,
         BuyersGuideRequest,
         BuyersGuideResponse,
         BuyersGuideViewType,

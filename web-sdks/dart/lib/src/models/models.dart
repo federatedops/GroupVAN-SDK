@@ -13,5 +13,4 @@ export 'search/search.dart';
 export 'cart/cart.dart';
 export 'invoices/invoices.dart';
 export 'statements/statements.dart';
-export 'user/location_details.dart';
 export 'catman/catman.dart';

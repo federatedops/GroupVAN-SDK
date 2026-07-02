@@ -158,6 +158,12 @@ class Location {
   final String zip;
   final String phone;
   final bool inNetwork;
+  final int sortOrder;
+  final bool canOrder;
+  final String? description;
+  final double? latitude;
+  final double? longitude;
+  final Map<String, String?> hours;
 
   const Location({
     required this.id,
@@ -170,6 +176,12 @@ class Location {
     required this.zip,
     required this.phone,
     required this.inNetwork,
+    required this.sortOrder,
+    required this.canOrder,
+    this.description,
+    this.latitude,
+    this.longitude,
+    this.hours = const {},
   });
 
   factory Location.fromJson(Map<String, dynamic> json) => Location(
@@ -183,6 +195,12 @@ class Location {
     zip: json['zip'],
     phone: json['phone'],
     inNetwork: json['in_network'],
+    sortOrder: json['sort_order'],
+    canOrder: json['can_order'],
+    description: json['description'] as String?,
+    latitude: (json['latitude'] as num?)?.toDouble(),
+    longitude: (json['longitude'] as num?)?.toDouble(),
+    hours: (json['hours'] as Map<String, dynamic>?)?.cast<String, String?>() ?? const {},
   );
 
   Map<String, dynamic> toJson() => {
@@ -196,6 +214,12 @@ class Location {
     'zip': zip,
     'phone': phone,
     'in_network': inNetwork,
+    'sort_order': sortOrder,
+    'can_order': canOrder,
+    'description': description,
+    'latitude': latitude,
+    'longitude': longitude,
+    'hours': hours,
   };
 }
 
