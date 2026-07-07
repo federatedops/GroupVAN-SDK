@@ -46,6 +46,27 @@ class UserAccount {
   );
 }
 
+/// Location assignment sent when adding a location to a user.
+///
+/// The primary location (sort order 1) must have [canOrder] set to true.
+class UserLocationInput {
+  final String id;
+  final bool canOrder;
+  final int sortOrder;
+
+  const UserLocationInput({
+    required this.id,
+    required this.canOrder,
+    required this.sortOrder,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'can_order': canOrder,
+    'sort_order': sortOrder,
+  };
+}
+
 /// Full detail for a single user.
 class UserDetail {
   final int userId;

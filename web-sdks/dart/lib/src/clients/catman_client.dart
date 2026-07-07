@@ -367,6 +367,64 @@ class CatmanClient extends ApiClient {
       );
     }
   }
+
+  /// Add a location assignment to the user [userId], returning the user's
+  /// updated location list.
+  Future<Result<List<Location>>> addUserLocation(
+    String userId,
+    UserLocationInput location,
+  ) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/catman/users/locations/',
+        data: {'user_id': userId, 'location': location.toJson()},
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      final locations =
+          (response.data['locations'] as List<dynamic>? ?? const [])
+              .map((l) => Location.fromJson(l as Map<String, dynamic>))
+              .toList();
+
+      return Success(locations);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to add user location: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to add user location: $e'),
+      );
+    }
+  }
+
+  /// Remove the location [locationId] from the user [userId], returning the
+  /// user's updated location list. The primary location cannot be deleted.
+  Future<Result<List<Location>>> deleteUserLocation(
+    String userId,
+    String locationId,
+  ) async {
+    try {
+      final response = await delete<Map<String, dynamic>>(
+        '/v3/catman/users/locations/',
+        data: {'user_id': userId, 'location_id': locationId},
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      final locations =
+          (response.data['locations'] as List<dynamic>? ?? const [])
+              .map((l) => Location.fromJson(l as Map<String, dynamic>))
+              .toList();
+
+      return Success(locations);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to delete user location: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to delete user location: $e'),
+      );
+    }
+  }
 }
 
 /// Namespaced catman API
@@ -536,6 +594,32 @@ class GroupVANCatman {
   /// member.
   Future<List<Location>> getUserLocations(String userId) async {
     final result = await _client.getUserLocations(userId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Add a location assignment to the user [userId], returning the user's
+  /// updated location list.
+  Future<List<Location>> addUserLocation(
+    String userId,
+    UserLocationInput location,
+  ) async {
+    final result = await _client.addUserLocation(userId, location);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Remove the location [locationId] from the user [userId], returning the
+  /// user's updated location list. The primary location cannot be deleted.
+  Future<List<Location>> deleteUserLocation(
+    String userId,
+    String locationId,
+  ) async {
+    final result = await _client.deleteUserLocation(userId, locationId);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
