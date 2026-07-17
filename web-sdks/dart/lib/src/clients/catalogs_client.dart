@@ -272,6 +272,7 @@ class CatalogsClient extends ApiClient {
             'mfr_code': entry.value.mfrCode,
             'part_number': entry.value.partNumber,
           }).toList(),
+          if (request.member != null) 'member': request.member,
         },
       );
 

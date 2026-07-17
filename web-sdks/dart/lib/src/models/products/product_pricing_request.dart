@@ -15,10 +15,13 @@ class Product {
 class ProductPricingRequest {
   const ProductPricingRequest({
     required this.products,
+    this.member,
   });
   final List<Product> products;
+  final String? member;
 
   Map<String, dynamic> toJson() => {
     'products': products.map((product) => product.toJson()).toList(),
+    if (member != null) 'member': member,
   };
 }
