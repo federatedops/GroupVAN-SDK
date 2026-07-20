@@ -4,16 +4,12 @@
 /// retry logic, caching, and comprehensive error handling.
 library http_client;
 
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:web/web.dart' hide Response;
 import 'package:dio/dio.dart';
-import 'package:dio/browser.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:uuid/uuid.dart';
 
 import '../logging.dart';
+import '../platform/platform.dart';
 import 'exceptions.dart';
 import 'response.dart';
 
@@ -128,11 +124,9 @@ class GroupVanHttpClient {
       ),
     );
 
-    // On web, enable withCredentials so the browser includes HttpOnly cookies
-    // (refresh_token) in cross-origin requests to *.groupvan.com
-    if (kIsWeb) {
-      _dio.httpClientAdapter = BrowserHttpClientAdapter(withCredentials: true);
-    }
+    // Ensure auth cookies (refresh_token, gv_session) flow with requests:
+    // withCredentials on web, a persistent cookie jar on mobile/desktop.
+    platform.configureDioCredentials(_dio);
 
     // Sanitize sendTimeout for requests without a body (esp. required on Web)
     _dio.interceptors.add(SendTimeoutSanitizerInterceptor());
@@ -183,7 +177,8 @@ class GroupVanHttpClient {
 
   String get baseUrl => _config.baseUrl;
 
-  String get origin => window.location.origin;
+  /// Current page origin on web; null on platforms without a page.
+  String? get origin => platform.origin;
 
   /// Make a GET request
   Future<GroupVanResponse<T>> get<T>(
@@ -590,10 +585,7 @@ class RetryInterceptor extends Interceptor {
       // Retry the request with a fresh Dio that preserves cookie credentials
       try {
         final retryDio = Dio();
-        if (kIsWeb) {
-          retryDio.httpClientAdapter =
-              BrowserHttpClientAdapter(withCredentials: true);
-        }
+        platform.configureDioCredentials(retryDio);
         final response = await retryDio.fetch(err.requestOptions);
         handler.resolve(response);
       } on DioException catch (e) {

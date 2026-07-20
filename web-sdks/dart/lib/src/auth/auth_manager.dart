@@ -7,13 +7,13 @@ library auth_manager;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:web/web.dart';
 import 'package:dio/dio.dart' show Options;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../core/exceptions.dart';
 import '../core/http_client.dart';
 import '../logging.dart';
+import '../platform/platform.dart';
 import 'auth_models.dart';
 import '../models/auth.dart' show User;
 
@@ -320,10 +320,12 @@ class AuthManager {
             'DEBUG: Refresh failed ($refreshError), trying SSO exchange / OAuth callback...',
           );
 
-          final uri = Uri.parse(window.location.href);
-          final code = uri.queryParameters['code'];
-          final state = uri.queryParameters['state'];
-          final provider = uri.queryParameters['provider'];
+          // On web this is the page URL (possibly an OAuth callback); on
+          // mobile/desktop it is null and all params fall through.
+          final currentUrl = platform.currentUrl;
+          final code = currentUrl?.queryParameters['code'];
+          final state = currentUrl?.queryParameters['state'];
+          final provider = currentUrl?.queryParameters['provider'];
           if (_useSso && provider != null && code != null && state != null) {
             // SSO: create the session server-side, then exchange it for tokens.
             await _ssoProviderCallback(provider, code, state);
@@ -388,9 +390,13 @@ class AuthManager {
     }
   }
 
+  /// Redirect the browser to the Google OAuth login endpoint.
+  ///
+  /// Web only — throws [UnsupportedError] on mobile/desktop.
   void loginWithGoogle() {
-    window.location.href =
-        '${_httpClient.baseUrl}/auth/google/login?catalog_uri=${_httpClient.origin}';
+    platform.redirect(
+      '${_httpClient.baseUrl}/auth/google/login?catalog_uri=${_httpClient.origin}',
+    );
   }
 
   /// Sign in via SSO with email and password.
@@ -430,9 +436,12 @@ class AuthManager {
   /// Begin the SSO Google OAuth flow by redirecting the browser to the
   /// server's SSO Google login endpoint. On return, [initialize] detects the
   /// `provider=google` callback and completes the flow via [ssoExchange].
+  ///
+  /// Web only — throws [UnsupportedError] on mobile/desktop.
   void ssoLoginWithGoogle() {
-    window.location.href =
-        '${_httpClient.baseUrl}/auth/sso/google/login?redirect_uri=${_httpClient.origin}';
+    platform.redirect(
+      '${_httpClient.baseUrl}/auth/sso/google/login?redirect_uri=${_httpClient.origin}',
+    );
   }
 
   /// Exchange the current SSO session (gv_session cookie) for this client's
@@ -667,8 +676,11 @@ class AuthManager {
       // Continue with local cleanup even if server request fails
     }
 
-    // Clear local state
+    // Clear local state. Cookies are cleared locally too (no-op on web) so
+    // a persisted refresh cookie can't restore the session on next launch
+    // even if the server request failed.
     await _clearAuthenticationState();
+    await platform.clearCookies();
     GroupVanLogger.auth.info('Successfully logged out');
   }
 
@@ -698,6 +710,7 @@ class AuthManager {
     }
 
     await _clearAuthenticationState();
+    await platform.clearCookies();
     GroupVanLogger.auth.info('Successfully logged out of SSO session');
   }
 
