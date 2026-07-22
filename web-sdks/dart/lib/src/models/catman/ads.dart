@@ -3,6 +3,21 @@ library;
 
 import '../../auth/auth_models.dart' show UserType;
 
+/// Who a campaign is active for, matching the server's campaign scope enum.
+enum CampaignScope {
+  /// Active only for the member that created it.
+  member('member'),
+
+  /// Active for every member of the creator's group.
+  group('group');
+
+  final String value;
+  const CampaignScope(this.value);
+
+  static CampaignScope fromValue(String value) =>
+      CampaignScope.values.firstWhere((s) => s.value == value);
+}
+
 /// A single ad within a campaign.
 class Ad {
   final int id;
@@ -46,6 +61,7 @@ class Campaign {
   final String? name;
   final DateTime? start;
   final DateTime? end;
+  final CampaignScope scope;
   final List<Ad> ads;
 
   const Campaign({
@@ -53,6 +69,7 @@ class Campaign {
     this.name,
     this.start,
     this.end,
+    required this.scope,
     this.ads = const [],
   });
 
@@ -63,6 +80,7 @@ class Campaign {
         ? null
         : DateTime.parse(json['start'] as String),
     end: json['end'] == null ? null : DateTime.parse(json['end'] as String),
+    scope: CampaignScope.fromValue(json['scope'] as String),
     ads: (json['ads'] as List<dynamic>? ?? const [])
         .map((a) => Ad.fromJson(a as Map<String, dynamic>))
         .toList(),
@@ -73,22 +91,28 @@ class Campaign {
     'name': name,
     'start': start?.toUtc().toIso8601String(),
     'end': end?.toUtc().toIso8601String(),
+    'scope': scope.value,
     'ads': ads.map((a) => a.toJson()).toList(),
   };
 }
 
 /// Fields to create a [Campaign]. [usertypes] must contain at least one value.
+///
+/// A [CampaignScope.group] campaign is active for the whole group; the server
+/// rejects it if the user does not belong to a group.
 class CampaignCreate {
   final String name;
   final DateTime start;
   final DateTime end;
   final List<UserType> usertypes;
+  final CampaignScope scope;
 
   const CampaignCreate({
     required this.name,
     required this.start,
     required this.end,
     required this.usertypes,
+    required this.scope,
   });
 
   Map<String, dynamic> toJson() => {
@@ -96,6 +120,7 @@ class CampaignCreate {
     'start': start.toUtc().toIso8601String(),
     'end': end.toUtc().toIso8601String(),
     'usertypes': usertypes.map((t) => t.value).toList(),
+    'scope': scope.value,
   };
 }
 

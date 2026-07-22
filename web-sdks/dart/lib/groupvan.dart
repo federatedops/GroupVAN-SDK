@@ -108,6 +108,7 @@ export 'src/models/models.dart'
         CheckoutResponse,
         Ad,
         Campaign,
+        CampaignScope,
         AdUpdate,
         CampaignCreate,
         CampaignUpdate,
