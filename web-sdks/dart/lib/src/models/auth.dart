@@ -1,3 +1,5 @@
+import '../auth/auth_models.dart' show UserType;
+
 /// Authentication models for the GroupVAN API
 class LoginRequest {
   final String username;
@@ -230,6 +232,7 @@ class User {
   final DateTime createdAt;
   final String? picture;
   final String? memberId;
+  final UserType userType;
   final List<Location> locations;
   final bool hasIdentifixAccess;
   final bool canExportBuyersGuide;
@@ -250,6 +253,7 @@ class User {
     this.cartBehavior = CartBehavior.noButton,
     this.picture,
     this.memberId,
+    this.userType = UserType.unknown,
     this.locations = const [],
     this.deliveryExpectations = const [],
   });
@@ -266,6 +270,7 @@ class User {
     cartBehavior: CartBehavior.fromValue(json['cart_behavior'] ?? 'no_button'),
     picture: json['picture'],
     memberId: json['member_id'],
+    userType: UserType.fromValue(json['user_type'] as int? ?? 0),
     locations: (json['locations'] as List?)
         ?.map((e) => Location.fromJson(e as Map<String, dynamic>))
         .toList() ?? [],
@@ -279,6 +284,7 @@ class User {
     'created_at': createdAt.toIso8601String(),
     'picture': picture,
     'member_id': memberId,
+    'user_type': userType.value,
     'locations': locations.map((e) => e.toJson()).toList(),
     'roles': roles,
     'has_identifix_access': hasIdentifixAccess,

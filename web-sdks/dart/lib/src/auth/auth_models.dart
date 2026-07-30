@@ -136,6 +136,7 @@ class TokenClaims extends Equatable {
 
 /// User type ids, matching the server's user type enum.
 enum UserType {
+  unknown(0),
   installer(1),
   groupMemberLocation(2),
   jobber(3),
