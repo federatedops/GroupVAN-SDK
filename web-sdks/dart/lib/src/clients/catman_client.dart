@@ -428,11 +428,20 @@ class CatmanClient extends ApiClient {
 
   /// List the authenticated member's locations, optionally capped at [limit]
   /// (1-1000). All locations are returned when [limit] is omitted.
-  Future<Result<List<MemberLocation>>> getMemberLocations({int? limit}) async {
+  ///
+  /// When [query] is given, only locations whose id or company name contains it
+  /// are returned. A blank [query] is treated as no filter.
+  Future<Result<List<MemberLocation>>> getMemberLocations({
+    int? limit,
+    String? query,
+  }) async {
     try {
       final response = await get<List<dynamic>>(
         '/v3/catman/locations/',
-        queryParameters: {if (limit != null) 'limit': limit},
+        queryParameters: {
+          if (limit != null) 'limit': limit,
+          if (query != null && query.trim().isNotEmpty) 'query': query.trim(),
+        },
         decoder: (data) => data as List<dynamic>,
       );
 
@@ -673,8 +682,14 @@ class GroupVANCatman {
 
   /// List the authenticated member's locations, optionally capped at [limit]
   /// (1-1000). All locations are returned when [limit] is omitted.
-  Future<List<MemberLocation>> getMemberLocations({int? limit}) async {
-    final result = await _client.getMemberLocations(limit: limit);
+  ///
+  /// When [query] is given, only locations whose id or company name contains it
+  /// are returned. A blank [query] is treated as no filter.
+  Future<List<MemberLocation>> getMemberLocations({
+    int? limit,
+    String? query,
+  }) async {
+    final result = await _client.getMemberLocations(limit: limit, query: query);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
