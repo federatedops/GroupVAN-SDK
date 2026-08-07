@@ -425,6 +425,51 @@ class CatmanClient extends ApiClient {
       );
     }
   }
+
+  /// List the authenticated member's locations, optionally capped at [limit]
+  /// (1-1000). All locations are returned when [limit] is omitted.
+  Future<Result<List<MemberLocation>>> getMemberLocations({int? limit}) async {
+    try {
+      final response = await get<List<dynamic>>(
+        '/v3/catman/locations/',
+        queryParameters: {if (limit != null) 'limit': limit},
+        decoder: (data) => data as List<dynamic>,
+      );
+
+      final locations = response.data
+          .map((l) => MemberLocation.fromJson(l as Map<String, dynamic>))
+          .toList();
+
+      return Success(locations);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to get member locations: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get member locations: $e'),
+      );
+    }
+  }
+
+  /// Get full detail for the location [locationId] within the authenticated
+  /// member.
+  Future<Result<LocationDetails>> getMemberLocation(String locationId) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/catman/locations/$locationId',
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(LocationDetails.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to get member location: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get member location: $e'),
+      );
+    }
+  }
 }
 
 /// Namespaced catman API
@@ -620,6 +665,26 @@ class GroupVANCatman {
     String locationId,
   ) async {
     final result = await _client.deleteUserLocation(userId, locationId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// List the authenticated member's locations, optionally capped at [limit]
+  /// (1-1000). All locations are returned when [limit] is omitted.
+  Future<List<MemberLocation>> getMemberLocations({int? limit}) async {
+    final result = await _client.getMemberLocations(limit: limit);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get full detail for the location [locationId] within the authenticated
+  /// member.
+  Future<LocationDetails> getMemberLocation(String locationId) async {
+    final result = await _client.getMemberLocation(locationId);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }

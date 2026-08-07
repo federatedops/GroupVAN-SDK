@@ -124,7 +124,17 @@ export 'src/models/models.dart'
         CatalogData,
         UserAccount,
         UserDetail,
-        UserType;
+        UserType,
+        MemberLocation,
+        LocationDetails,
+        LocationMember,
+        LocationContact,
+        LocationCompany,
+        LocationIntegrations,
+        LocationDoordash,
+        LocationHours,
+        DayHours,
+        LocationB2C;
 
 // Constants
 export 'src/constants.dart' show CountryCode, CountryDivisionCode;
