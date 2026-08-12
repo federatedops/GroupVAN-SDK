@@ -30,6 +30,7 @@ export 'src/core/response.dart' show Result;
 export 'src/models/models.dart'
     show
         Vehicle,
+        NonStandardVehicle,
         VehicleGroup,
         VehicleCategory,
         Catalog,
