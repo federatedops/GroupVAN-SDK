@@ -58,6 +58,66 @@ class CartClient extends ApiClient {
     }
   }
 
+  /// Save a cart as a quote, optionally giving it a name
+  Future<Result<SavedCart>> saveCart({
+    required SaveCartRequest request,
+  }) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/cart/save',
+        data: request.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(SavedCart.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.cart.severe('Failed to save cart: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to save cart: $e'),
+      );
+    }
+  }
+
+  /// Get the current user's saved carts
+  Future<Result<List<SavedCart>>> getSavedCarts() async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/cart/saved',
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(SavedCartsResponse.fromJson(response.data).carts);
+    } catch (e) {
+      GroupVanLogger.cart.severe('Failed to get saved carts: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get saved carts: $e'),
+      );
+    }
+  }
+
+  /// Delete a saved cart, turning it back into a regular cart
+  Future<Result<void>> unsaveCart({required String cartId}) async {
+    try {
+      await delete<Map<String, dynamic>>(
+        '/v3/cart/saved/$cartId',
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return const Success(null);
+    } catch (e) {
+      GroupVanLogger.cart.severe('Failed to delete saved cart: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to delete saved cart: $e'),
+      );
+    }
+  }
+
   /// Checkout a cart, placing orders for all items
   Future<Result<CheckoutResponse>> checkout({
     required CheckoutRequest request,
@@ -103,6 +163,32 @@ class GroupVANCart {
       throw Exception('Unexpected error: ${result.error}');
     }
     return result.value;
+  }
+
+  /// Save a cart as a quote, optionally giving it a name
+  Future<SavedCart> saveCart(SaveCartRequest request) async {
+    final result = await _client.saveCart(request: request);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get the current user's saved carts
+  Future<List<SavedCart>> getSavedCarts() async {
+    final result = await _client.getSavedCarts();
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Delete a saved cart, turning it back into a regular cart
+  Future<void> unsaveCart(String cartId) async {
+    final result = await _client.unsaveCart(cartId: cartId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
   }
 
   /// Checkout a cart, placing orders for all items

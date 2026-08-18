@@ -59,6 +59,18 @@ class RemoveFromCartRequest {
   };
 }
 
+class SaveCartRequest {
+  final String cartId;
+  final String? name;
+
+  const SaveCartRequest({required this.cartId, this.name});
+
+  factory SaveCartRequest.fromJson(Map<String, dynamic> json) =>
+      SaveCartRequest(cartId: json['cart_id'], name: json['name']);
+
+  Map<String, dynamic> toJson() => {'cart_id': cartId, 'name': name};
+}
+
 class CheckoutRequest {
   final String cartId;
   final String? deliveryExpectations;
