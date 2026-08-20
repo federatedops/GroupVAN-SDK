@@ -9,6 +9,7 @@ export 'src/client.dart'
         GroupVANAuth,
         GroupVANVehicles,
         GroupVANCatalogs,
+        GroupVANCart,
         GroupVANSearch,
         GroupVANCatman,
         AuthUser,

@@ -118,6 +118,25 @@ class CartClient extends ApiClient {
     }
   }
 
+  /// Get the items in a cart
+  Future<Result<CartResponse>> getCartItems({required String cartId}) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/cart/$cartId/items',
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(CartResponse.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.cart.severe('Failed to get cart items: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get cart items: $e'),
+      );
+    }
+  }
+
   /// Checkout a cart, placing orders for all items
   Future<Result<CheckoutResponse>> checkout({
     required CheckoutRequest request,
@@ -189,6 +208,15 @@ class GroupVANCart {
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
+  }
+
+  /// Get the items in a cart
+  Future<CartResponse> getCartItems(String cartId) async {
+    final result = await _client.getCartItems(cartId: cartId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
   }
 
   /// Checkout a cart, placing orders for all items
