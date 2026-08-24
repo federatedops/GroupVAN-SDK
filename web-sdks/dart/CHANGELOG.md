@@ -2,8 +2,8 @@
 
 * **BREAKING**: Vehicles are now identified by an opaque string `vehicle_id`
   minted by the API, replacing integer session indexes (GroupVAN #1061).
-  * `Vehicle.index` (int) → `Vehicle.vehicleId` (String)
-  * `BuyersGuideVehicle.index` (int) → `BuyersGuideVehicle.vehicleId` (String)
+  * `Vehicle.index` (int) → `Vehicle.id` (String)
+  * `BuyersGuideVehicle.index` (int) → `BuyersGuideVehicle.id` (String)
   * `VehicleSwapRequest.vehicleIndex` → `VehicleSwapRequest.vehicleId` (String)
   * `ProductListingRequest.vehicleIndex` → `ProductListingRequest.vehicleId` (String?)
   * `getPreviousPartTypes`, `getSwapData`, `getVehicleCategories`,

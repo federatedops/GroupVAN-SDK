@@ -530,7 +530,7 @@ class BuyersGuideYear {
 
 /// Vehicle with terms for buyers guide response
 class BuyersGuideVehicle {
-  final String vehicleId;
+  final String id;
   final int year;
   final String make;
   final String model;
@@ -538,7 +538,7 @@ class BuyersGuideVehicle {
   final List<BuyersGuidePartTerm> terms;
 
   const BuyersGuideVehicle({
-    required this.vehicleId,
+    required this.id,
     required this.year,
     required this.make,
     required this.model,
@@ -548,7 +548,7 @@ class BuyersGuideVehicle {
 
   factory BuyersGuideVehicle.fromJson(Map<String, dynamic> json) =>
       BuyersGuideVehicle(
-        vehicleId: json['vehicle_id'],
+        id: json['vehicle_id'],
         year: json['year'],
         make: json['make'],
         model: json['model'],
@@ -562,7 +562,7 @@ class BuyersGuideVehicle {
       );
 
   Map<String, dynamic> toJson() => {
-    'vehicle_id': vehicleId,
+    'vehicle_id': id,
     'year': year,
     'make': make,
     'model': model,

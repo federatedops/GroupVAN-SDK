@@ -13,7 +13,7 @@ class PaginatedRequest {
 
 /// Vehicle model representing basic vehicle information
 class Vehicle {
-  final String vehicleId;
+  final String id;
   final int year;
   final String make;
   final String model;
@@ -25,7 +25,7 @@ class Vehicle {
   final int? fleetVehicleId;
 
   const Vehicle({
-    required this.vehicleId,
+    required this.id,
     required this.year,
     required this.make,
     required this.model,
@@ -38,7 +38,7 @@ class Vehicle {
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) => Vehicle(
-    vehicleId: json['vehicle_id'],
+    id: json['vehicle_id'],
     year: json['year'],
     make: json['make'],
     model: json['model'],
@@ -51,7 +51,7 @@ class Vehicle {
   );
 
   Map<String, dynamic> toJson() => {
-    'vehicle_id': vehicleId,
+    'vehicle_id': id,
     'year': year,
     'make': make,
     'model': model,
