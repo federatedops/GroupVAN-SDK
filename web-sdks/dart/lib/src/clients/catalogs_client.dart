@@ -97,7 +97,7 @@ class CatalogsClient extends ApiClient {
   /// Get vehicle categories with validation
   Future<Result<List<VehicleCategory>>> getVehicleCategories({
     required int catalogId,
-    required int engineIndex,
+    required String vehicleId,
     bool? disableFilters,
   }) async {
     final queryParams = <String, dynamic>{};
@@ -107,7 +107,7 @@ class CatalogsClient extends ApiClient {
 
     try {
       final response = await get<List<dynamic>>(
-        '/v3/catalogs/$catalogId/vehicle/$engineIndex/categories',
+        '/v3/catalogs/$catalogId/vehicle/$vehicleId/categories',
         queryParameters: queryParams,
         decoder: (data) => data as List<dynamic>,
       );
@@ -308,11 +308,11 @@ class CatalogsClient extends ApiClient {
   }
 
   /// Get Identifix URL
-  Future<Result<String>> getIdentifixUrl({required int vehicleIndex}) async {
+  Future<Result<String>> getIdentifixUrl({required String vehicleId}) async {
     try {
       final response = await get<Map<String, dynamic>>(
         '/v3/catalogs/identifix',
-        queryParameters: {'vehicle_index': vehicleIndex},
+        queryParameters: {'vehicle_id': vehicleId},
         decoder: (data) => data as Map<String, dynamic>,
       );
 
@@ -463,12 +463,12 @@ class GroupVANCatalogs {
   /// Get vehicle categories
   Future<List<VehicleCategory>> getVehicleCategories({
     required int catalogId,
-    required int engineIndex,
+    required String vehicleId,
     bool? disableFilters,
   }) async {
     final result = await _client.getVehicleCategories(
       catalogId: catalogId,
-      engineIndex: engineIndex,
+      vehicleId: vehicleId,
       disableFilters: disableFilters,
     );
     if (result.isFailure) {
@@ -563,8 +563,8 @@ class GroupVANCatalogs {
   }
 
   /// Get Identifix URL
-  Future<String> getIdentifixUrl(int vehicleIndex) async {
-    final result = await _client.getIdentifixUrl(vehicleIndex: vehicleIndex);
+  Future<String> getIdentifixUrl(String vehicleId) async {
+    final result = await _client.getIdentifixUrl(vehicleId: vehicleId);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }

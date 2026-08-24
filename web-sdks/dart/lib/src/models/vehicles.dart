@@ -181,16 +181,16 @@ class EngineSearchResponse {
 
 /// Vehicle swap request
 class VehicleSwapRequest {
-  final int vehicleIndex;
+  final String vehicleId;
   final int? year;
 
   const VehicleSwapRequest({
-    required this.vehicleIndex,
+    required this.vehicleId,
     this.year,
   });
 
   Map<String, dynamic> toJson() => {
-    'vehicle_index': vehicleIndex,
+    'vehicle_id': vehicleId,
     if (year != null) 'year': year,
   };
 }

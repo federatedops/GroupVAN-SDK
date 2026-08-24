@@ -264,18 +264,18 @@ class PartTypeRequest {
 
 /// Product listing request
 class ProductListingRequest {
-  final int? vehicleIndex;
+  final String? vehicleId;
   final List<int> itemIds;
   final int showAll;
 
   const ProductListingRequest({
-    required this.vehicleIndex,
+    required this.vehicleId,
     required this.itemIds,
     required this.showAll,
   });
 
   Map<String, dynamic> toJson() => {
-    'vehicle_index': vehicleIndex,
+    'vehicle_id': vehicleId,
     'item_ids': itemIds,
     'show_all': showAll,
   };
@@ -530,7 +530,7 @@ class BuyersGuideYear {
 
 /// Vehicle with terms for buyers guide response
 class BuyersGuideVehicle {
-  final int index;
+  final String vehicleId;
   final int year;
   final String make;
   final String model;
@@ -538,7 +538,7 @@ class BuyersGuideVehicle {
   final List<BuyersGuidePartTerm> terms;
 
   const BuyersGuideVehicle({
-    required this.index,
+    required this.vehicleId,
     required this.year,
     required this.make,
     required this.model,
@@ -548,7 +548,7 @@ class BuyersGuideVehicle {
 
   factory BuyersGuideVehicle.fromJson(Map<String, dynamic> json) =>
       BuyersGuideVehicle(
-        index: json['index'],
+        vehicleId: json['vehicle_id'],
         year: json['year'],
         make: json['make'],
         model: json['model'],
@@ -562,7 +562,7 @@ class BuyersGuideVehicle {
       );
 
   Map<String, dynamic> toJson() => {
-    'index': index,
+    'vehicle_id': vehicleId,
     'year': year,
     'make': make,
     'model': model,

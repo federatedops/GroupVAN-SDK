@@ -267,12 +267,12 @@ class VehiclesClient extends ApiClient {
 
   /// Get previously selected part types for a vehicle
   Future<Result<List<PartType>>> getPreviousPartTypes({
-    required int vehicleIndex,
+    required String vehicleId,
   }) async {
 
     try {
       final response = await get<List<dynamic>>(
-        '/v3/vehicles/$vehicleIndex/part_types',
+        '/v3/vehicles/$vehicleId/part_types',
         decoder: (data) => data as List<dynamic>,
       );
 
@@ -421,10 +421,10 @@ class GroupVANVehicles {
 
   /// Get previously selected part types for a vehicle
   Future<List<PartType>> getPreviousPartTypes({
-    required int vehicleIndex,
+    required String vehicleId,
   }) async {
     final result = await _client.getPreviousPartTypes(
-      vehicleIndex: vehicleIndex,
+      vehicleId: vehicleId,
     );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
@@ -435,13 +435,13 @@ class GroupVANVehicles {
   /// Get vehicle swap data including compatible years and engines
   ///
   /// Returns compatible years and vehicle/engine options for swapping
-  /// a vehicle at the given index. Optionally filter by a specific year.
+  /// the vehicle with the given id. Optionally filter by a specific year.
   Future<VehicleSwapResponse> getSwapData({
-    required int vehicleIndex,
+    required String vehicleId,
     int? year,
   }) async {
     final result = await _client.getSwapData(
-      request: VehicleSwapRequest(vehicleIndex: vehicleIndex, year: year),
+      request: VehicleSwapRequest(vehicleId: vehicleId, year: year),
     );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');

@@ -22,7 +22,7 @@ class SearchClient extends ApiClient {
   /// subscription cancellation.
   Stream<OmniSearchResponse> omniSearch({
     required String query,
-    int? vehicleIndex,
+    String? vehicleId,
     bool? disableFilters,
   }) {
     final response = OmniSearchResponse(
@@ -34,7 +34,7 @@ class SearchClient extends ApiClient {
     );
 
     final payload = <String, dynamic>{'query': query};
-    if (vehicleIndex != null) payload['vehicle_index'] = vehicleIndex;
+    if (vehicleId != null) payload['vehicle_id'] = vehicleId;
     if (disableFilters != null) payload['disable_filters'] = disableFilters;
 
     return streamMultiplexRequest<OmniSearchResponse>(
@@ -77,12 +77,12 @@ class SearchClient extends ApiClient {
   Stream<List<Part>> searchProducts({
     required String query,
     bool? disableFilters,
-    int? vehicleIndex,
+    String? vehicleId,
   }) {
     final products = <Part>[];
     final payload = <String, dynamic>{'query': query};
     if (disableFilters != null) payload['disable_filters'] = disableFilters;
-    if (vehicleIndex != null) payload['vehicle_index'] = vehicleIndex;
+    if (vehicleId != null) payload['vehicle_id'] = vehicleId;
 
     return streamMultiplexRequest<List<Part>>(
       socket: _socket,
@@ -184,11 +184,11 @@ class GroupVANSearch {
   /// subscription is cancelled.
   Stream<OmniSearchResponse> omniSearch({
     required String query,
-    int? vehicleIndex,
+    String? vehicleId,
     bool? disableFilters,
   }) => _client.omniSearch(
         query: query,
-        vehicleIndex: vehicleIndex,
+        vehicleId: vehicleId,
         disableFilters: disableFilters,
       );
 
@@ -208,11 +208,11 @@ class GroupVANSearch {
   Stream<List<Part>> searchProducts({
     required String query,
     bool? disableFilters,
-    int? vehicleIndex,
+    String? vehicleId,
   }) => _client.searchProducts(
         query: query,
         disableFilters: disableFilters,
-        vehicleIndex: vehicleIndex,
+        vehicleId: vehicleId,
       );
 
   /// Get search suggestions.
