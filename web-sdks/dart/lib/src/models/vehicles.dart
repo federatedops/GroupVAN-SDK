@@ -143,6 +143,24 @@ class Fleet {
   };
 }
 
+/// Fleet create request
+class FleetCreateRequest {
+  final String name;
+
+  const FleetCreateRequest({required this.name});
+
+  Map<String, dynamic> toJson() => {'name': name};
+}
+
+/// Fleet add vehicle request
+class FleetAddVehicleRequest {
+  final String vehicleId;
+
+  const FleetAddVehicleRequest({required this.vehicleId});
+
+  Map<String, dynamic> toJson() => {'vehicle_id': vehicleId};
+}
+
 /// Engine search request
 class EngineSearchRequest {
   final int groupId;

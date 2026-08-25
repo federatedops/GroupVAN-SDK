@@ -1,3 +1,12 @@
+## 2.1.0
+
+* Fleet CRUD (GroupVAN #1046):
+  * `createFleet(name:)` — `POST /v3/vehicles/fleets`, returns the new `Fleet`
+  * `addFleetVehicle(fleetId:, vehicleId:)` — `POST /v3/vehicles/fleets/{id}/vehicles`,
+    returns the `Vehicle` with a fleet-scoped id
+  * `removeFleetVehicle(fleetId:, vehicleId:)` — `DELETE /v3/vehicles/fleets/{id}/vehicles/{vehicleId}`
+  * New exported models: `FleetCreateRequest`, `FleetAddVehicleRequest`
+
 ## 2.0.0
 
 * **BREAKING**: Vehicles are now identified by an opaque string `vehicle_id`

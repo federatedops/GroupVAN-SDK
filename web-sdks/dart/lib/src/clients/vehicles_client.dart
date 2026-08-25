@@ -230,6 +230,71 @@ class VehiclesClient extends ApiClient {
     }
   }
 
+  /// Create an empty fleet
+  Future<Result<Fleet>> createFleet({
+    required FleetCreateRequest request,
+  }) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/vehicles/fleets',
+        data: request.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(Fleet.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.vehicles.severe('Failed to create fleet: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to create fleet: $e'),
+      );
+    }
+  }
+
+  /// Add a vehicle to a fleet, returning the vehicle with its fleet id
+  Future<Result<Vehicle>> addFleetVehicle({
+    required int fleetId,
+    required FleetAddVehicleRequest request,
+  }) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/vehicles/fleets/$fleetId/vehicles',
+        data: request.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(Vehicle.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.vehicles.severe('Failed to add fleet vehicle: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to add fleet vehicle: $e'),
+      );
+    }
+  }
+
+  /// Remove a vehicle from a fleet
+  Future<Result<void>> removeFleetVehicle({
+    required int fleetId,
+    required String vehicleId,
+  }) async {
+    try {
+      // 204 with an empty body, so skip decoding
+      await delete<dynamic>('/v3/vehicles/fleets/$fleetId/vehicles/$vehicleId');
+
+      return const Success(null);
+    } catch (e) {
+      GroupVanLogger.vehicles.severe('Failed to remove fleet vehicle: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to remove fleet vehicle: $e'),
+      );
+    }
+  }
+
   /// Get account vehicles with pagination and validation
   Future<Result<List<Vehicle>>> getAccountVehicles({
     int offset = 0,
@@ -269,7 +334,6 @@ class VehiclesClient extends ApiClient {
   Future<Result<List<PartType>>> getPreviousPartTypes({
     required String vehicleId,
   }) async {
-
     try {
       final response = await get<List<dynamic>>(
         '/v3/vehicles/$vehicleId/part_types',
@@ -404,6 +468,52 @@ class GroupVANVehicles {
     return result.value;
   }
 
+  /// Create an empty fleet
+  Future<Fleet> createFleet({required String name}) async {
+    final result = await _client.createFleet(
+      request: FleetCreateRequest(name: name),
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Add a vehicle to a fleet
+  ///
+  /// Returns the vehicle with a freshly minted id that carries its fleet
+  /// membership, which is the id [removeFleetVehicle] expects.
+  Future<Vehicle> addFleetVehicle({
+    required int fleetId,
+    required String vehicleId,
+  }) async {
+    final result = await _client.addFleetVehicle(
+      fleetId: fleetId,
+      request: FleetAddVehicleRequest(vehicleId: vehicleId),
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Remove a vehicle from a fleet
+  ///
+  /// [vehicleId] must come from [getFleetVehicles] or [addFleetVehicle];
+  /// ids minted elsewhere are not tied to a fleet and 404.
+  Future<void> removeFleetVehicle({
+    required int fleetId,
+    required String vehicleId,
+  }) async {
+    final result = await _client.removeFleetVehicle(
+      fleetId: fleetId,
+      vehicleId: vehicleId,
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+  }
+
   /// Get account vehicles
   Future<List<Vehicle>> getAccountVehicles({
     int offset = 0,
@@ -423,9 +533,7 @@ class GroupVANVehicles {
   Future<List<PartType>> getPreviousPartTypes({
     required String vehicleId,
   }) async {
-    final result = await _client.getPreviousPartTypes(
-      vehicleId: vehicleId,
-    );
+    final result = await _client.getPreviousPartTypes(vehicleId: vehicleId);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
