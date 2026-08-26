@@ -68,7 +68,7 @@ The Dart SDK provides complete coverage of all Vehicles API endpoints:
 | `GET /vehicles/filter` | `filter()` | Filter vehicles by criteria |
 | `GET /vehicles/engines` | `getEngines()` | Get engine data |
 | `GET /vehicles/fleets` | `getFleets()` | Get user fleets |
-| `GET /vehicles/fleets/{id}` | `getFleetVehicles()` | Get vehicles in fleet |
+| `GET /vehicles/fleets/{id}` | `getFleetVehicles()` | Get vehicles in fleet with pagination |
 | `GET /vehicles/account` | `getAccountVehicles()` | Get account vehicles |
 
 ---
@@ -300,18 +300,22 @@ result.fold(
 
 ### Get Fleet Vehicles
 
-Get all vehicles in a specific fleet:
+Get vehicles in a specific fleet, paginated:
 
 ```dart
 Future<Result<List<Vehicle>>> getFleetVehicles({
-  required String fleetId,
+  required int fleetId,
+  int offset = 0,
+  int limit = 20,
 })
 ```
 
 **Example:**
 ```dart
 final result = await GroupVAN.instance.client.vehicles.getFleetVehicles(
-  fleetId: '123',
+  fleetId: 123,
+  offset: 0,
+  limit: 20,
 );
 
 result.fold(
