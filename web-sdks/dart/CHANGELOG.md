@@ -1,3 +1,11 @@
+## 2.2.0
+
+* Cart items carry the vehicle they were selected for (GroupVAN #1077):
+  * `CartItem.vehicleId` (String?) — pass the hashed vehicle id when adding
+    an item; the same part under different vehicles is a separate cart line
+  * `CartItem.vehicle` (Vehicle?) — populated on `addToCart` and
+    `getCartItems` responses; null for items added without a vehicle
+
 ## 2.1.0
 
 * Fleet CRUD (GroupVAN #1046):

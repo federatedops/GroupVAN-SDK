@@ -1,3 +1,5 @@
+import '../shared.dart';
+
 enum CartItemType { member, catalog, labor, miscellaneous }
 
 class CartItem {
@@ -17,6 +19,8 @@ class CartItem {
   final String? brand;
   final String? itemGroupKey;
   final String? locationDescription;
+  final String? vehicleId;
+  final Vehicle? vehicle;
 
   const CartItem({
     required this.mfrCode,
@@ -35,6 +39,8 @@ class CartItem {
     this.brand,
     this.itemGroupKey,
     this.locationDescription,
+    this.vehicleId,
+    this.vehicle,
   });
 
   factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
@@ -54,6 +60,8 @@ class CartItem {
     brand: json['brand'],
     itemGroupKey: json['item_group_key'],
     locationDescription: json['location_description'],
+    vehicleId: json['vehicle_id'],
+    vehicle: json['vehicle'] == null ? null : Vehicle.fromJson(json['vehicle']),
   );
 
   Map<String, dynamic> toJson() => {
@@ -73,5 +81,7 @@ class CartItem {
     'brand': brand,
     'item_group_key': itemGroupKey,
     'location_description': locationDescription,
+    if (vehicleId != null) 'vehicle_id': vehicleId,
+    if (vehicle != null) 'vehicle': vehicle!.toJson(),
   };
 }
