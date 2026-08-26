@@ -206,12 +206,24 @@ class VehiclesClient extends ApiClient {
     }
   }
 
-  /// Get fleet vehicles with validation
-  Future<Result<List<Vehicle>>> getFleetVehicles({required int fleetId}) async {
-    // Validate fleet ID
+  /// Get fleet vehicles with pagination and validation
+  Future<Result<List<Vehicle>>> getFleetVehicles({
+    required int fleetId,
+    int offset = 0,
+    int limit = 20,
+  }) async {
+    // Validate pagination parameters
+    try {
+      GroupVanValidators.paginationOffset().validateAndThrow(offset, 'offset');
+      GroupVanValidators.paginationLimit().validateAndThrow(limit, 'limit');
+    } catch (e) {
+      return Failure(e as ValidationException);
+    }
+
     try {
       final response = await get<List<dynamic>>(
         '/v3/vehicles/fleets/$fleetId',
+        queryParameters: {'offset': offset, 'limit': limit},
         decoder: (data) => data as List<dynamic>,
       );
 
@@ -460,8 +472,16 @@ class GroupVANVehicles {
   }
 
   /// Get fleet vehicles
-  Future<List<Vehicle>> getFleetVehicles({required int fleetId}) async {
-    final result = await _client.getFleetVehicles(fleetId: fleetId);
+  Future<List<Vehicle>> getFleetVehicles({
+    required int fleetId,
+    int offset = 0,
+    int limit = 20,
+  }) async {
+    final result = await _client.getFleetVehicles(
+      fleetId: fleetId,
+      offset: offset,
+      limit: limit,
+    );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
