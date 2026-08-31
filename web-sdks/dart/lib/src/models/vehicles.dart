@@ -155,10 +155,20 @@ class FleetCreateRequest {
 /// Fleet add vehicle request
 class FleetAddVehicleRequest {
   final String vehicleId;
+  final String? description;
+  final String? finId;
 
-  const FleetAddVehicleRequest({required this.vehicleId});
+  const FleetAddVehicleRequest({
+    required this.vehicleId,
+    this.description,
+    this.finId,
+  });
 
-  Map<String, dynamic> toJson() => {'vehicle_id': vehicleId};
+  Map<String, dynamic> toJson() => {
+    'vehicle_id': vehicleId,
+    if (description != null) 'description': description,
+    if (finId != null) 'fin_id': finId,
+  };
 }
 
 /// Engine search request
