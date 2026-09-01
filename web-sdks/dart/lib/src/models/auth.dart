@@ -149,6 +149,23 @@ class CatalogTokenResponse {
   Map<String, dynamic> toJson() => {'access_token': accessToken};
 }
 
+/// Type of a user location
+enum LocationType {
+  office('office'),
+  store('store'),
+  warehouse('whse');
+
+  const LocationType(this.value);
+  final String value;
+
+  static LocationType? fromValue(String? value) {
+    for (final type in LocationType.values) {
+      if (type.value == value) return type;
+    }
+    return null;
+  }
+}
+
 class Location {
   final String id;
   final String memberNumber;
@@ -162,6 +179,7 @@ class Location {
   final bool inNetwork;
   final int sortOrder;
   final bool canOrder;
+  final LocationType? type;
   final String? description;
   final double? latitude;
   final double? longitude;
@@ -180,6 +198,7 @@ class Location {
     required this.inNetwork,
     required this.sortOrder,
     required this.canOrder,
+    this.type,
     this.description,
     this.latitude,
     this.longitude,
@@ -199,6 +218,7 @@ class Location {
     inNetwork: json['in_network'],
     sortOrder: json['sort_order'],
     canOrder: json['can_order'],
+    type: LocationType.fromValue(json['type'] as String?),
     description: json['description'] as String?,
     latitude: (json['latitude'] as num?)?.toDouble(),
     longitude: (json['longitude'] as num?)?.toDouble(),
@@ -218,6 +238,7 @@ class Location {
     'in_network': inNetwork,
     'sort_order': sortOrder,
     'can_order': canOrder,
+    'type': type?.value,
     'description': description,
     'latitude': latitude,
     'longitude': longitude,

@@ -63,6 +63,7 @@ export 'src/models/models.dart'
         User,
         CartBehavior,
         Location,
+        LocationType,
         Asset,
         SpinAsset,
         SpinAssetResponse,
