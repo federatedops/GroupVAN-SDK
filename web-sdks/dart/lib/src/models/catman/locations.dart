@@ -1,6 +1,8 @@
 /// Catman locations models: a member's locations and full location detail.
 library;
 
+import '../auth.dart' show LocationType;
+
 /// A single location in the authenticated member's location list.
 class MemberLocation {
   final String id;
@@ -9,8 +11,7 @@ class MemberLocation {
   final String city;
   final String state;
 
-  /// Location type id (e.g. "store").
-  final String type;
+  final LocationType? type;
 
   /// Display name of the location type (e.g. "Store").
   final String? typeDescription;
@@ -22,7 +23,7 @@ class MemberLocation {
     required this.address,
     required this.city,
     required this.state,
-    required this.type,
+    this.type,
     this.typeDescription,
     required this.disabled,
   });
@@ -33,7 +34,7 @@ class MemberLocation {
     address: json['address'] as String,
     city: json['city'] as String,
     state: json['state'] as String,
-    type: json['type'] as String,
+    type: LocationType.fromValue(json['type'] as String?),
     typeDescription: json['type_description'] as String?,
     disabled: json['disabled'] as bool? ?? false,
   );
@@ -250,8 +251,7 @@ class LocationDetails {
   final String id;
   final String? description;
 
-  /// Location type id (e.g. "store").
-  final String? type;
+  final LocationType? type;
 
   /// Display name of the location type (e.g. "Store").
   final String? typeDescription;
@@ -296,7 +296,7 @@ class LocationDetails {
   ) => LocationDetails(
     id: json['id'] as String,
     description: json['description'] as String?,
-    type: json['type'] as String?,
+    type: LocationType.fromValue(json['type'] as String?),
     typeDescription: json['type_description'] as String?,
     disabled: json['disabled'] as bool? ?? false,
     coManShipTo: json['co_man_ship_to'] as bool? ?? false,
