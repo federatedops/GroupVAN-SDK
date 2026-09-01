@@ -130,6 +130,7 @@ export 'src/models/models.dart'
         CatalogData,
         UserAccount,
         UserDetail,
+        UserLocationInput,
         UserType,
         MemberLocation,
         LocationDetails,
