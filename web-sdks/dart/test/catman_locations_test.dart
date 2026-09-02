@@ -85,7 +85,7 @@ void main() {
       expect(location.address, equals('123 Main St'));
       expect(location.city, equals('Staunton'));
       expect(location.state, equals('VA'));
-      expect(location.type, equals('store'));
+      expect(location.type, equals(LocationType.store));
       expect(location.typeDescription, equals('Store'));
       expect(location.disabled, isFalse);
     });
@@ -113,7 +113,7 @@ void main() {
 
       expect(location.id, equals('loc1'));
       expect(location.description, equals('Main Store'));
-      expect(location.type, equals('store'));
+      expect(location.type, equals(LocationType.store));
       expect(location.typeDescription, equals('Store'));
       expect(location.disabled, isFalse);
       expect(location.coManShipTo, isTrue);
@@ -223,6 +223,89 @@ void main() {
 
       expect(location.disabled, isTrue);
       expect(location.coManShipTo, isFalse);
+    });
+  });
+
+  group('LocationUpdate', () {
+    test('sends only the fields given', () {
+      const update = LocationUpdate(
+        description: 'Renamed',
+        type: LocationType.warehouse,
+        disabled: true,
+      );
+
+      expect(update.isEmpty, isFalse);
+      expect(
+        update.toJson(),
+        equals({'description': 'Renamed', 'type': 'whse', 'disabled': true}),
+      );
+    });
+
+    test('is empty when nothing is set', () {
+      expect(const LocationUpdate().isEmpty, isTrue);
+      expect(const LocationUpdate().toJson(), isEmpty);
+    });
+
+    test('clears the car care manager with an explicit null', () {
+      const update = LocationUpdate(clearCarCareManagerId: true);
+
+      expect(update.toJson(), equals({'car_care_manager_id': null}));
+      expect(
+        const LocationUpdate(carCareManagerId: 9).toJson(),
+        equals({'car_care_manager_id': 9}),
+      );
+    });
+
+    test('sends nested groups whole, nulls included', () {
+      const update = LocationUpdate(
+        contact: LocationContact(firstName: 'Jane'),
+        company: LocationCompany(latitude: 38.1, longitude: -79.0),
+        hours: LocationHours(
+          monday: DayHours(open: '08:00', close: '17:00'),
+        ),
+        b2c: LocationB2C(option: 1, deliveryTypes: [1, 2]),
+      );
+      final json = update.toJson();
+
+      expect(
+        json['contact'],
+        equals({
+          'first_name': 'Jane',
+          'last_name': null,
+          'email': null,
+          'phone': null,
+        }),
+      );
+      expect(json['company'], containsPair('latitude', 38.1));
+      expect(json['company'], containsPair('name', null));
+      expect(
+        json['hours'],
+        containsPair('monday', {'open': '08:00', 'close': '17:00'}),
+      );
+      expect(
+        json['hours'],
+        containsPair('sunday', {'open': null, 'close': null}),
+      );
+      expect(
+        json['b2c'],
+        equals({
+          'option': 1,
+          'delivery_types': [1, 2],
+        }),
+      );
+      expect(json, isNot(contains('integrations')));
+    });
+
+    test('round-trips the read models', () {
+      final location = LocationDetails.fromJson(locationDetailsJson());
+      final source = locationDetailsJson();
+
+      expect(location.contact.toJson(), equals(source['contact']));
+      expect(location.company.toJson(), equals(source['company']));
+      expect(location.integrations.toJson(), equals(source['integrations']));
+      expect(location.doordash.toJson(), equals(source['doordash']));
+      expect(location.hours.toJson(), equals(source['hours']));
+      expect(location.b2c.toJson(), equals(source['b2c']));
     });
   });
 }

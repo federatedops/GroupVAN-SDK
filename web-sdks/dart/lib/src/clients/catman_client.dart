@@ -479,6 +479,31 @@ class CatmanClient extends ApiClient {
       );
     }
   }
+
+  /// Apply [update] to the location [locationId] within the authenticated
+  /// member, returning the updated location. Fields omitted from [update] are
+  /// left unchanged (PATCH).
+  Future<Result<LocationDetails>> updateMemberLocation(
+    String locationId,
+    LocationUpdate update,
+  ) async {
+    try {
+      final response = await patch<Map<String, dynamic>>(
+        '/v3/catman/locations/$locationId',
+        data: update.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(LocationDetails.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to update member location: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to update member location: $e'),
+      );
+    }
+  }
 }
 
 /// Namespaced catman API
@@ -700,6 +725,19 @@ class GroupVANCatman {
   /// member.
   Future<LocationDetails> getMemberLocation(String locationId) async {
     final result = await _client.getMemberLocation(locationId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Apply [update] to the location [locationId] within the authenticated
+  /// member, returning the updated location.
+  Future<LocationDetails> updateMemberLocation(
+    String locationId,
+    LocationUpdate update,
+  ) async {
+    final result = await _client.updateMemberLocation(locationId, update);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }

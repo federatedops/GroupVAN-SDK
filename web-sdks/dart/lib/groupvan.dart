@@ -142,7 +142,8 @@ export 'src/models/models.dart'
         LocationDoordash,
         LocationHours,
         DayHours,
-        LocationB2C;
+        LocationB2C,
+        LocationUpdate;
 
 // Constants
 export 'src/constants.dart' show CountryCode, CountryDivisionCode;

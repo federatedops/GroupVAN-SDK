@@ -83,6 +83,13 @@ class LocationContact {
         email: json['email'] as String?,
         phone: json['phone'] as String?,
       );
+
+  Map<String, dynamic> toJson() => {
+    'first_name': firstName,
+    'last_name': lastName,
+    'email': email,
+    'phone': phone,
+  };
 }
 
 /// A location's company name and physical address.
@@ -118,6 +125,17 @@ class LocationCompany {
         latitude: (json['latitude'] as num?)?.toDouble(),
         longitude: (json['longitude'] as num?)?.toDouble(),
       );
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'address': address,
+    'city': city,
+    'state': state,
+    'zip': zip,
+    'country': country,
+    'latitude': latitude,
+    'longitude': longitude,
+  };
 }
 
 /// Third-party identifiers associated with a location.
@@ -144,6 +162,14 @@ class LocationIntegrations {
         vicUsername: json['vic_username'] as String?,
         owSellerId: json['ow_seller_id'] as String?,
       );
+
+  Map<String, dynamic> toJson() => {
+    'aconnex_seller_id': aconnexSellerId,
+    'vic_bill_to_id': vicBillToId,
+    'vic_ship_to_id': vicShipToId,
+    'vic_username': vicUsername,
+    'ow_seller_id': owSellerId,
+  };
 }
 
 /// A location's DoorDash delivery configuration.
@@ -180,6 +206,15 @@ class LocationDoordash {
         pickupTimeOffset: json['pickup_time_offset'] as int? ?? 0,
         locationCloseOffset: json['location_close_offset'] as int? ?? 0,
       );
+
+  Map<String, dynamic> toJson() => {
+    'enabled': enabled,
+    'billing_id': billingId,
+    'location_id': locationId,
+    'pickup_instructions': pickupInstructions,
+    'pickup_time_offset': pickupTimeOffset,
+    'location_close_offset': locationCloseOffset,
+  };
 }
 
 /// Opening and closing time for a single day as "HH:MM" strings. Both are null
@@ -192,6 +227,8 @@ class DayHours {
 
   factory DayHours.fromJson(Map<String, dynamic> json) =>
       DayHours(open: json['open'] as String?, close: json['close'] as String?);
+
+  Map<String, dynamic> toJson() => {'open': open, 'close': close};
 }
 
 /// A location's opening hours for each day of the week.
@@ -227,6 +264,16 @@ class LocationHours {
   static DayHours _day(dynamic value) => value is Map<String, dynamic>
       ? DayHours.fromJson(value)
       : const DayHours();
+
+  Map<String, dynamic> toJson() => {
+    'sunday': sunday.toJson(),
+    'monday': monday.toJson(),
+    'tuesday': tuesday.toJson(),
+    'wednesday': wednesday.toJson(),
+    'thursday': thursday.toJson(),
+    'friday': friday.toJson(),
+    'saturday': saturday.toJson(),
+  };
 }
 
 /// A location's business-to-consumer settings.
@@ -244,6 +291,11 @@ class LocationB2C {
         .map((t) => t as int)
         .toList(),
   );
+
+  Map<String, dynamic> toJson() => {
+    'option': option,
+    'delivery_types': deliveryTypes,
+  };
 }
 
 /// Full detail for a single member location.
@@ -317,4 +369,74 @@ class LocationDetails {
     hours: LocationHours.fromJson(json['hours'] as Map<String, dynamic>),
     b2c: LocationB2C.fromJson(json['b2c'] as Map<String, dynamic>),
   );
+}
+
+/// Changes to apply to a location with PATCH /v3/catman/locations/{id}.
+///
+/// Only the fields given are sent; everything else keeps its current value.
+/// A nested group ([contact], [company], ...) is sent whole, so pass the full
+/// desired group, not just the changed members.
+class LocationUpdate {
+  final String? description;
+  final LocationType? type;
+  final bool? disabled;
+  final bool? coManShipTo;
+
+  /// Only stores appear in the locator; the API stores false for other types.
+  final bool? includeInLocator;
+  final String? servicingWarehouse;
+  final String? accountNumber;
+  final int? carCareManagerId;
+
+  /// Set true to clear the car care manager, since null means "unchanged".
+  final bool clearCarCareManagerId;
+  final int? logoId;
+  final LocationContact? contact;
+  final LocationCompany? company;
+  final LocationIntegrations? integrations;
+  final LocationDoordash? doordash;
+  final LocationHours? hours;
+  final LocationB2C? b2c;
+
+  const LocationUpdate({
+    this.description,
+    this.type,
+    this.disabled,
+    this.coManShipTo,
+    this.includeInLocator,
+    this.servicingWarehouse,
+    this.accountNumber,
+    this.carCareManagerId,
+    this.clearCarCareManagerId = false,
+    this.logoId,
+    this.contact,
+    this.company,
+    this.integrations,
+    this.doordash,
+    this.hours,
+    this.b2c,
+  });
+
+  bool get isEmpty => toJson().isEmpty;
+
+  Map<String, dynamic> toJson() => {
+    if (description != null) 'description': description,
+    if (type != null) 'type': type!.value,
+    if (disabled != null) 'disabled': disabled,
+    if (coManShipTo != null) 'co_man_ship_to': coManShipTo,
+    if (includeInLocator != null) 'include_in_locator': includeInLocator,
+    if (servicingWarehouse != null) 'servicing_warehouse': servicingWarehouse,
+    if (accountNumber != null) 'account_number': accountNumber,
+    if (clearCarCareManagerId)
+      'car_care_manager_id': null
+    else if (carCareManagerId != null)
+      'car_care_manager_id': carCareManagerId,
+    if (logoId != null) 'logo_id': logoId,
+    if (contact != null) 'contact': contact!.toJson(),
+    if (company != null) 'company': company!.toJson(),
+    if (integrations != null) 'integrations': integrations!.toJson(),
+    if (doordash != null) 'doordash': doordash!.toJson(),
+    if (hours != null) 'hours': hours!.toJson(),
+    if (b2c != null) 'b2c': b2c!.toJson(),
+  };
 }
