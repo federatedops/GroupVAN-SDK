@@ -535,8 +535,10 @@ String _dioErrorSummary(DioException e) {
       summary = 'request cancelled';
     case DioExceptionType.badCertificate:
       summary = 'certificate not approved';
-    case DioExceptionType.connectionError:
-    case DioExceptionType.unknown:
+    // default (not enumerated cases): dio adds DioExceptionType members in
+    // minor releases (5.11 added transformTimeout), and an exhaustive switch
+    // here breaks every consumer's build the day the resolver picks it up.
+    default:
       summary = (e.error ?? e.message ?? e.type.name).toString();
   }
   // Underlying errors (e.g. SocketException) can still be multi-line.
