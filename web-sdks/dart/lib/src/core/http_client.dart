@@ -411,7 +411,7 @@ class GroupVanHttpClient {
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
         return NetworkException(
-          'Request timeout: ${e.message}',
+          'Request timeout: ${_dioErrorSummary(e)}',
           endpoint: e.requestOptions.path,
           method: e.requestOptions.method,
           context: {'correlation_id': correlationId},
@@ -436,7 +436,7 @@ class GroupVanHttpClient {
         // Handle authentication errors
         if (statusCode == 401) {
           return AuthenticationException(
-            'Authentication failed: ${e.message}',
+            'Authentication failed: ${_dioErrorSummary(e)}',
             errorType: AuthErrorType.invalidToken,
             context: {'correlation_id': correlationId},
           );
@@ -445,7 +445,7 @@ class GroupVanHttpClient {
         // Handle authorization errors
         if (statusCode == 403) {
           return AuthenticationException(
-            'Access forbidden: ${e.message}',
+            'Access forbidden: ${_dioErrorSummary(e)}',
             errorType: AuthErrorType.insufficientPermissions,
             context: {'correlation_id': correlationId},
           );
@@ -455,7 +455,7 @@ class GroupVanHttpClient {
         if (statusCode == 429) {
           final retryAfter = e.response?.headers.value('retry-after');
           return RateLimitException(
-            'Rate limit exceeded: ${e.message}',
+            'Rate limit exceeded: ${_dioErrorSummary(e)}',
             retryAfterSeconds: retryAfter != null
                 ? int.tryParse(retryAfter)
                 : null,
@@ -464,7 +464,7 @@ class GroupVanHttpClient {
         }
 
         return HttpException(
-          e.message ?? 'HTTP error occurred',
+          _dioErrorSummary(e),
           statusCode: statusCode,
           endpoint: e.requestOptions.path,
           method: e.requestOptions.method,
@@ -482,7 +482,7 @@ class GroupVanHttpClient {
 
       case DioExceptionType.connectionError:
         return NetworkException(
-          'Connection error: ${e.message}',
+          'Connection error: ${_dioErrorSummary(e)}',
           endpoint: e.requestOptions.path,
           method: e.requestOptions.method,
           context: {'correlation_id': correlationId},
@@ -490,7 +490,7 @@ class GroupVanHttpClient {
 
       case DioExceptionType.badCertificate:
         return NetworkException(
-          'SSL certificate error: ${e.message}',
+          'SSL certificate error: ${_dioErrorSummary(e)}',
           endpoint: e.requestOptions.path,
           method: e.requestOptions.method,
           context: {'correlation_id': correlationId},
@@ -500,7 +500,7 @@ class GroupVanHttpClient {
       // ignore: unreachable_switch_default
       default:
         return NetworkException(
-          'Unknown error: ${e.message}',
+          'Unknown error: ${_dioErrorSummary(e)}',
           endpoint: e.requestOptions.path,
           method: e.requestOptions.method,
           context: {'correlation_id': correlationId},
@@ -512,6 +512,35 @@ class GroupVanHttpClient {
   void close() {
     _dio.close();
   }
+}
+
+/// One-line summary of a [DioException].
+///
+/// Dio's own messages span several sentences of explanation, which is noise in
+/// logs and in the exceptions surfaced to callers.
+String _dioErrorSummary(DioException e) {
+  final String summary;
+  switch (e.type) {
+    case DioExceptionType.badResponse:
+      final status = e.response?.statusMessage;
+      summary =
+          'HTTP ${e.response?.statusCode}${status != null && status.isNotEmpty ? ' $status' : ''}';
+    case DioExceptionType.connectionTimeout:
+      summary = 'connect timed out after ${e.requestOptions.connectTimeout}';
+    case DioExceptionType.sendTimeout:
+      summary = 'send timed out after ${e.requestOptions.sendTimeout}';
+    case DioExceptionType.receiveTimeout:
+      summary = 'receive timed out after ${e.requestOptions.receiveTimeout}';
+    case DioExceptionType.cancel:
+      summary = 'request cancelled';
+    case DioExceptionType.badCertificate:
+      summary = 'certificate not approved';
+    case DioExceptionType.connectionError:
+    case DioExceptionType.unknown:
+      summary = (e.error ?? e.message ?? e.type.name).toString();
+  }
+  // Underlying errors (e.g. SocketException) can still be multi-line.
+  return summary.split('\n').first.trim();
 }
 
 /// Send-timeout sanitizer to avoid using sendTimeout on requests without a body
@@ -642,7 +671,7 @@ class LoggingInterceptor extends Interceptor {
     final correlationId =
         err.requestOptions.extra['correlation_id'] ?? 'unknown';
     GroupVanLogger.apiClient.warning(
-      '[$correlationId] Error: ${err.type} - ${err.message}',
+      '[$correlationId] Error: ${err.type} - ${_dioErrorSummary(err)}',
     );
 
     handler.next(err);
@@ -677,7 +706,7 @@ class ErrorHandlingInterceptor extends Interceptor {
     final correlationId =
         err.requestOptions.extra['correlation_id'] ?? 'unknown';
     GroupVanLogger.apiClient.severe(
-      '[$correlationId] HTTP Error: ${err.type} - ${err.message}',
+      '[$correlationId] HTTP Error: ${err.type} - ${_dioErrorSummary(err)}',
     );
 
     handler.next(err);
