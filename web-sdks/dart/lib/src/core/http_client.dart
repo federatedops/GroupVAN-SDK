@@ -549,11 +549,8 @@ String _dioErrorSummary(DioException e) {
 class SendTimeoutSanitizerInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final method = options.method.toUpperCase();
-    final hasNoBody = options.data == null;
-
-    if (hasNoBody &&
-        (method == 'GET' || method == 'HEAD' || method == 'OPTIONS')) {
+    // Web adapter warns on any body-less request (e.g. POST /auth/refresh), not just GET
+    if (options.data == null) {
       options.sendTimeout = null;
     }
 

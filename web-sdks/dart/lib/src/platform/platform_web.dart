@@ -19,8 +19,12 @@ class WebPlatform implements GroupVanPlatform {
   @override
   void configureDioCredentials(Dio dio) {
     // Enable withCredentials so the browser includes HttpOnly cookies
-    // (refresh_token, gv_session) in cross-origin requests to *.groupvan.com
-    dio.httpClientAdapter = BrowserHttpClientAdapter(withCredentials: true);
+    // (refresh_token, gv_session) in cross-origin requests to *.groupvan.com.
+    // JSON + credentials always preflights and the API handles it; the warning is noise.
+    dio.httpClientAdapter = BrowserHttpClientAdapter(
+      withCredentials: true,
+      enableCORSWarning: false,
+    );
   }
 
   @override
