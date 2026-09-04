@@ -93,6 +93,9 @@ class LocationContact {
 }
 
 /// A location's company name and physical address.
+///
+/// [latitude] and [longitude] are geocoded from the address by FedLink and are
+/// read-only: they are never sent by [toJson], and the API rejects them.
 class LocationCompany {
   final String? name;
   final String? address;
@@ -133,8 +136,6 @@ class LocationCompany {
     'state': state,
     'zip': zip,
     'country': country,
-    'latitude': latitude,
-    'longitude': longitude,
   };
 }
 
