@@ -504,6 +504,25 @@ class CatmanClient extends ApiClient {
       );
     }
   }
+
+  /// Get the public URL of the default logo for the member [memberNumber].
+  Future<Result<String>> getMemberLogo(String memberNumber) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/catman/members/$memberNumber/logo',
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(response.data['url'] as String);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to get member logo: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get member logo: $e'),
+      );
+    }
+  }
 }
 
 /// Namespaced catman API
@@ -738,6 +757,15 @@ class GroupVANCatman {
     LocationUpdate update,
   ) async {
     final result = await _client.updateMemberLocation(locationId, update);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get the public URL of the default logo for the member [memberNumber].
+  Future<String> getMemberLogo(String memberNumber) async {
+    final result = await _client.getMemberLogo(memberNumber);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
