@@ -69,6 +69,11 @@ The Dart SDK provides complete coverage of all Vehicles API endpoints:
 | `GET /vehicles/engines` | `getEngines()` | Get engine data |
 | `GET /vehicles/fleets` | `getFleets()` | Get user fleets |
 | `GET /vehicles/fleets/{id}` | `getFleetVehicles()` | Get vehicles in fleet with pagination |
+| `POST /vehicles/fleets` | `createFleet()` | Create an empty fleet |
+| `PATCH /vehicles/fleets/{id}` | `updateFleet()` | Rename a fleet |
+| `DELETE /vehicles/fleets/{id}` | `deleteFleet()` | Delete a fleet |
+| `POST /vehicles/fleets/{id}/vehicles` | `addFleetVehicle()` | Add a vehicle to a fleet |
+| `DELETE /vehicles/fleets/{id}/vehicles/{vehicleId}` | `removeFleetVehicle()` | Remove a vehicle from a fleet |
 | `GET /vehicles/account` | `getAccountVehicles()` | Get account vehicles |
 
 ---
@@ -329,6 +334,48 @@ result.fold(
 );
 ```
 
+### Update Fleet
+
+Rename a fleet. `name` is the only editable field:
+
+```dart
+Future<Result<Fleet>> updateFleet({
+  required int fleetId,
+  required FleetUpdateRequest request,
+})
+```
+
+**Example:**
+```dart
+final result = await GroupVAN.instance.client.vehicles.updateFleet(
+  fleetId: 123,
+  request: FleetUpdateRequest(name: 'Renamed Fleet'),
+);
+
+result.fold(
+  (error) => print('Failed to update fleet: $error'),
+  (fleet) => print('Fleet is now "${fleet.name}"'),
+);
+```
+
+### Delete Fleet
+
+Delete a fleet. The fleet is disabled server-side and no longer appears in `getFleets()`:
+
+```dart
+Future<Result<void>> deleteFleet({required int fleetId})
+```
+
+**Example:**
+```dart
+final result = await GroupVAN.instance.client.vehicles.deleteFleet(fleetId: 123);
+
+result.fold(
+  (error) => print('Failed to delete fleet: $error'),
+  (_) => print('Fleet deleted'),
+);
+```
+
 ---
 
 ## Engine and Account Methods
@@ -455,6 +502,14 @@ class Fleet {
   final int id;
   final String name;
   final String timestamp;
+}
+```
+
+### FleetUpdateRequest
+
+```dart
+class FleetUpdateRequest {
+  final String name;
 }
 ```
 

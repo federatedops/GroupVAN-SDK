@@ -152,6 +152,15 @@ class FleetCreateRequest {
   Map<String, dynamic> toJson() => {'name': name};
 }
 
+/// Fleet update request; only the name can change
+class FleetUpdateRequest {
+  final String name;
+
+  const FleetUpdateRequest({required this.name});
+
+  Map<String, dynamic> toJson() => {'name': name};
+}
+
 /// Fleet add vehicle request
 class FleetAddVehicleRequest {
   final String vehicleId;

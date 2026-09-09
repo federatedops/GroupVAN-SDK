@@ -307,6 +307,46 @@ class VehiclesClient extends ApiClient {
     }
   }
 
+  /// Rename a fleet, returning the updated fleet
+  Future<Result<Fleet>> updateFleet({
+    required int fleetId,
+    required FleetUpdateRequest request,
+  }) async {
+    try {
+      final response = await patch<Map<String, dynamic>>(
+        '/v3/vehicles/fleets/$fleetId',
+        data: request.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(Fleet.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.vehicles.severe('Failed to update fleet: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to update fleet: $e'),
+      );
+    }
+  }
+
+  /// Delete a fleet
+  Future<Result<void>> deleteFleet({required int fleetId}) async {
+    try {
+      // 204 with an empty body, so skip decoding
+      await delete<dynamic>('/v3/vehicles/fleets/$fleetId');
+
+      return const Success(null);
+    } catch (e) {
+      GroupVanLogger.vehicles.severe('Failed to delete fleet: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to delete fleet: $e'),
+      );
+    }
+  }
+
   /// Get account vehicles with pagination and validation
   Future<Result<List<Vehicle>>> getAccountVehicles({
     int offset = 0,
@@ -529,6 +569,32 @@ class GroupVANVehicles {
       fleetId: fleetId,
       vehicleId: vehicleId,
     );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+  }
+
+  /// Rename a fleet
+  Future<Fleet> updateFleet({
+    required int fleetId,
+    required String name,
+  }) async {
+    final result = await _client.updateFleet(
+      fleetId: fleetId,
+      request: FleetUpdateRequest(name: name),
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Delete a fleet
+  ///
+  /// The fleet is disabled server-side and drops out of [getFleets];
+  /// its vehicles are kept but no longer reachable.
+  Future<void> deleteFleet({required int fleetId}) async {
+    final result = await _client.deleteFleet(fleetId: fleetId);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
