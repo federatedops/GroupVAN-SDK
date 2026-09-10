@@ -546,10 +546,16 @@ class GroupVANVehicles {
   Future<Vehicle> addFleetVehicle({
     required int fleetId,
     required String vehicleId,
+    String? description,
+    String? finId,
   }) async {
     final result = await _client.addFleetVehicle(
       fleetId: fleetId,
-      request: FleetAddVehicleRequest(vehicleId: vehicleId),
+      request: FleetAddVehicleRequest(
+        vehicleId: vehicleId,
+        description: description,
+        finId: finId,
+      ),
     );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
