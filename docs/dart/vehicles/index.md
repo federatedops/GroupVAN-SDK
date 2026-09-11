@@ -461,6 +461,7 @@ class Vehicle {
   final int? previousVehicleId;
   final String? description;
   final int? fleetVehicleId;
+  final String? finId;
 }
 ```
 

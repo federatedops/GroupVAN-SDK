@@ -23,6 +23,7 @@ class Vehicle {
   final int? previousVehicleId;
   final String? description;
   final int? fleetVehicleId;
+  final String? finId;
 
   const Vehicle({
     required this.id,
@@ -35,6 +36,7 @@ class Vehicle {
     this.previousVehicleId,
     this.description,
     this.fleetVehicleId,
+    this.finId,
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) => Vehicle(
@@ -48,6 +50,7 @@ class Vehicle {
     previousVehicleId: json['previous_vehicle_id'],
     description: json['description'],
     fleetVehicleId: json['fleet_vehicle_id'],
+    finId: json['fin_id'],
   );
 
   Map<String, dynamic> toJson() => {
@@ -61,5 +64,6 @@ class Vehicle {
     if (previousVehicleId != null) 'previous_vehicle_id': previousVehicleId,
     if (description != null) 'description': description,
     if (fleetVehicleId != null) 'fleet_vehicle_id': fleetVehicleId,
+    if (finId != null) 'fin_id': finId,
   };
 }
