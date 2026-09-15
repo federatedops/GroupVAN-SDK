@@ -426,6 +426,96 @@ class CatmanClient extends ApiClient {
     }
   }
 
+  /// List all roles that can be granted to users.
+  Future<Result<List<UserRole>>> getRoles() async {
+    try {
+      final response = await get<List<dynamic>>(
+        '/v3/catman/users/roles/',
+        decoder: (data) => data as List<dynamic>,
+      );
+
+      final roles = response.data
+          .map((r) => UserRole.fromJson(r as Map<String, dynamic>))
+          .toList();
+
+      return Success(roles);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to get roles: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get roles: $e'),
+      );
+    }
+  }
+
+  /// Get the roles granted to the user [userId] within the authenticated
+  /// member.
+  Future<Result<List<UserRole>>> getUserRoles(int userId) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/catman/users/roles/user/$userId',
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(_rolesFromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to get user roles: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get user roles: $e'),
+      );
+    }
+  }
+
+  /// Grant the role [roleId] to the user [userId], returning the user's
+  /// updated role list. Requires the developer role.
+  Future<Result<List<UserRole>>> grantUserRole(int userId, int roleId) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/catman/users/roles/',
+        data: {'user_id': userId, 'role_id': roleId},
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(_rolesFromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to grant user role: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to grant user role: $e'),
+      );
+    }
+  }
+
+  /// Revoke the role [roleId] from the user [userId], returning the user's
+  /// updated role list. Requires the developer role.
+  Future<Result<List<UserRole>>> revokeUserRole(int userId, int roleId) async {
+    try {
+      final response = await delete<Map<String, dynamic>>(
+        '/v3/catman/users/roles/',
+        data: {'user_id': userId, 'role_id': roleId},
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(_rolesFromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to revoke user role: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to revoke user role: $e'),
+      );
+    }
+  }
+
+  List<UserRole> _rolesFromJson(Map<String, dynamic> json) =>
+      (json['roles'] as List<dynamic>? ?? const [])
+          .map((r) => UserRole.fromJson(r as Map<String, dynamic>))
+          .toList();
+
   /// List the authenticated member's locations, optionally capped at [limit]
   /// (1-1000). All locations are returned when [limit] is omitted.
   ///
@@ -718,6 +808,45 @@ class GroupVANCatman {
     String locationId,
   ) async {
     final result = await _client.deleteUserLocation(userId, locationId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// List all roles that can be granted to users.
+  Future<List<UserRole>> getRoles() async {
+    final result = await _client.getRoles();
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get the roles granted to the user [userId] within the authenticated
+  /// member.
+  Future<List<UserRole>> getUserRoles(int userId) async {
+    final result = await _client.getUserRoles(userId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Grant the role [roleId] to the user [userId], returning the user's
+  /// updated role list. Requires the developer role.
+  Future<List<UserRole>> grantUserRole(int userId, int roleId) async {
+    final result = await _client.grantUserRole(userId, roleId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Revoke the role [roleId] from the user [userId], returning the user's
+  /// updated role list. Requires the developer role.
+  Future<List<UserRole>> revokeUserRole(int userId, int roleId) async {
+    final result = await _client.revokeUserRole(userId, roleId);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }

@@ -1,4 +1,4 @@
-/// Catman users models: account search results and user detail.
+/// Catman users models: account search results, user detail and roles.
 library;
 
 /// A single account returned by the account search.
@@ -65,6 +65,25 @@ class UserLocationInput {
     'can_order': canOrder,
     'sort_order': sortOrder,
   };
+}
+
+/// A role that can be granted to a user.
+class UserRole {
+  final int roleId;
+  final String name;
+  final String description;
+
+  const UserRole({
+    required this.roleId,
+    required this.name,
+    required this.description,
+  });
+
+  factory UserRole.fromJson(Map<String, dynamic> json) => UserRole(
+    roleId: json['role_id'] as int,
+    name: json['name'] as String,
+    description: json['description'] as String? ?? '',
+  );
 }
 
 /// Full detail for a single user.
