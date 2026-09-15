@@ -132,6 +132,7 @@ export 'src/models/models.dart'
         CatalogData,
         UserAccount,
         UserDetail,
+        UserRole,
         UserLocationInput,
         UserType,
         MemberLocation,
