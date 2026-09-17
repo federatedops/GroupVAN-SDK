@@ -291,10 +291,13 @@ class CatmanClient extends ApiClient {
 
   /// Search the authenticated member's accounts matching [query] (username
   /// substring). Optionally filter by [userType] and cap results with [limit]
-  /// (1-1500, default 100).
+  /// (1-1500, default 100). Callers with the `catalog_developer` role may
+  /// pass [memberNumber] to search another member's accounts; anyone else
+  /// supplying it receives an authorization error.
   Future<Result<List<UserAccount>>> searchAccounts(
     String query, {
     UserType? userType,
+    String? memberNumber,
     int limit = 100,
   }) async {
     try {
@@ -303,6 +306,7 @@ class CatmanClient extends ApiClient {
         queryParameters: {
           'query': query,
           if (userType != null) 'user_type': userType.value,
+          if (memberNumber != null) 'member_number': memberNumber,
           'limit': limit,
         },
         decoder: (data) => data as List<dynamic>,
@@ -752,15 +756,19 @@ class GroupVANCatman {
 
   /// Search the authenticated member's accounts matching [query] (username
   /// substring). Optionally filter by [userType] and cap results with [limit]
-  /// (1-1500, default 100).
+  /// (1-1500, default 100). Callers with the `catalog_developer` role may
+  /// pass [memberNumber] to search another member's accounts; anyone else
+  /// supplying it receives an authorization error.
   Future<List<UserAccount>> searchAccounts(
     String query, {
     UserType? userType,
+    String? memberNumber,
     int limit = 100,
   }) async {
     final result = await _client.searchAccounts(
       query,
       userType: userType,
+      memberNumber: memberNumber,
       limit: limit,
     );
     if (result.isFailure) {
