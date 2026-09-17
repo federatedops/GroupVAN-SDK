@@ -187,6 +187,28 @@ await GroupVAN.instance.auth.signOut();
 await GroupVAN.instance.auth.refreshSession();
 ```
 
+### Impersonation
+
+Users with the `catalog_developer` role (any target) or `member_impersonate`
+role (targets within their own member) can act as another user. Only the
+catalog client may impersonate.
+
+```dart
+// The session becomes the target user's
+final status = await GroupVAN.instance.auth.impersonate(userId: 12345);
+
+final session = GroupVAN.instance.auth.currentSession;
+if (session?.isImpersonating ?? false) {
+  print('Acting as ${session!.user.name} on behalf of ${session.impersonatorId}');
+}
+
+// Restore the actor's own session (requires useSso: true; otherwise signs out)
+await GroupVAN.instance.auth.endImpersonation();
+```
+
+Impersonated sessions expire after one hour and cannot place orders or reach
+role-gated endpoints.
+
 ### Future Authentication Methods
 
 The SDK is designed to support additional authentication methods:

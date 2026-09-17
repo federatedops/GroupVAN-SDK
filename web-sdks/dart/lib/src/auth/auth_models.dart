@@ -91,6 +91,14 @@ class TokenClaims extends Equatable {
   @JsonKey(name: 'member')
   final String? member;
 
+  /// Whether this session is impersonating [userId] on behalf of another user
+  @JsonKey(name: 'impersonation', defaultValue: false)
+  final bool impersonation;
+
+  /// ID of the user doing the impersonating, when [impersonation] is true
+  @JsonKey(name: 'impersonator_id')
+  final String? impersonatorId;
+
   const TokenClaims({
     required this.userId,
     required this.issuedAt,
@@ -98,6 +106,8 @@ class TokenClaims extends Equatable {
     required this.jti,
     this.type = 'access',
     this.member,
+    this.impersonation = false,
+    this.impersonatorId,
   });
 
   factory TokenClaims.fromJson(Map<String, dynamic> json) =>
@@ -131,7 +141,16 @@ class TokenClaims extends Equatable {
   }
 
   @override
-  List<Object?> get props => [userId, type, issuedAt, expiration, jti, member];
+  List<Object?> get props => [
+    userId,
+    type,
+    issuedAt,
+    expiration,
+    jti,
+    member,
+    impersonation,
+    impersonatorId,
+  ];
 }
 
 /// User type ids, matching the server's user type enum.

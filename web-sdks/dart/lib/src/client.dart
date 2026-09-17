@@ -606,6 +606,28 @@ class GroupVANAuth {
     await _authManager.ssoLogout();
   }
 
+  /// Impersonate another user.
+  ///
+  /// Requires the signed-in user to hold `catalog_developer` (any target) or
+  /// `member_impersonate` (targets within their own member). The current
+  /// session becomes the target user's until [endImpersonation] is called;
+  /// [currentSession] reports `isImpersonating` and the actor's id while it
+  /// is active. Only available to the catalog client.
+  Future<auth_models.AuthStatus> impersonate({required int userId}) async {
+    await _authManager.impersonate(userId: userId);
+    return _authManager.currentStatus;
+  }
+
+  /// End the current impersonated session.
+  ///
+  /// With `useSso: true` the actor's own session is restored from the shared
+  /// SSO session. Otherwise the session ends signed out and the actor must
+  /// sign in again.
+  Future<auth_models.AuthStatus> endImpersonation() async {
+    await _authManager.endImpersonation();
+    return _authManager.currentStatus;
+  }
+
   /// Refresh the current session
   Future<auth_models.AuthStatus> refreshSession() async {
     await _authManager.refreshToken();
@@ -701,10 +723,14 @@ class AuthSession {
   final DateTime? expiresAt;
   final User user;
 
+  /// ID of the user impersonating [user], or null for a normal session
+  final String? impersonatorId;
+
   const AuthSession({
     required this.accessToken,
     this.expiresAt,
     required this.user,
+    this.impersonatorId,
   });
 
   factory AuthSession.fromAuthStatus(
@@ -716,13 +742,18 @@ class AuthSession {
         ? DateTime.fromMillisecondsSinceEpoch(status.claims!.expiration * 1000)
         : null,
     user: status.userInfo!,
+    impersonatorId: status.claims?.impersonatorId,
   );
 
   /// Whether the session is expired
   bool get isExpired => expiresAt?.isBefore(DateTime.now()) ?? false;
 
+  /// Whether [user] is being impersonated by [impersonatorId]
+  bool get isImpersonating => impersonatorId != null;
+
   @override
-  String toString() => 'AuthSession(user: ${user.id}, expiresAt: $expiresAt)';
+  String toString() =>
+      'AuthSession(user: ${user.id}, expiresAt: $expiresAt, impersonating: $isImpersonating)';
 }
 
 /// Authentication state change events

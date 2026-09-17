@@ -596,6 +596,77 @@ class AuthManager {
     );
   }
 
+  /// Impersonate another user via `/auth/impersonate`.
+  ///
+  /// Requires an authenticated session whose user holds `catalog_developer`
+  /// (any target) or `member_impersonate` (targets of the same member). The
+  /// server replaces this client's refresh cookie with one for the target, so
+  /// the current session becomes the target's until [endImpersonation]. The
+  /// impersonated refresh token lives for one hour and the server rejects
+  /// order placement and role-gated endpoints while it is active.
+  Future<void> impersonate({required int userId}) async {
+    if (!isAuthenticated) {
+      throw AuthenticationException(
+        'Must be authenticated to impersonate a user',
+        errorType: AuthErrorType.missingToken,
+      );
+    }
+    if (_currentStatus.claims?.impersonation ?? false) {
+      throw StateError(
+        'Already impersonating a user. Call endImpersonation() first.',
+      );
+    }
+
+    try {
+      final response = await _httpClient.post<Map<String, dynamic>>(
+        '/auth/impersonate',
+        data: {'user_id': userId},
+        decoder: (data) => data as Map<String, dynamic>,
+        options: _clientId != null
+            ? Options(headers: {'gv-client-id': _clientId})
+            : null,
+      );
+
+      final user = User.fromJson(response.data['user']);
+      final tokenResponse = TokenResponse.fromJson(response.data);
+
+      await _handleTokenResponse(tokenResponse, user: user);
+      GroupVanLogger.auth.info('Now impersonating user $userId');
+    } catch (e) {
+      // The actor's session is untouched on failure, so leave status as-is
+      GroupVanLogger.auth.severe('Impersonation failed: $e');
+      rethrow;
+    }
+  }
+
+  /// End an impersonated session started with [impersonate].
+  ///
+  /// Logs out the impersonated session (blacklisting its tokens and clearing
+  /// this client's refresh cookie). With SSO enabled the actor's shared
+  /// gv_session is still valid, so their own tokens are restored via
+  /// [ssoExchange]. Without SSO the actor's refresh cookie was replaced by
+  /// impersonation and cannot be recovered, so the session ends
+  /// unauthenticated and the actor must sign in again.
+  Future<void> endImpersonation() async {
+    if (!(_currentStatus.claims?.impersonation ?? false)) {
+      throw StateError('Not currently impersonating a user');
+    }
+
+    final impersonatedUserId = _currentStatus.claims?.userId;
+
+    if (_useSso && _clientId != null) {
+      // Keep the local cookie jar: on mobile/desktop it also holds gv_session,
+      // which the exchange below needs. The server already expires the
+      // impersonated refresh cookie via Set-Cookie.
+      await _serverLogout();
+      await _clearAuthenticationState();
+      await ssoExchange(_clientId!);
+    } else {
+      await logout();
+    }
+    GroupVanLogger.auth.info('Ended impersonation of user $impersonatedUserId');
+  }
+
   /// Refresh access token
   ///
   /// On web, the browser automatically sends the refresh_token HttpOnly cookie.
@@ -658,6 +729,18 @@ class AuthManager {
   /// Browser sends refresh_token cookie automatically.
   /// Server blacklists tokens and clears the cookie via Set-Cookie with max-age=0.
   Future<void> logout() async {
+    await _serverLogout();
+
+    // Clear local state. Cookies are cleared locally too (no-op on web) so
+    // a persisted refresh cookie can't restore the session on next launch
+    // even if the server request failed.
+    await _clearAuthenticationState();
+    await platform.clearCookies();
+    GroupVanLogger.auth.info('Successfully logged out');
+  }
+
+  /// Blacklist this client's tokens server-side and clear its refresh cookie.
+  Future<void> _serverLogout() async {
     try {
       final currentTokens = await _tokenStorage.getTokens();
       // POST with no body — browser sends refresh_token cookie automatically
@@ -675,13 +758,6 @@ class AuthManager {
       GroupVanLogger.auth.warning('Logout request failed: $e');
       // Continue with local cleanup even if server request fails
     }
-
-    // Clear local state. Cookies are cleared locally too (no-op on web) so
-    // a persisted refresh cookie can't restore the session on next launch
-    // even if the server request failed.
-    await _clearAuthenticationState();
-    await platform.clearCookies();
-    GroupVanLogger.auth.info('Successfully logged out');
   }
 
   /// Log out of the SSO session and clear all authentication state.
