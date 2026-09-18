@@ -55,6 +55,7 @@ export 'src/models/models.dart'
         VehicleFilterResponse,
         VehicleFilterOption,
         Fleet,
+        FleetVehicle,
         FleetCreateRequest,
         FleetUpdateRequest,
         FleetAddVehicleRequest,

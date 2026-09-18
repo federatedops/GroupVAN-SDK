@@ -143,6 +143,45 @@ class Fleet {
   };
 }
 
+/// A row in a fleet listing.
+///
+/// [vehicle] is null when Polk recognised the VIN but could not map it to a
+/// catalog vehicle (trailers, heavy equipment). Such rows are listed but
+/// cannot be selected or passed to any other endpoint.
+class FleetVehicle {
+  final int fleetVehicleId;
+  final String? description;
+  final String? vin;
+  final String? finId;
+  final Vehicle? vehicle;
+
+  const FleetVehicle({
+    required this.fleetVehicleId,
+    this.description,
+    this.vin,
+    this.finId,
+    this.vehicle,
+  });
+
+  bool get isSelectable => vehicle != null;
+
+  factory FleetVehicle.fromJson(Map<String, dynamic> json) => FleetVehicle(
+    fleetVehicleId: json['fleet_vehicle_id'],
+    description: json['description'],
+    vin: json['vin'],
+    finId: json['fin_id'],
+    vehicle: json['vehicle_id'] != null ? Vehicle.fromJson(json) : null,
+  );
+
+  Map<String, dynamic> toJson() => {
+    ...?vehicle?.toJson(),
+    'fleet_vehicle_id': fleetVehicleId,
+    if (description != null) 'description': description,
+    if (vin != null) 'vin': vin,
+    if (finId != null) 'fin_id': finId,
+  };
+}
+
 /// Fleet create request
 class FleetCreateRequest {
   final String name;

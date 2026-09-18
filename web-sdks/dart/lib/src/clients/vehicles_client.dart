@@ -206,8 +206,10 @@ class VehiclesClient extends ApiClient {
     }
   }
 
-  /// Get fleet vehicles with pagination and validation
-  Future<Result<List<Vehicle>>> getFleetVehicles({
+  /// Get fleet vehicles with pagination and validation.
+  ///
+  /// Rows without a catalog vehicle come back with a null [FleetVehicle.vehicle].
+  Future<Result<List<FleetVehicle>>> getFleetVehicles({
     required int fleetId,
     int offset = 0,
     int limit = 20,
@@ -228,7 +230,7 @@ class VehiclesClient extends ApiClient {
       );
 
       final vehicles = response.data
-          .map((item) => Vehicle.fromJson(item as Map<String, dynamic>))
+          .map((item) => FleetVehicle.fromJson(item as Map<String, dynamic>))
           .toList();
 
       return Success(vehicles);
@@ -511,8 +513,8 @@ class GroupVANVehicles {
     return result.value;
   }
 
-  /// Get fleet vehicles
-  Future<List<Vehicle>> getFleetVehicles({
+  /// Get fleet vehicles; rows without a catalog vehicle have a null `vehicle`.
+  Future<List<FleetVehicle>> getFleetVehicles({
     required int fleetId,
     int offset = 0,
     int limit = 20,
