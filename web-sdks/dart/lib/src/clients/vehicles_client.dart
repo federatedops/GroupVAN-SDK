@@ -1,6 +1,10 @@
 /// Vehicles API: low-level [VehiclesClient] and public [GroupVANVehicles].
 library;
 
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
+
 import '../core/exceptions.dart';
 import '../core/response.dart';
 import '../core/validation.dart';
@@ -349,6 +353,88 @@ class VehiclesClient extends ApiClient {
     }
   }
 
+  /// Queue a bulk VIN upload into a fleet
+  Future<Result<FleetUploadSubmitResponse>> uploadFleetVehicles({
+    required int fleetId,
+    required Uint8List file,
+    required String filename,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': MultipartFile.fromBytes(file, filename: filename),
+      });
+
+      final response = await post<Map<String, dynamic>>(
+        '/v3/vehicles/fleets/$fleetId/uploads',
+        data: formData,
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(FleetUploadSubmitResponse.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.vehicles.severe('Failed to upload fleet vehicles: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to upload fleet vehicles: $e'),
+      );
+    }
+  }
+
+  /// Get the progress of a fleet upload job
+  Future<Result<FleetUploadStatusResponse>> getFleetUploadStatus({
+    required int fleetId,
+    required String jobId,
+  }) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/vehicles/fleets/$fleetId/uploads/$jobId',
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(FleetUploadStatusResponse.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.vehicles.severe('Failed to get fleet upload status: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get fleet upload status: $e'),
+      );
+    }
+  }
+
+  /// Page through the failures of a fleet upload job
+  Future<Result<FleetUploadFailuresResponse>> getFleetUploadFailures({
+    required int fleetId,
+    required String jobId,
+    int offset = 0,
+    int limit = 20,
+  }) async {
+    try {
+      GroupVanValidators.paginationOffset().validateAndThrow(offset, 'offset');
+      GroupVanValidators.paginationLimit().validateAndThrow(limit, 'limit');
+    } catch (e) {
+      return Failure(e as ValidationException);
+    }
+
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/vehicles/fleets/$fleetId/uploads/$jobId/failures',
+        queryParameters: {'offset': offset, 'limit': limit},
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(FleetUploadFailuresResponse.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.vehicles.severe('Failed to get fleet upload failures: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get fleet upload failures: $e'),
+      );
+    }
+  }
+
   /// Get account vehicles with pagination and validation
   Future<Result<List<Vehicle>>> getAccountVehicles({
     int offset = 0,
@@ -606,6 +692,65 @@ class GroupVANVehicles {
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
+  }
+
+  /// Upload a file of VINs into a fleet
+  ///
+  /// [file] is a CSV or plain text file with one VIN per row, optionally
+  /// with a FIN column; up to 16 MB and 100,000 rows. The server rejects
+  /// the request with a 409 while a previous upload for the fleet is still
+  /// processing. Poll [getFleetUploadStatus] with the returned job id.
+  Future<FleetUploadSubmitResponse> uploadFleetVehicles({
+    required int fleetId,
+    required Uint8List file,
+    required String filename,
+  }) async {
+    final result = await _client.uploadFleetVehicles(
+      fleetId: fleetId,
+      file: file,
+      filename: filename,
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get the progress of a fleet upload
+  ///
+  /// The response carries a preview of up to 100 failures; use
+  /// [getFleetUploadFailures] to page through all of them.
+  Future<FleetUploadStatusResponse> getFleetUploadStatus({
+    required int fleetId,
+    required String jobId,
+  }) async {
+    final result = await _client.getFleetUploadStatus(
+      fleetId: fleetId,
+      jobId: jobId,
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Page through the rows a fleet upload could not add
+  Future<FleetUploadFailuresResponse> getFleetUploadFailures({
+    required int fleetId,
+    required String jobId,
+    int offset = 0,
+    int limit = 20,
+  }) async {
+    final result = await _client.getFleetUploadFailures(
+      fleetId: fleetId,
+      jobId: jobId,
+      offset: offset,
+      limit: limit,
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
   }
 
   /// Get account vehicles
