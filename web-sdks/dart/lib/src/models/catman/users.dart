@@ -86,6 +86,39 @@ class UserRole {
   );
 }
 
+/// A user holding a role, as returned by the users-with-role listing.
+class RoleUser {
+  final int userId;
+  final String firstName;
+  final String lastName;
+  final String? accountId;
+
+  /// Display name of the user type (e.g. "Installer").
+  final String userType;
+  final String memberName;
+  final bool enabled;
+
+  const RoleUser({
+    required this.userId,
+    required this.firstName,
+    required this.lastName,
+    this.accountId,
+    required this.userType,
+    required this.memberName,
+    required this.enabled,
+  });
+
+  factory RoleUser.fromJson(Map<String, dynamic> json) => RoleUser(
+    userId: json['user_id'] as int,
+    firstName: json['first_name'] as String? ?? '',
+    lastName: json['last_name'] as String? ?? '',
+    accountId: json['account_id'] as String?,
+    userType: json['user_type'] as String? ?? '',
+    memberName: json['member_name'] as String? ?? '',
+    enabled: _asBool(json['enabled']),
+  );
+}
+
 /// Full detail for a single user.
 class UserDetail {
   final int userId;

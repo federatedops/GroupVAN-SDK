@@ -473,6 +473,34 @@ class CatmanClient extends ApiClient {
     }
   }
 
+  /// List every user holding the role [roleId] across all members, capped at
+  /// [limit] (1-1500, default 100). Requires the developer role.
+  Future<Result<List<RoleUser>>> getRoleUsers(
+    int roleId, {
+    int limit = 100,
+  }) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/catman/users/roles/$roleId/users',
+        queryParameters: {'limit': limit},
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      final users = (response.data['users'] as List<dynamic>? ?? const [])
+          .map((u) => RoleUser.fromJson(u as Map<String, dynamic>))
+          .toList();
+
+      return Success(users);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to get role users: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get role users: $e'),
+      );
+    }
+  }
+
   /// Grant the role [roleId] to the user [userId], returning the user's
   /// updated role list. Requires the developer role.
   Future<Result<List<UserRole>>> grantUserRole(int userId, int roleId) async {
@@ -835,6 +863,16 @@ class GroupVANCatman {
   /// member.
   Future<List<UserRole>> getUserRoles(int userId) async {
     final result = await _client.getUserRoles(userId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// List every user holding the role [roleId] across all members, capped at
+  /// [limit] (1-1500, default 100). Requires the developer role.
+  Future<List<RoleUser>> getRoleUsers(int roleId, {int limit = 100}) async {
+    final result = await _client.getRoleUsers(roleId, limit: limit);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
