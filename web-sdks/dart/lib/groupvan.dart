@@ -30,7 +30,9 @@ export 'src/core/response.dart' show Result;
 // Public models that developers need
 export 'src/models/models.dart'
     show
+        Serviceable,
         Vehicle,
+        NonStandardVehicle,
         VehicleGroup,
         VehicleCategory,
         Catalog,
@@ -55,7 +57,6 @@ export 'src/models/models.dart'
         VehicleFilterResponse,
         VehicleFilterOption,
         Fleet,
-        FleetVehicle,
         FleetCreateRequest,
         FleetUpdateRequest,
         FleetAddVehicleRequest,

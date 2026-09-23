@@ -212,9 +212,10 @@ class VehiclesClient extends ApiClient {
 
   /// Get fleet vehicles with pagination and validation.
   ///
-  /// Every row of the fleet is returned; a non-standard row has a null
-  /// [FleetVehicle.vehicle].
-  Future<Result<List<FleetVehicle>>> getFleetVehicles({
+  /// Every row of the fleet is returned as a [Serviceable]: a [Vehicle] when it
+  /// has catalog data, else a [NonStandardVehicle]. [Serviceable.displayName]
+  /// labels either.
+  Future<Result<List<Serviceable>>> getFleetVehicles({
     required int fleetId,
     int offset = 0,
     int limit = 20,
@@ -235,7 +236,7 @@ class VehiclesClient extends ApiClient {
       );
 
       final vehicles = response.data
-          .map((item) => FleetVehicle.fromJson(item as Map<String, dynamic>))
+          .map((item) => Serviceable.fromJson(item as Map<String, dynamic>))
           .toList();
 
       return Success(vehicles);
@@ -272,7 +273,7 @@ class VehiclesClient extends ApiClient {
   }
 
   /// Add a vehicle to a fleet, returning the vehicle with its fleet id
-  Future<Result<Vehicle>> addFleetVehicle({
+  Future<Result<Serviceable>> addFleetVehicle({
     required int fleetId,
     required FleetAddVehicleRequest request,
   }) async {
@@ -283,7 +284,7 @@ class VehiclesClient extends ApiClient {
         decoder: (data) => data as Map<String, dynamic>,
       );
 
-      return Success(Vehicle.fromJson(response.data));
+      return Success(Serviceable.fromJson(response.data));
     } catch (e) {
       GroupVanLogger.vehicles.severe('Failed to add fleet vehicle: $e');
       return Failure(
@@ -600,9 +601,9 @@ class GroupVANVehicles {
     return result.value;
   }
 
-  /// Get fleet vehicles; every row is returned, and a non-standard row has a
-  /// null `vehicle`.
-  Future<List<FleetVehicle>> getFleetVehicles({
+  /// Get fleet vehicles; every row is returned as a [Serviceable], a catalog
+  /// [Vehicle] or a [NonStandardVehicle].
+  Future<List<Serviceable>> getFleetVehicles({
     required int fleetId,
     int offset = 0,
     int limit = 20,
@@ -633,7 +634,7 @@ class GroupVANVehicles {
   ///
   /// Returns the vehicle with a freshly minted id that carries its fleet
   /// membership, which is the id [removeFleetVehicle] expects.
-  Future<Vehicle> addFleetVehicle({
+  Future<Serviceable> addFleetVehicle({
     required int fleetId,
     required String vehicleId,
     String? description,

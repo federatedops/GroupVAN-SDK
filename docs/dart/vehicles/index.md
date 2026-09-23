@@ -305,10 +305,13 @@ result.fold(
 
 ### Get Fleet Vehicles
 
-Get vehicles in a specific fleet, paginated:
+Get every row in a specific fleet, paginated. Each row is a `Serviceable`: a
+`Vehicle` when it has catalog data, or a `NonStandardVehicle` (no VIN, an invalid
+or unrecognised VIN, or a VIN with no catalog vehicle such as a trailer). Both
+carry a selectable `id` and a `displayName`:
 
 ```dart
-Future<Result<List<Vehicle>>> getFleetVehicles({
+Future<Result<List<Serviceable>>> getFleetVehicles({
   required int fleetId,
   int offset = 0,
   int limit = 20,
@@ -325,10 +328,10 @@ final result = await GroupVAN.instance.client.vehicles.getFleetVehicles(
 
 result.fold(
   (error) => print('Failed to get fleet vehicles: $error'),
-  (vehicles) {
+  (rows) {
     print('Fleet vehicles:');
-    for (final vehicle in vehicles) {
-      print('• ${vehicle.year} ${vehicle.make} ${vehicle.model}');
+    for (final row in rows) {
+      print('• ${row.displayName}');
     }
   },
 );

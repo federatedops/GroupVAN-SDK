@@ -20,7 +20,7 @@ class CartItem {
   final String? itemGroupKey;
   final String? locationDescription;
   final String? vehicleId;
-  final Vehicle? vehicle;
+  final Serviceable? vehicle;
 
   const CartItem({
     required this.mfrCode,
@@ -61,7 +61,7 @@ class CartItem {
     itemGroupKey: json['item_group_key'],
     locationDescription: json['location_description'],
     vehicleId: json['vehicle_id'],
-    vehicle: json['vehicle'] == null ? null : Vehicle.fromJson(json['vehicle']),
+    vehicle: json['vehicle'] == null ? null : Serviceable.fromJson(json['vehicle']),
   );
 
   Map<String, dynamic> toJson() => {
