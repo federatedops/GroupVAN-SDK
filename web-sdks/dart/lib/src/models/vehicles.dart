@@ -145,9 +145,10 @@ class Fleet {
 
 /// A row in a fleet listing.
 ///
-/// [vehicle] is null when Polk recognised the VIN but could not map it to a
-/// catalog vehicle (trailers, heavy equipment). Such rows are listed but
-/// cannot be selected or passed to any other endpoint.
+/// [vehicle] is null for a non-standard vehicle: the row had no VIN, an
+/// invalid or unrecognised VIN, or one Polk recognises but cannot map to a
+/// catalog vehicle (trailers, heavy equipment). Such rows are listed, but
+/// [isSelectable] is false and they cannot be passed to any other endpoint.
 class FleetVehicle {
   final int fleetVehicleId;
   final String? description;

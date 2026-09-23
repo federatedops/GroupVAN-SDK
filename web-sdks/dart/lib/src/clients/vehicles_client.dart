@@ -212,7 +212,8 @@ class VehiclesClient extends ApiClient {
 
   /// Get fleet vehicles with pagination and validation.
   ///
-  /// Rows without a catalog vehicle come back with a null [FleetVehicle.vehicle].
+  /// Every row of the fleet is returned; a non-standard row has a null
+  /// [FleetVehicle.vehicle].
   Future<Result<List<FleetVehicle>>> getFleetVehicles({
     required int fleetId,
     int offset = 0,
@@ -599,7 +600,8 @@ class GroupVANVehicles {
     return result.value;
   }
 
-  /// Get fleet vehicles; rows without a catalog vehicle have a null `vehicle`.
+  /// Get fleet vehicles; every row is returned, and a non-standard row has a
+  /// null `vehicle`.
   Future<List<FleetVehicle>> getFleetVehicles({
     required int fleetId,
     int offset = 0,
