@@ -180,6 +180,23 @@ class FleetAddVehicleRequest {
   };
 }
 
+/// Fleet update vehicle request; at least one field must be set
+class FleetUpdateVehicleRequest {
+  final String? description;
+  final String? finId;
+
+  const FleetUpdateVehicleRequest({this.description, this.finId})
+    : assert(
+        description != null || finId != null,
+        'At least one of description or finId is required',
+      );
+
+  Map<String, dynamic> toJson() => {
+    if (description != null) 'description': description,
+    if (finId != null) 'fin_id': finId,
+  };
+}
+
 /// Acknowledgement that a fleet upload was queued
 class FleetUploadSubmitResponse {
   final String jobId;

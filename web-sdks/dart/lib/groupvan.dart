@@ -60,6 +60,7 @@ export 'src/models/models.dart'
         FleetCreateRequest,
         FleetUpdateRequest,
         FleetAddVehicleRequest,
+        FleetUpdateVehicleRequest,
         FleetUploadSubmitResponse,
         FleetUploadFailure,
         FleetUploadStatusResponse,

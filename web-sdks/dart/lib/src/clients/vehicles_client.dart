@@ -295,6 +295,30 @@ class VehiclesClient extends ApiClient {
     }
   }
 
+  /// Edit a fleet vehicle's description and/or fin id, returning the vehicle
+  Future<Result<Serviceable>> updateFleetVehicle({
+    required int fleetId,
+    required String vehicleId,
+    required FleetUpdateVehicleRequest request,
+  }) async {
+    try {
+      final response = await patch<Map<String, dynamic>>(
+        '/v3/vehicles/fleets/$fleetId/vehicles/$vehicleId',
+        data: request.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(Serviceable.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.vehicles.severe('Failed to update fleet vehicle: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to update fleet vehicle: $e'),
+      );
+    }
+  }
+
   /// Remove a vehicle from a fleet
   Future<Result<void>> removeFleetVehicle({
     required int fleetId,
@@ -654,10 +678,36 @@ class GroupVANVehicles {
     return result.value;
   }
 
+  /// Edit a fleet vehicle's description and/or fin id
+  ///
+  /// Fields left null are unchanged; at least one is required. [vehicleId]
+  /// must come from [getFleetVehicles] or [addFleetVehicle]. The returned
+  /// vehicle carries a new id that encodes the edited values, so use it in
+  /// place of the old one.
+  Future<Serviceable> updateFleetVehicle({
+    required int fleetId,
+    required String vehicleId,
+    String? description,
+    String? finId,
+  }) async {
+    final result = await _client.updateFleetVehicle(
+      fleetId: fleetId,
+      vehicleId: vehicleId,
+      request: FleetUpdateVehicleRequest(
+        description: description,
+        finId: finId,
+      ),
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
   /// Remove a vehicle from a fleet
   ///
-  /// [vehicleId] must come from [getFleetVehicles] or [addFleetVehicle];
-  /// ids minted elsewhere are not tied to a fleet and 404.
+  /// [vehicleId] must come from [getFleetVehicles], [addFleetVehicle] or
+  /// [updateFleetVehicle]; ids minted elsewhere are not tied to a fleet and 404.
   Future<void> removeFleetVehicle({
     required int fleetId,
     required String vehicleId,

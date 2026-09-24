@@ -73,6 +73,7 @@ The Dart SDK provides complete coverage of all Vehicles API endpoints:
 | `PATCH /vehicles/fleets/{id}` | `updateFleet()` | Rename a fleet |
 | `DELETE /vehicles/fleets/{id}` | `deleteFleet()` | Delete a fleet |
 | `POST /vehicles/fleets/{id}/vehicles` | `addFleetVehicle()` | Add a vehicle to a fleet |
+| `PATCH /vehicles/fleets/{id}/vehicles/{vehicleId}` | `updateFleetVehicle()` | Edit a fleet vehicle's description or fin id |
 | `DELETE /vehicles/fleets/{id}/vehicles/{vehicleId}` | `removeFleetVehicle()` | Remove a vehicle from a fleet |
 | `GET /vehicles/account` | `getAccountVehicles()` | Get account vehicles |
 
@@ -361,6 +362,39 @@ result.fold(
 );
 ```
 
+### Update Fleet Vehicle
+
+Edit a fleet vehicle's `description` and/or `finId`. Fields left null are unchanged
+and at least one is required. Works for catalog and non-standard vehicles. The
+`vehicleId` must come from `getFleetVehicles()` or `addFleetVehicle()`. The returned
+vehicle carries a new `vehicleId` that encodes the edited values, so use it in place
+of the old one:
+
+```dart
+Future<Result<Serviceable>> updateFleetVehicle({
+  required int fleetId,
+  required String vehicleId,
+  required FleetUpdateVehicleRequest request,
+})
+```
+
+**Example:**
+```dart
+final result = await GroupVAN.instance.client.vehicles.updateFleetVehicle(
+  fleetId: 123,
+  vehicleId: vehicle.vehicleId,
+  request: FleetUpdateVehicleRequest(
+    description: 'Service Truck',
+    finId: 'UNIT-9',
+  ),
+);
+
+result.fold(
+  (error) => print('Failed to update fleet vehicle: $error'),
+  (vehicle) => print('${vehicle.displayName} is now ${vehicle.finId}'),
+);
+```
+
 ### Delete Fleet
 
 Delete a fleet. The fleet is disabled server-side and no longer appears in `getFleets()`:
@@ -514,6 +548,17 @@ class Fleet {
 ```dart
 class FleetUpdateRequest {
   final String name;
+}
+```
+
+### FleetUpdateVehicleRequest
+
+At least one field must be set.
+
+```dart
+class FleetUpdateVehicleRequest {
+  final String? description;
+  final String? finId;
 }
 ```
 
