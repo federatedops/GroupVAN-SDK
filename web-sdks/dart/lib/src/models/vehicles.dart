@@ -223,41 +223,13 @@ class FleetUploadSubmitResponse {
   };
 }
 
-/// A row of a fleet upload that could not be added to the fleet
-class FleetUploadFailure {
-  final int rowNo;
-  final String? finId;
-  final String? vin;
-  final String reason;
-
-  const FleetUploadFailure({
-    required this.rowNo,
-    this.finId,
-    this.vin,
-    required this.reason,
-  });
-
-  factory FleetUploadFailure.fromJson(Map<String, dynamic> json) =>
-      FleetUploadFailure(
-        rowNo: json['row_no'],
-        finId: json['fin_id'],
-        vin: json['vin'],
-        reason: json['reason'],
-      );
-
-  Map<String, dynamic> toJson() => {
-    'row_no': rowNo,
-    if (finId != null) 'fin_id': finId,
-    if (vin != null) 'vin': vin,
-    'reason': reason,
-  };
-}
-
 /// Progress of a fleet upload job.
 ///
 /// [status] is one of `queued`, `processing`, `complete`, `failed` or
-/// `stalled`. [failures] is a preview capped at 100 rows; page through
-/// the full list with `getFleetUploadFailures` when [failureCount] is larger.
+/// `stalled`. No row fails on its own: [vehiclesDecoded] counts the distinct
+/// catalog vehicles and [vehiclesNonStandard] the distinct rows kept on the
+/// fleet as non-standard vehicles, which the fleet vehicles list returns as
+/// [NonStandardVehicle].
 class FleetUploadStatusResponse {
   final String jobId;
   final String status;
@@ -267,8 +239,7 @@ class FleetUploadStatusResponse {
   final double percent;
   final String? error;
   final int vehiclesDecoded;
-  final int failureCount;
-  final List<FleetUploadFailure> failures;
+  final int vehiclesNonStandard;
 
   const FleetUploadStatusResponse({
     required this.jobId,
@@ -279,8 +250,7 @@ class FleetUploadStatusResponse {
     required this.percent,
     this.error,
     required this.vehiclesDecoded,
-    required this.failureCount,
-    required this.failures,
+    required this.vehiclesNonStandard,
   });
 
   bool get isTerminal =>
@@ -296,10 +266,7 @@ class FleetUploadStatusResponse {
         percent: (json['percent'] as num).toDouble(),
         error: json['error'],
         vehiclesDecoded: json['vehicles_decoded'],
-        failureCount: json['failure_count'],
-        failures: (json['failures'] as List<dynamic>)
-            .map((f) => FleetUploadFailure.fromJson(f as Map<String, dynamic>))
-            .toList(),
+        vehiclesNonStandard: json['vehicles_non_standard'],
       );
 
   Map<String, dynamic> toJson() => {
@@ -311,40 +278,7 @@ class FleetUploadStatusResponse {
     'percent': percent,
     if (error != null) 'error': error,
     'vehicles_decoded': vehiclesDecoded,
-    'failure_count': failureCount,
-    'failures': failures.map((f) => f.toJson()).toList(),
-  };
-}
-
-/// One page of a fleet upload's failures
-class FleetUploadFailuresResponse {
-  final int total;
-  final int offset;
-  final int limit;
-  final List<FleetUploadFailure> failures;
-
-  const FleetUploadFailuresResponse({
-    required this.total,
-    required this.offset,
-    required this.limit,
-    required this.failures,
-  });
-
-  factory FleetUploadFailuresResponse.fromJson(Map<String, dynamic> json) =>
-      FleetUploadFailuresResponse(
-        total: json['total'],
-        offset: json['offset'],
-        limit: json['limit'],
-        failures: (json['failures'] as List<dynamic>)
-            .map((f) => FleetUploadFailure.fromJson(f as Map<String, dynamic>))
-            .toList(),
-      );
-
-  Map<String, dynamic> toJson() => {
-    'total': total,
-    'offset': offset,
-    'limit': limit,
-    'failures': failures.map((f) => f.toJson()).toList(),
+    'vehicles_non_standard': vehiclesNonStandard,
   };
 }
 

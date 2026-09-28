@@ -429,38 +429,6 @@ class VehiclesClient extends ApiClient {
     }
   }
 
-  /// Page through the failures of a fleet upload job
-  Future<Result<FleetUploadFailuresResponse>> getFleetUploadFailures({
-    required int fleetId,
-    required String jobId,
-    int offset = 0,
-    int limit = 20,
-  }) async {
-    try {
-      GroupVanValidators.paginationOffset().validateAndThrow(offset, 'offset');
-      GroupVanValidators.paginationLimit().validateAndThrow(limit, 'limit');
-    } catch (e) {
-      return Failure(e as ValidationException);
-    }
-
-    try {
-      final response = await get<Map<String, dynamic>>(
-        '/v3/vehicles/fleets/$fleetId/uploads/$jobId/failures',
-        queryParameters: {'offset': offset, 'limit': limit},
-        decoder: (data) => data as Map<String, dynamic>,
-      );
-
-      return Success(FleetUploadFailuresResponse.fromJson(response.data));
-    } catch (e) {
-      GroupVanLogger.vehicles.severe('Failed to get fleet upload failures: $e');
-      return Failure(
-        e is GroupVanException
-            ? e
-            : NetworkException('Failed to get fleet upload failures: $e'),
-      );
-    }
-  }
-
   /// Get account vehicles with pagination and validation
   Future<Result<List<Vehicle>>> getAccountVehicles({
     int offset = 0,
@@ -771,8 +739,8 @@ class GroupVANVehicles {
 
   /// Get the progress of a fleet upload
   ///
-  /// The response carries a preview of up to 100 failures; use
-  /// [getFleetUploadFailures] to page through all of them.
+  /// Rows that did not decode are kept on the fleet as non-standard vehicles
+  /// and counted in [FleetUploadStatusResponse.vehiclesNonStandard].
   Future<FleetUploadStatusResponse> getFleetUploadStatus({
     required int fleetId,
     required String jobId,
@@ -780,25 +748,6 @@ class GroupVANVehicles {
     final result = await _client.getFleetUploadStatus(
       fleetId: fleetId,
       jobId: jobId,
-    );
-    if (result.isFailure) {
-      throw Exception('Unexpected error: ${result.error}');
-    }
-    return result.value;
-  }
-
-  /// Page through the rows a fleet upload could not add
-  Future<FleetUploadFailuresResponse> getFleetUploadFailures({
-    required int fleetId,
-    required String jobId,
-    int offset = 0,
-    int limit = 20,
-  }) async {
-    final result = await _client.getFleetUploadFailures(
-      fleetId: fleetId,
-      jobId: jobId,
-      offset: offset,
-      limit: limit,
     );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
