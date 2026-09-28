@@ -627,6 +627,64 @@ class CatmanClient extends ApiClient {
     }
   }
 
+  /// Suggest real addresses matching the partial [input], for a typeahead.
+  ///
+  /// [sessionToken] groups the keystrokes of one lookup for Google billing:
+  /// reuse it for every call until [validateAddress] consumes it.
+  Future<Result<List<AddressSuggestion>>> autocompleteAddress(
+    String input, {
+    required String sessionToken,
+  }) async {
+    try {
+      final response = await post<List<dynamic>>(
+        '/v3/catman/addresses/autocomplete',
+        data: {'input': input, 'session_token': sessionToken},
+        decoder: (data) => data as List<dynamic>,
+      );
+
+      final suggestions = response.data
+          .map((s) => AddressSuggestion.fromJson(s as Map<String, dynamic>))
+          .toList();
+
+      return Success(suggestions);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to autocomplete address: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to autocomplete address: $e'),
+      );
+    }
+  }
+
+  /// Validate and geocode the full [address], returning its parts and
+  /// coordinates. Passing the [sessionToken] from [autocompleteAddress] ends
+  /// that session; start a new token for the next lookup.
+  Future<Result<ValidatedAddress>> validateAddress(
+    String address, {
+    String? sessionToken,
+  }) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/catman/addresses/validate',
+        data: {
+          'address': address,
+          if (sessionToken != null) 'session_token': sessionToken,
+        },
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(ValidatedAddress.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to validate address: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to validate address: $e'),
+      );
+    }
+  }
+
   /// Get the public URL of the default logo for the member [memberNumber].
   Future<Result<String>> getMemberLogo(String memberNumber) async {
     try {
@@ -932,6 +990,41 @@ class GroupVANCatman {
     LocationUpdate update,
   ) async {
     final result = await _client.updateMemberLocation(locationId, update);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Suggest real addresses matching the partial [input], for a typeahead.
+  ///
+  /// [sessionToken] groups the keystrokes of one lookup for Google billing:
+  /// reuse it for every call until [validateAddress] consumes it.
+  Future<List<AddressSuggestion>> autocompleteAddress(
+    String input, {
+    required String sessionToken,
+  }) async {
+    final result = await _client.autocompleteAddress(
+      input,
+      sessionToken: sessionToken,
+    );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Validate and geocode the full [address], returning its parts and
+  /// coordinates. Passing the [sessionToken] from [autocompleteAddress] ends
+  /// that session; start a new token for the next lookup.
+  Future<ValidatedAddress> validateAddress(
+    String address, {
+    String? sessionToken,
+  }) async {
+    final result = await _client.validateAddress(
+      address,
+      sessionToken: sessionToken,
+    );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
