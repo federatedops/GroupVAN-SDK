@@ -362,6 +362,42 @@ result.fold(
 );
 ```
 
+### Add Fleet Vehicle
+
+Add a vehicle to a fleet. `vehicleId` is a catalog vehicle id from a search, VIN
+lookup or plate search. Without it the request describes a non-standard vehicle
+(a trailer, equipment or an unknown VIN) by `vin` and/or `description`, so at least
+one of the three is required. The returned vehicle carries a new `vehicleId` that
+encodes its fleet membership, which `updateFleetVehicle()` and `removeFleetVehicle()`
+expect:
+
+```dart
+Future<Result<Serviceable>> addFleetVehicle({
+  required int fleetId,
+  required FleetAddVehicleRequest request,
+})
+```
+
+**Example:**
+```dart
+// a catalog vehicle
+final result = await GroupVAN.instance.client.vehicles.addFleetVehicle(
+  fleetId: 123,
+  request: FleetAddVehicleRequest(vehicleId: vehicle.vehicleId, finId: 'UNIT-9'),
+);
+
+// a non-standard vehicle
+final trailer = await GroupVAN.instance.client.vehicles.addFleetVehicle(
+  fleetId: 123,
+  request: FleetAddVehicleRequest(vin: '1H9BS212XDM511582', description: 'TRAILER'),
+);
+
+result.fold(
+  (error) => print('Failed to add vehicle: $error'),
+  (vehicle) => print('Added ${vehicle.displayName} as ${vehicle.vehicleId}'),
+);
+```
+
 ### Update Fleet Vehicle
 
 Edit a fleet vehicle's `description` and/or `finId`. Fields left null are unchanged
@@ -548,6 +584,19 @@ class Fleet {
 ```dart
 class FleetUpdateRequest {
   final String name;
+}
+```
+
+### FleetAddVehicleRequest
+
+At least one of `vehicleId`, `vin` or `description` must be set.
+
+```dart
+class FleetAddVehicleRequest {
+  final String? vehicleId;
+  final String? vin;
+  final String? description;
+  final String? finId;
 }
 ```
 

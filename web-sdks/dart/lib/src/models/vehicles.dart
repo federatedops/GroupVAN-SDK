@@ -162,19 +162,28 @@ class FleetUpdateRequest {
 }
 
 /// Fleet add vehicle request
+/// Fleet add vehicle request; without a [vehicleId] the request describes a
+/// non-standard vehicle (trailer, equipment, unknown VIN) by [vin] and/or
+/// [description], so at least one of the three must be set
 class FleetAddVehicleRequest {
-  final String vehicleId;
+  final String? vehicleId;
+  final String? vin;
   final String? description;
   final String? finId;
 
   const FleetAddVehicleRequest({
-    required this.vehicleId,
+    this.vehicleId,
+    this.vin,
     this.description,
     this.finId,
-  });
+  }) : assert(
+         vehicleId != null || vin != null || description != null,
+         'vehicleId, or a vin or description for a non-standard vehicle, is required',
+       );
 
   Map<String, dynamic> toJson() => {
-    'vehicle_id': vehicleId,
+    if (vehicleId != null) 'vehicle_id': vehicleId,
+    if (vin != null) 'vin': vin,
     if (description != null) 'description': description,
     if (finId != null) 'fin_id': finId,
   };

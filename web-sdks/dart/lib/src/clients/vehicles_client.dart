@@ -624,11 +624,14 @@ class GroupVANVehicles {
 
   /// Add a vehicle to a fleet
   ///
-  /// Returns the vehicle with a freshly minted id that carries its fleet
-  /// membership, which is the id [removeFleetVehicle] expects.
+  /// Without a [vehicleId] the vehicle is non-standard (a trailer, equipment
+  /// or an unknown VIN) and needs a [vin] and/or [description]. Returns the
+  /// vehicle with a freshly minted id that carries its fleet membership, which
+  /// is the id [removeFleetVehicle] expects.
   Future<Serviceable> addFleetVehicle({
     required int fleetId,
-    required String vehicleId,
+    String? vehicleId,
+    String? vin,
     String? description,
     String? finId,
   }) async {
@@ -636,6 +639,7 @@ class GroupVANVehicles {
       fleetId: fleetId,
       request: FleetAddVehicleRequest(
         vehicleId: vehicleId,
+        vin: vin,
         description: description,
         finId: finId,
       ),
