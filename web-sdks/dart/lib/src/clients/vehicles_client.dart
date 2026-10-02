@@ -238,7 +238,8 @@ class VehiclesClient extends ApiClient {
         queryParameters: {
           'offset': offset,
           'limit': limit,
-          if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+          if (search != null && search.trim().isNotEmpty)
+            'search': search.trim(),
         },
         decoder: (data) => data as List<dynamic>,
       );
@@ -607,11 +608,13 @@ class GroupVANVehicles {
     required int fleetId,
     int offset = 0,
     int limit = 20,
+    String? search,
   }) async {
     final result = await _client.getFleetVehicles(
       fleetId: fleetId,
       offset: offset,
       limit: limit,
+      search: search,
     );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
