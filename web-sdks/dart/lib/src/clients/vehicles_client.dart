@@ -215,10 +215,14 @@ class VehiclesClient extends ApiClient {
   /// Every row of the fleet is returned as a [Serviceable]: a [Vehicle] when it
   /// has catalog data, else a [NonStandardVehicle]. [Serviceable.displayName]
   /// labels either.
+  ///
+  /// [search] filters server-side by a case-insensitive substring of the
+  /// description, fin id or VIN, so it applies across every page.
   Future<Result<List<Serviceable>>> getFleetVehicles({
     required int fleetId,
     int offset = 0,
     int limit = 20,
+    String? search,
   }) async {
     // Validate pagination parameters
     try {
@@ -231,7 +235,11 @@ class VehiclesClient extends ApiClient {
     try {
       final response = await get<List<dynamic>>(
         '/v3/vehicles/fleets/$fleetId',
-        queryParameters: {'offset': offset, 'limit': limit},
+        queryParameters: {
+          'offset': offset,
+          'limit': limit,
+          if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+        },
         decoder: (data) => data as List<dynamic>,
       );
 

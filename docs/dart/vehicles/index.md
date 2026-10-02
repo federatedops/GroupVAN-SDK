@@ -309,13 +309,16 @@ result.fold(
 Get every row in a specific fleet, paginated. Each row is a `Serviceable`: a
 `Vehicle` when it has catalog data, or a `NonStandardVehicle` (no VIN, an invalid
 or unrecognised VIN, or a VIN with no catalog vehicle such as a trailer). Both
-carry a selectable `id` and a `displayName`:
+carry a selectable `id` and a `displayName`. Pass `search` to filter server-side
+by a case-insensitive substring of the description, fin id or VIN; it applies
+across every page:
 
 ```dart
 Future<Result<List<Serviceable>>> getFleetVehicles({
   required int fleetId,
   int offset = 0,
   int limit = 20,
+  String? search,
 })
 ```
 
