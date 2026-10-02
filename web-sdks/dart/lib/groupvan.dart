@@ -53,6 +53,7 @@ export 'src/models/models.dart'
         Brand,
         Attribute,
         AttributeFamily,
+        SelectedAttribute,
         VehicleFilterRequest,
         VehicleFilterResponse,
         VehicleFilterOption,

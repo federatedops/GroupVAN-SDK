@@ -2,6 +2,7 @@ library products;
 
 export 'attribute.dart';
 export 'attribute_family.dart';
+export 'selected_attribute.dart';
 export 'brand.dart';
 export 'part.dart';
 export 'part_application.dart';

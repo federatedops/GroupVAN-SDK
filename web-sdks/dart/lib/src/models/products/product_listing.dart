@@ -1,6 +1,7 @@
 import 'part.dart';
 import 'brand.dart';
 import 'attribute_family.dart';
+import 'selected_attribute.dart';
 
 class ProductListing {
   final List<Part> parts;
@@ -9,6 +10,7 @@ class ProductListing {
   final int partTypeId;
   final String partTypeName;
   final List<AttributeFamily> attributeFamilies;
+  final List<SelectedAttribute> selectedAttributes;
 
   const ProductListing({
     required this.parts,
@@ -17,6 +19,7 @@ class ProductListing {
     required this.partTypeId,
     required this.partTypeName,
     required this.attributeFamilies,
+    this.selectedAttributes = const [],
   });
 
   factory ProductListing.fromJson(Map<String, dynamic> json) => ProductListing(
@@ -33,6 +36,9 @@ class ProductListing {
     partTypeName: json['part_type_name'],
     attributeFamilies: (json['attribute_families'] as List<dynamic>)
         .map((af) => AttributeFamily.fromJson(af as Map<String, dynamic>))
+        .toList(),
+    selectedAttributes: (json['selected_attributes'] as List<dynamic>? ?? [])
+        .map((sa) => SelectedAttribute.fromJson(sa as Map<String, dynamic>))
         .toList(),
   );
 }
