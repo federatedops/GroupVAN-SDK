@@ -86,6 +86,20 @@ class UserRole {
   );
 }
 
+/// A user type that can be assigned to a user, as returned by the user
+/// types listing.
+class UserTypeInfo {
+  final int id;
+  final String name;
+
+  const UserTypeInfo({required this.id, required this.name});
+
+  factory UserTypeInfo.fromJson(Map<String, dynamic> json) => UserTypeInfo(
+    id: json['id'] as int,
+    name: json['name'] as String,
+  );
+}
+
 /// A user holding a role, as returned by the users-with-role listing.
 class RoleUser {
   final int userId;

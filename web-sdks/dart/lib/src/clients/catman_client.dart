@@ -430,6 +430,29 @@ class CatmanClient extends ApiClient {
     }
   }
 
+  /// List all user types that can be assigned to users.
+  Future<Result<List<UserTypeInfo>>> getUserTypes() async {
+    try {
+      final response = await get<List<dynamic>>(
+        '/v3/catman/users/types',
+        decoder: (data) => data as List<dynamic>,
+      );
+
+      final types = response.data
+          .map((t) => UserTypeInfo.fromJson(t as Map<String, dynamic>))
+          .toList();
+
+      return Success(types);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to get user types: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get user types: $e'),
+      );
+    }
+  }
+
   /// List all roles that can be granted to users.
   Future<Result<List<UserRole>>> getRoles() async {
     try {
@@ -844,6 +867,15 @@ class GroupVANCatman {
     String locationId,
   ) async {
     final result = await _client.deleteUserLocation(userId, locationId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// List all user types that can be assigned to users.
+  Future<List<UserTypeInfo>> getUserTypes() async {
+    final result = await _client.getUserTypes();
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
