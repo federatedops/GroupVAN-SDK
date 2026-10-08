@@ -441,3 +441,61 @@ class LocationUpdate {
     if (b2c != null) 'b2c': b2c!.toJson(),
   };
 }
+
+/// A new location to create with POST /v3/catman/locations.
+///
+/// All fields are required. [phone] is 10 digits, [zip] is a US ZIP / ZIP+4 or
+/// Canadian postal code, and [country] is a 2-letter code. Latitude and
+/// longitude are geocoded from the address by the API. Installers cannot be
+/// created here; the API returns 409 when [id] already exists for the member.
+class NewLocation {
+  final String id;
+  final String description;
+  final LocationType type;
+  final String firstName;
+  final String lastName;
+  final String email;
+  final String phone;
+  final String companyName;
+  final String address;
+  final String city;
+  final String state;
+  final String zip;
+  final String? country;
+
+  const NewLocation({
+    required this.id,
+    required this.description,
+    required this.type,
+    required this.firstName,
+    required this.lastName,
+    required this.email,
+    required this.phone,
+    required this.companyName,
+    required this.address,
+    required this.city,
+    required this.state,
+    required this.zip,
+    this.country,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'description': description,
+    'type': type.value,
+    'contact': {
+      'first_name': firstName,
+      'last_name': lastName,
+      'email': email,
+      'phone': phone,
+    },
+    'company': {
+      'name': companyName,
+      'address': address,
+      'city': city,
+      'state': state,
+      'zip': zip,
+      if (country != null) 'country': country,
+    },
+  };
+}

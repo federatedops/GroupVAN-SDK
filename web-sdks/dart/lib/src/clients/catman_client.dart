@@ -605,6 +605,29 @@ class CatmanClient extends ApiClient {
     }
   }
 
+  /// Create [location] within the authenticated member, returning the new
+  /// location's full detail. Fails with 409 when the id is already in use.
+  Future<Result<LocationDetails>> createMemberLocation(
+    NewLocation location,
+  ) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/catman/locations/',
+        data: location.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(LocationDetails.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to create member location: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to create member location: $e'),
+      );
+    }
+  }
+
   /// Get full detail for the location [locationId] within the authenticated
   /// member.
   Future<Result<LocationDetails>> getMemberLocation(String locationId) async {
@@ -941,6 +964,16 @@ class GroupVANCatman {
     String? query,
   }) async {
     final result = await _client.getMemberLocations(limit: limit, query: query);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Create [location] within the authenticated member, returning the new
+  /// location's full detail.
+  Future<LocationDetails> createMemberLocation(NewLocation location) async {
+    final result = await _client.createMemberLocation(location);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
