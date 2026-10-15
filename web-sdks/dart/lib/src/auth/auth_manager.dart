@@ -307,7 +307,8 @@ class AuthManager {
           // safe across first-party apps because /auth/refresh is client-scoped:
           // refreshToken() sends gv-client-id, so the server rotates only THIS
           // client's cookie and never a co-resident app's (e.g. catman's).
-          await refreshToken();
+          // No SSO fallback: the catch below handles OAuth callbacks first.
+          await _refreshToken(ssoFallback: false);
           GroupVanLogger.auth.warning(
             'DEBUG: Session restored from refresh token cookie',
           );
@@ -453,23 +454,28 @@ class AuthManager {
     await _updateStatus(const AuthStatus.authenticating());
 
     try {
-      // Empty body — browser sends the gv_session cookie automatically.
-      final response = await _httpClient.post<Map<String, dynamic>>(
-        '/auth/sso/exchange',
-        decoder: (data) => data as Map<String, dynamic>,
-        options: Options(headers: {'gv-client-id': clientId}),
-      );
-
-      final user = User.fromJson(response.data['user']);
-      final tokenResponse = TokenResponse.fromJson(response.data);
-
-      await _handleTokenResponse(tokenResponse, user: user);
+      await _exchangeSsoSession(clientId);
     } catch (e) {
       final error = 'SSO exchange failed: ${e.toString()}';
       GroupVanLogger.auth.severe(error);
       await _updateStatus(AuthStatus.failed(error: error));
       rethrow;
     }
+  }
+
+  /// [ssoExchange] without the authenticating/failed status updates.
+  Future<void> _exchangeSsoSession(String clientId) async {
+    // Empty body — browser sends the gv_session cookie automatically.
+    final response = await _httpClient.post<Map<String, dynamic>>(
+      '/auth/sso/exchange',
+      decoder: (data) => data as Map<String, dynamic>,
+      options: Options(headers: {'gv-client-id': clientId}),
+    );
+
+    final user = User.fromJson(response.data['user']);
+    final tokenResponse = TokenResponse.fromJson(response.data);
+
+    await _handleTokenResponse(tokenResponse, user: user);
   }
 
   /// Exchange the OAuth code server-side, creating the SSO session and
@@ -671,7 +677,10 @@ class AuthManager {
   ///
   /// On web, the browser automatically sends the refresh_token HttpOnly cookie.
   /// The server responds with a new access token (and updates the cookie).
-  Future<void> refreshToken() async {
+  /// With SSO enabled, a failed refresh falls back to the shared SSO session.
+  Future<void> refreshToken() => _refreshToken(ssoFallback: _useSso);
+
+  Future<void> _refreshToken({required bool ssoFallback}) async {
     // Prevent concurrent refresh operations
     if (_refreshCompleter != null) {
       await _refreshCompleter!.future;
@@ -700,6 +709,12 @@ class AuthManager {
       GroupVanLogger.auth.info('Successfully refreshed access token');
       _refreshCompleter!.complete();
     } catch (e) {
+      // Another app may have replaced our refresh cookie; try gv_session.
+      if (ssoFallback && await _refreshFromSsoSession(e)) {
+        _refreshCompleter!.complete();
+        return;
+      }
+
       final error = 'Token refresh failed: ${e.toString()}';
       GroupVanLogger.auth.severe(error);
 
@@ -717,10 +732,34 @@ class AuthManager {
       }
       await _tokenStorage.clearTokens();
 
+      // Rethrown below; don't also surface it as uncaught if nobody waits.
+      _refreshCompleter!.future.ignore();
       _refreshCompleter!.completeError(e);
       rethrow;
     } finally {
       _refreshCompleter = null;
+    }
+  }
+
+  /// Mints this client's tokens from gv_session; false if that fails too.
+  Future<bool> _refreshFromSsoSession(Object refreshError) async {
+    // Exchanging would silently swap an impersonated user for the actor.
+    if (_clientId == null || (_currentStatus.claims?.impersonation ?? false)) {
+      return false;
+    }
+
+    GroupVanLogger.auth.warning(
+      'Token refresh failed ($refreshError), trying SSO exchange',
+    );
+    try {
+      await _exchangeSsoSession(_clientId!);
+      GroupVanLogger.auth.info('Refreshed access token via SSO exchange');
+      return true;
+    } catch (e) {
+      GroupVanLogger.auth.warning(
+        'SSO exchange after failed refresh failed: $e',
+      );
+      return false;
     }
   }
 
