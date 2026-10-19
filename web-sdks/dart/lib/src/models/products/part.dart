@@ -94,9 +94,11 @@ class Part implements Comparable {
         .toList(),
     categoryName: json['category_name'],
     subcategoryName: json['subcategory_name'],
-    highlights: (json['highlights'] as List<dynamic>?)
-        ?.map((e) => Map<String, dynamic>.from(e as Map))
-        .toList() ?? [],
+    highlights:
+        (json['highlights'] as List<dynamic>?)
+            ?.map((e) => Map<String, dynamic>.from(e as Map))
+            .toList() ??
+        [],
     assets: json['asset'] != null
         ? Asset.fromJson(json['asset'] as Map<String, dynamic>)
         : null,
@@ -145,11 +147,11 @@ class Part implements Comparable {
   }
 
   String quantityAtLocationText() {
-    double totalQuantityAvailable = _primaryLocation!.quantityAvailable;
+    final quantityAvailable = _primaryLocation!.quantityAvailable;
 
-    return totalQuantityAvailable > 100
+    return quantityAvailable > 100
         ? '100+'
-        : totalQuantityAvailable.toString();
+        : quantityAvailable.toInt().toString();
   }
 
   double cost() {
