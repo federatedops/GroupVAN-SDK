@@ -154,7 +154,10 @@ export 'src/models/models.dart'
         DayHours,
         LocationB2C,
         LocationUpdate,
-        NewLocation;
+        NewLocation,
+        DiscrepancyCreateRequest,
+        Discrepancy,
+        DiscrepancyScreenshotResponse;
 
 // Constants
 export 'src/constants.dart' show CountryCode, CountryDivisionCode;
