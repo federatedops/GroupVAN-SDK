@@ -216,3 +216,21 @@ class DataException extends GroupVanException {
       'DataException: $message${dataType != null ? ' (type: $dataType)' : ''}';
 }
 
+/// Intelligent interchange answered 503: the feature is switched off in this
+/// environment or its data has not been loaded yet.
+///
+/// [detail] is the server's own explanation when it sent one.
+class IntelligentInterchangeUnavailableException extends GroupVanException {
+  final String? detail;
+
+  IntelligentInterchangeUnavailableException(
+    super.message, {
+    this.detail,
+    super.context,
+    super.timestamp,
+  });
+
+  @override
+  String toString() =>
+      'IntelligentInterchangeUnavailableException: $message${detail != null ? ' ($detail)' : ''}';
+}

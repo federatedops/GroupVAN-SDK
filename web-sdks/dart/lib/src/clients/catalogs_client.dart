@@ -260,6 +260,56 @@ class CatalogsClient extends ApiClient {
     }
   }
 
+  /// Grade every other brand's part of the same type against [request]'s
+  /// part number. Fails with [IntelligentInterchangeUnavailableException]
+  /// where the service is not enabled or its data is not loaded yet.
+  Future<Result<IntelligentInterchangeResponse>> getIntelligentInterchange(
+    IntelligentInterchangeRequest request,
+  ) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/catalogs/interchange/intelligent',
+        data: request.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+      return Success(IntelligentInterchangeResponse.fromJson(response.data));
+    } on HttpException catch (e) {
+      if (e.statusCode == 503) {
+        GroupVanLogger.catalogs.info(
+          'Intelligent interchange unavailable: ${e.responseBody}',
+        );
+        return Failure(
+          IntelligentInterchangeUnavailableException(
+            'Intelligent interchange is not available',
+            detail: _serviceUnavailableDetail(e.responseBody),
+            context: e.context,
+          ),
+        );
+      }
+      GroupVanLogger.catalogs.severe(
+        'Failed to get intelligent interchange: $e',
+      );
+      return Failure(e);
+    } catch (e) {
+      GroupVanLogger.catalogs.severe(
+        'Failed to get intelligent interchange: $e',
+      );
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get intelligent interchange: $e'),
+      );
+    }
+  }
+
+  String? _serviceUnavailableDetail(String? responseBody) {
+    if (responseBody == null) return null;
+    final match = RegExp(
+      r'(?:detail|message|title)[^:]*:\s*([^,}]+)',
+    ).firstMatch(responseBody);
+    return match?.group(1)?.trim();
+  }
+
   Future<Result<List<ItemPricing>>> getProductPricing({
     required ProductPricingRequest request,
   }) async {
@@ -540,6 +590,21 @@ class GroupVANCatalogs {
     );
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Grade every other brand's part of the same type against [request]'s
+  /// part number. Throws [IntelligentInterchangeUnavailableException] where
+  /// the service is not enabled or its data is not loaded yet.
+  Future<IntelligentInterchangeResponse> getIntelligentInterchange(
+    IntelligentInterchangeRequest request,
+  ) async {
+    final result = await _client.getIntelligentInterchange(request);
+    if (result.isFailure) {
+      final error = result.error;
+      if (error is IntelligentInterchangeUnavailableException) throw error;
+      throw Exception('Unexpected error: $error');
     }
     return result.value;
   }
