@@ -48,6 +48,9 @@ void main() {
       expect(EngineSearchRequest, isA<Type>());
       expect(VinSearchRequest, isA<Type>());
       expect(PlateSearchRequest, isA<Type>());
+      expect(IntelligentInterchangeRequest, isA<Type>());
+      expect(IntelligentInterchangeResponse, isA<Type>());
+      expect(IntelligentInterchangeUnavailableException, isA<Type>());
     });
 
     test('GroupVAN requires initialization before use', () {
