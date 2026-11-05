@@ -87,6 +87,7 @@ export 'src/models/models.dart'
         IntelligentInterchangePart,
         IntelligentInterchangeMatch,
         IntelligentInterchangeConflict,
+        IntelligentInterchangeAttribute,
         IntelligentInterchangeVehicle,
         IntelligentMatchTier,
         IntelligentConflictSeverity,

@@ -18,6 +18,20 @@ void main() {
         'limit': 25,
       });
     });
+
+    test('sends the selected vehicle and the attributes flag', () {
+      const request = IntelligentInterchangeRequest(
+        partNumber: '18-4968',
+        vehicleId: '9187a7bf87599513',
+        includeAttributes: true,
+      );
+
+      expect(request.toJson(), {
+        'part_number': '18-4968',
+        'vehicle_id': '9187a7bf87599513',
+        'include_attributes': true,
+      });
+    });
   });
 
   group('IntelligentInterchangeResponse', () {
@@ -31,6 +45,8 @@ void main() {
             'mfr_code': 'FLC',
             'part_number': '12-9451',
             'sku': '01dd8fd688c5d32ee1d23266a92b513c',
+            'catalog_sku': 182213,
+            'fits_vehicle': true,
             'brand_name': 'Silent Stop Caliper',
             'aaia_brand_id': 'GNQW',
             'part_type_id': 1704,
@@ -44,6 +60,8 @@ void main() {
               'mfr_code': 'BBB',
               'part_number': '99-01736A',
               'sku': '3767000f6532506b2a944ddb08da6991',
+              'catalog_sku': 97641,
+              'fits_vehicle': false,
               'brand_name': 'BBB Industries',
               'aaia_brand_id': 'BGRT',
               'part_type_id': 1704,
@@ -113,12 +131,17 @@ void main() {
 
       final result = response.results.single;
       expect(result.source.partId, 51033);
+      expect(result.source.catalogSku, 182213);
+      expect(result.source.fitsVehicle, isTrue);
       expect(result.source.brandName, 'Silent Stop Caliper');
       expect(result.source.positions, ['Rear Right']);
 
       final match = result.matches.single;
       expect(match.part.mfrCode, 'BBB');
       expect(match.part.partNumber, '99-01736A');
+      expect(match.part.catalogSku, 97641);
+      expect(match.part.fitsVehicle, isFalse);
+      expect(match.attributes, isEmpty);
       expect(match.tier, IntelligentMatchTier.medium);
       expect(match.result, 'Questionable');
       expect(match.score, 100.0);
@@ -158,7 +181,48 @@ void main() {
       expect(match.tier, IntelligentMatchTier.low);
       expect(match.score, 0);
       expect(match.conflicts, isEmpty);
+      expect(match.attributes, isEmpty);
       expect(match.reasons, isEmpty);
+      expect(match.part.catalogSku, isNull);
+      expect(match.part.fitsVehicle, isNull);
+    });
+
+    test('parses every compared attribute with its match and severity', () {
+      final match = IntelligentInterchangeMatch.fromJson({
+        'part_id': 1,
+        'mfr_code': 'BBB',
+        'part_number': 'X',
+        'attributes': [
+          {
+            'attribute': 'Piston Quantity',
+            'class': 'gating',
+            'source_value': '1',
+            'target_value': '1',
+            'match': true,
+            'severity': null,
+          },
+          {
+            'attribute': 'Piston Material',
+            'class': 'verify',
+            'source_value': 'PHENOLIC',
+            'target_value': 'STEEL',
+            'match': false,
+            'severity': 'verify',
+          },
+        ],
+      });
+
+      final agreed = match.attributes.first;
+      expect(agreed.attribute, 'Piston Quantity');
+      expect(agreed.specClass, 'gating');
+      expect(agreed.match, isTrue);
+      expect(agreed.severity, isNull);
+
+      final differs = match.attributes.last;
+      expect(differs.sourceValue, 'PHENOLIC');
+      expect(differs.targetValue, 'STEEL');
+      expect(differs.match, isFalse);
+      expect(differs.severity, IntelligentConflictSeverity.verify);
     });
   });
 
