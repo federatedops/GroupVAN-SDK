@@ -39,7 +39,10 @@ enum IntelligentConflictSeverity {
 /// [partNumber] is 1-50 characters; punctuation and spacing are ignored.
 /// [mfrCode] and [partTypeId] narrow a part number several brands or part
 /// types share. [targetMfrCodes] grades only those manufacturers. [limit] is
-/// matches per source part, 1-100.
+/// matches per source part, 1-100. [vehicleId] is a selected catalog vehicle:
+/// the source and every match then carry [IntelligentInterchangePart.fitsVehicle].
+/// [includeAttributes] adds every compared attribute to each match, not only
+/// the conflicts.
 class IntelligentInterchangeRequest {
   final String partNumber;
   final String? mfrCode;
@@ -48,6 +51,8 @@ class IntelligentInterchangeRequest {
   final IntelligentMatchTier? minTier;
   final int? limit;
   final bool? includeSameBrand;
+  final String? vehicleId;
+  final bool? includeAttributes;
 
   const IntelligentInterchangeRequest({
     required this.partNumber,
@@ -57,6 +62,8 @@ class IntelligentInterchangeRequest {
     this.minTier,
     this.limit,
     this.includeSameBrand,
+    this.vehicleId,
+    this.includeAttributes,
   });
 
   Map<String, dynamic> toJson() => {
@@ -67,6 +74,8 @@ class IntelligentInterchangeRequest {
     if (minTier != null) 'min_tier': minTier!.name,
     if (limit != null) 'limit': limit,
     if (includeSameBrand != null) 'include_same_brand': includeSameBrand,
+    if (vehicleId != null) 'vehicle_id': vehicleId,
+    if (includeAttributes != null) 'include_attributes': includeAttributes,
   };
 }
 
@@ -122,13 +131,19 @@ class IntelligentInterchangeResult {
 
 /// A catalog part as the intelligent interchange identifies it.
 ///
-/// [positions] are every position the part fits. [vehicles] is the count of
-/// base vehicles it applies to.
+/// [catalogSku] is the integer catalog SKU for product info and assets; [sku]
+/// is the interchange dataset's own hash. [positions] are every position the
+/// part fits. [vehicles] is the count of base vehicles it applies to.
+/// [fitsVehicle] is set when the request named a vehicle: whether the catalog
+/// lists the part for that vehicle and engine, or null when the catalog could
+/// not be asked.
 class IntelligentInterchangePart {
   final int partId;
   final String mfrCode;
   final String partNumber;
   final String? sku;
+  final int? catalogSku;
+  final bool? fitsVehicle;
   final String? brandName;
   final String? aaiaBrandId;
   final int? partTypeId;
@@ -141,6 +156,8 @@ class IntelligentInterchangePart {
     required this.mfrCode,
     required this.partNumber,
     this.sku,
+    this.catalogSku,
+    this.fitsVehicle,
     this.brandName,
     this.aaiaBrandId,
     this.partTypeId,
@@ -155,6 +172,8 @@ class IntelligentInterchangePart {
         mfrCode: json['mfr_code'] as String,
         partNumber: json['part_number'] as String,
         sku: json['sku'] as String?,
+        catalogSku: json['catalog_sku'] as int?,
+        fitsVehicle: json['fits_vehicle'] as bool?,
         brandName: json['brand_name'] as String?,
         aaiaBrandId: json['aaia_brand_id'] as String?,
         partTypeId: json['part_type_id'] as int?,
@@ -195,6 +214,7 @@ class IntelligentInterchangeMatch {
   final int specsCompared;
   final int specsMatched;
   final List<IntelligentInterchangeConflict> conflicts;
+  final List<IntelligentInterchangeAttribute> attributes;
   final List<String> reasons;
   final List<IntelligentInterchangeVehicle> missingVehicleExamples;
   final List<IntelligentInterchangeVehicle> extraVehicleExamples;
@@ -221,6 +241,7 @@ class IntelligentInterchangeMatch {
     this.specsCompared = 0,
     this.specsMatched = 0,
     this.conflicts = const [],
+    this.attributes = const [],
     this.reasons = const [],
     this.missingVehicleExamples = const [],
     this.extraVehicleExamples = const [],
@@ -259,6 +280,12 @@ class IntelligentInterchangeMatch {
       for (final conflict in json['conflicts'] as List? ?? const [])
         IntelligentInterchangeConflict.fromJson(
           conflict as Map<String, dynamic>,
+        ),
+    ],
+    attributes: [
+      for (final attribute in json['attributes'] as List? ?? const [])
+        IntelligentInterchangeAttribute.fromJson(
+          attribute as Map<String, dynamic>,
         ),
     ],
     reasons: List<String>.from(json['reasons'] as List? ?? const []),
@@ -310,6 +337,41 @@ class IntelligentInterchangeConflict {
               in (json['market'] as Map<String, dynamic>? ?? const {}).entries)
             entry.key: (entry.value as num).toInt(),
         },
+      );
+}
+
+/// A PIES spec both the searched part and a candidate publish, present when
+/// the request asked for every attribute.
+///
+/// [match] is whether the values agree; [severity] is null when they do and
+/// the conflict's severity when they do not.
+class IntelligentInterchangeAttribute {
+  final String attribute;
+  final String? specClass;
+  final String? sourceValue;
+  final String? targetValue;
+  final bool match;
+  final IntelligentConflictSeverity? severity;
+
+  const IntelligentInterchangeAttribute({
+    required this.attribute,
+    this.specClass,
+    this.sourceValue,
+    this.targetValue,
+    required this.match,
+    this.severity,
+  });
+
+  factory IntelligentInterchangeAttribute.fromJson(Map<String, dynamic> json) =>
+      IntelligentInterchangeAttribute(
+        attribute: json['attribute'] as String? ?? '',
+        specClass: json['class'] as String?,
+        sourceValue: json['source_value']?.toString(),
+        targetValue: json['target_value']?.toString(),
+        match: json['match'] as bool? ?? false,
+        severity: json['severity'] == null
+            ? null
+            : IntelligentConflictSeverity.fromJson(json['severity'] as String?),
       );
 }
 
