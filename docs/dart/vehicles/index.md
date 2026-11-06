@@ -76,6 +76,7 @@ The Dart SDK provides complete coverage of all Vehicles API endpoints:
 | `PATCH /vehicles/fleets/{id}/vehicles/{vehicleId}` | `updateFleetVehicle()` | Edit a fleet vehicle's description or fin id |
 | `DELETE /vehicles/fleets/{id}/vehicles/{vehicleId}` | `removeFleetVehicle()` | Remove a vehicle from a fleet |
 | `GET /vehicles/account` | `getAccountVehicles()` | Get account vehicles |
+| `GET /vehicles/{vehicleId}` | `getVehicle()` | Get a single vehicle by its id |
 
 ---
 

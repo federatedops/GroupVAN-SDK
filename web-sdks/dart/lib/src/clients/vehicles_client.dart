@@ -473,6 +473,26 @@ class VehiclesClient extends ApiClient {
     }
   }
 
+  /// Get a single vehicle by its opaque [vehicleId]; a [Vehicle] when it has
+  /// catalog data, else a [NonStandardVehicle].
+  Future<Result<Serviceable>> getVehicle({required String vehicleId}) async {
+    try {
+      final response = await get<Map<String, dynamic>>(
+        '/v3/vehicles/${Uri.encodeComponent(vehicleId)}',
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(Serviceable.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.vehicles.severe('Failed to get vehicle: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get vehicle: $e'),
+      );
+    }
+  }
+
   /// Get previously selected part types for a vehicle
   Future<Result<List<PartType>>> getPreviousPartTypes({
     required String vehicleId,
@@ -779,6 +799,16 @@ class GroupVANVehicles {
       offset: offset,
       limit: limit,
     );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Get a single vehicle by its id; a catalog [Vehicle] or a
+  /// [NonStandardVehicle].
+  Future<Serviceable> getVehicle({required String vehicleId}) async {
+    final result = await _client.getVehicle(vehicleId: vehicleId);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
