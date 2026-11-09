@@ -50,6 +50,7 @@ void main() {
       expect(PlateSearchRequest, isA<Type>());
       expect(IntelligentInterchangeRequest, isA<Type>());
       expect(IntelligentInterchangeResponse, isA<Type>());
+      expect(IntelligentInterchangeAttribute, isA<Type>());
       expect(IntelligentInterchangeUnavailableException, isA<Type>());
     });
 
