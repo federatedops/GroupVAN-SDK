@@ -88,6 +88,8 @@ export 'src/models/models.dart'
         IntelligentInterchangeMatch,
         IntelligentInterchangeConflict,
         IntelligentInterchangeAttribute,
+        IntelligentInterchangeFitment,
+        IntelligentInterchangeYearRange,
         IntelligentInterchangeVehicle,
         IntelligentMatchTier,
         IntelligentConflictSeverity,

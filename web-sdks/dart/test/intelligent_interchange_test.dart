@@ -24,12 +24,14 @@ void main() {
         partNumber: '18-4968',
         vehicleId: '9187a7bf87599513',
         includeAttributes: true,
+        includeFitment: true,
       );
 
       expect(request.toJson(), {
         'part_number': '18-4968',
         'vehicle_id': '9187a7bf87599513',
         'include_attributes': true,
+        'include_fitment': true,
       });
     });
   });
@@ -182,6 +184,7 @@ void main() {
       expect(match.score, 0);
       expect(match.conflicts, isEmpty);
       expect(match.attributes, isEmpty);
+      expect(match.fitment, isEmpty);
       expect(match.reasons, isEmpty);
       expect(match.part.catalogSku, isNull);
       expect(match.part.fitsVehicle, isNull);
@@ -223,6 +226,45 @@ void main() {
       expect(differs.targetValue, 'STEEL');
       expect(differs.match, isFalse);
       expect(differs.severity, IntelligentConflictSeverity.verify);
+    });
+
+    test('parses fitment rows with both parts\' year ranges', () {
+      final match = IntelligentInterchangeMatch.fromJson({
+        'part_id': 1,
+        'mfr_code': 'BBB',
+        'part_number': 'X',
+        'fitment': [
+          {
+            'name': 'Chevrolet Silverado 1500',
+            'source_years': [
+              [1998, 2002],
+              [2004, 2023],
+            ],
+            'target_years': [
+              [1998, 2002],
+            ],
+          },
+          {
+            'name': 'Ford F-150',
+            'source_years': [],
+            'target_years': [
+              [2015, 2015],
+            ],
+          },
+        ],
+      });
+
+      final silverado = match.fitment.first;
+      expect(silverado.name, 'Chevrolet Silverado 1500');
+      expect(silverado.sourceYears.map((r) => r.label), [
+        '1998–2002',
+        '2004–2023',
+      ]);
+      expect(silverado.targetYears.single.last, 2002);
+
+      final f150 = match.fitment.last;
+      expect(f150.sourceYears, isEmpty);
+      expect(f150.targetYears.single.label, '2015');
     });
   });
 
