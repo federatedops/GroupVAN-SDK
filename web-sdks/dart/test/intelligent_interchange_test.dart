@@ -266,6 +266,29 @@ void main() {
       expect(f150.sourceYears, isEmpty);
       expect(f150.targetYears.single.label, '2015');
     });
+
+    test('skips a fitment range that is not two years', () {
+      final match = IntelligentInterchangeMatch.fromJson({
+        'part_id': 1,
+        'mfr_code': 'BBB',
+        'part_number': 'X',
+        'fitment': [
+          {
+            'name': 'Ford F-150',
+            'source_years': [
+              [2019, null],
+              [2010],
+              [2015, 2016],
+            ],
+            'target_years': null,
+          },
+        ],
+      });
+
+      final row = match.fitment.single;
+      expect(row.sourceYears.single.label, '2015–2016');
+      expect(row.targetYears, isEmpty);
+    });
   });
 
   group('IntelligentInterchangeUnavailableException', () {

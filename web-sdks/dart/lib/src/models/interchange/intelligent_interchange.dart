@@ -411,10 +411,10 @@ class IntelligentInterchangeFitment {
 
   static List<IntelligentInterchangeYearRange> _yearRanges(Object? json) => [
     for (final range in json as List? ?? const [])
-      if (range is List && range.length == 2)
+      if (range case [final num first, final num last])
         IntelligentInterchangeYearRange(
-          first: (range[0] as num).toInt(),
-          last: (range[1] as num).toInt(),
+          first: first.toInt(),
+          last: last.toInt(),
         ),
   ];
 }
