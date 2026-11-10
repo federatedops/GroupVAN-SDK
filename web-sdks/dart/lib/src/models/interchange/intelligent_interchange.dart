@@ -42,7 +42,8 @@ enum IntelligentConflictSeverity {
 /// matches per source part, 1-100. [vehicleId] is a selected catalog vehicle:
 /// the source and every match then carry [IntelligentInterchangePart.fitsVehicle].
 /// [includeAttributes] adds every compared attribute to each match, not only
-/// the conflicts.
+/// the conflicts. [includeFitment] adds every make and model either part fits
+/// to each match, with both parts' model years.
 class IntelligentInterchangeRequest {
   final String partNumber;
   final String? mfrCode;
@@ -53,6 +54,7 @@ class IntelligentInterchangeRequest {
   final bool? includeSameBrand;
   final String? vehicleId;
   final bool? includeAttributes;
+  final bool? includeFitment;
 
   const IntelligentInterchangeRequest({
     required this.partNumber,
@@ -64,6 +66,7 @@ class IntelligentInterchangeRequest {
     this.includeSameBrand,
     this.vehicleId,
     this.includeAttributes,
+    this.includeFitment,
   });
 
   Map<String, dynamic> toJson() => {
@@ -76,6 +79,7 @@ class IntelligentInterchangeRequest {
     if (includeSameBrand != null) 'include_same_brand': includeSameBrand,
     if (vehicleId != null) 'vehicle_id': vehicleId,
     if (includeAttributes != null) 'include_attributes': includeAttributes,
+    if (includeFitment != null) 'include_fitment': includeFitment,
   };
 }
 
@@ -215,6 +219,7 @@ class IntelligentInterchangeMatch {
   final int specsMatched;
   final List<IntelligentInterchangeConflict> conflicts;
   final List<IntelligentInterchangeAttribute> attributes;
+  final List<IntelligentInterchangeFitment> fitment;
   final List<String> reasons;
   final List<IntelligentInterchangeVehicle> missingVehicleExamples;
   final List<IntelligentInterchangeVehicle> extraVehicleExamples;
@@ -242,6 +247,7 @@ class IntelligentInterchangeMatch {
     this.specsMatched = 0,
     this.conflicts = const [],
     this.attributes = const [],
+    this.fitment = const [],
     this.reasons = const [],
     this.missingVehicleExamples = const [],
     this.extraVehicleExamples = const [],
@@ -287,6 +293,10 @@ class IntelligentInterchangeMatch {
         IntelligentInterchangeAttribute.fromJson(
           attribute as Map<String, dynamic>,
         ),
+    ],
+    fitment: [
+      for (final row in json['fitment'] as List? ?? const [])
+        IntelligentInterchangeFitment.fromJson(row as Map<String, dynamic>),
     ],
     reasons: List<String>.from(json['reasons'] as List? ?? const []),
     missingVehicleExamples: [
@@ -373,6 +383,53 @@ class IntelligentInterchangeAttribute {
             ? null
             : IntelligentConflictSeverity.fromJson(json['severity'] as String?),
       );
+}
+
+/// A make and model either the searched part or a candidate fits, present
+/// when the request asked for fitment.
+///
+/// [name] is the make and model as one string. [sourceYears] and
+/// [targetYears] are inclusive model-year ranges; an empty list means that
+/// part does not fit the model at all.
+class IntelligentInterchangeFitment {
+  final String name;
+  final List<IntelligentInterchangeYearRange> sourceYears;
+  final List<IntelligentInterchangeYearRange> targetYears;
+
+  const IntelligentInterchangeFitment({
+    required this.name,
+    this.sourceYears = const [],
+    this.targetYears = const [],
+  });
+
+  factory IntelligentInterchangeFitment.fromJson(Map<String, dynamic> json) =>
+      IntelligentInterchangeFitment(
+        name: json['name'] as String? ?? '',
+        sourceYears: _yearRanges(json['source_years']),
+        targetYears: _yearRanges(json['target_years']),
+      );
+
+  static List<IntelligentInterchangeYearRange> _yearRanges(Object? json) => [
+    for (final range in json as List? ?? const [])
+      if (range case [final num first, final num last])
+        IntelligentInterchangeYearRange(
+          first: first.toInt(),
+          last: last.toInt(),
+        ),
+  ];
+}
+
+/// An inclusive run of model years, [first] through [last].
+class IntelligentInterchangeYearRange {
+  final int first;
+  final int last;
+
+  const IntelligentInterchangeYearRange({
+    required this.first,
+    required this.last,
+  });
+
+  String get label => first == last ? '$first' : '$first–$last';
 }
 
 /// A vehicle a candidate misses or adds, with its vehicles in operation.
