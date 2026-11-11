@@ -1,4 +1,4 @@
-/// Catman users models: account search results, user detail and roles.
+/// Catman users models: account search results, user creation, detail and roles.
 library;
 
 /// A single account returned by the account search.
@@ -65,6 +65,77 @@ class UserLocationInput {
     'can_order': canOrder,
     'sort_order': sortOrder,
   };
+}
+
+/// Request body for creating a user within the authenticated member.
+///
+/// [locations] must include a primary location (sort order 1) with
+/// [UserLocationInput.canOrder] set to true, and sort orders must be unique.
+class NewUser {
+  final String username;
+  final String firstName;
+  final String lastName;
+  final String email;
+  final String address;
+  final String city;
+  final String state;
+  final String zip;
+  final String employeeId;
+  final String phoneNumber;
+  final String catalogRegionId;
+  final String accountId;
+  final String companyName;
+  final String? terminalPin;
+  final List<UserLocationInput> locations;
+
+  const NewUser({
+    required this.username,
+    required this.firstName,
+    required this.lastName,
+    required this.email,
+    required this.address,
+    required this.city,
+    required this.state,
+    required this.zip,
+    required this.employeeId,
+    this.phoneNumber = '',
+    required this.catalogRegionId,
+    required this.accountId,
+    this.companyName = '',
+    this.terminalPin,
+    required this.locations,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'username': username,
+    'first_name': firstName,
+    'last_name': lastName,
+    'email': email,
+    'address': address,
+    'city': city,
+    'state': state,
+    'zip': zip,
+    'employee_id': employeeId,
+    'phone_number': phoneNumber,
+    'catalog_region_id': catalogRegionId,
+    'account_id': accountId,
+    'company_name': companyName,
+    if (terminalPin != null) 'terminal_pin': terminalPin,
+    'locations': locations.map((l) => l.toJson()).toList(),
+  };
+}
+
+/// Result of creating a user.
+class CreatedUser {
+  final int userId;
+  final String username;
+
+  const CreatedUser({required this.userId, required this.username});
+
+  factory CreatedUser.fromJson(Map<String, dynamic> json) => CreatedUser(
+    userId: json['user_id'] as int,
+    username: json['username'] as String,
+  );
 }
 
 /// A role that can be granted to a user.

@@ -327,6 +327,27 @@ class CatmanClient extends ApiClient {
     }
   }
 
+  /// Create [user] within the authenticated member. The new user is emailed
+  /// a generated password. Fails with 400 when the username or email is taken.
+  Future<Result<CreatedUser>> createUser(NewUser user) async {
+    try {
+      final response = await post<Map<String, dynamic>>(
+        '/v3/catman/users/create',
+        data: user.toJson(),
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      return Success(CreatedUser.fromJson(response.data));
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to create user: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to create user: $e'),
+      );
+    }
+  }
+
   /// Get full detail for the user [userId] within the authenticated member.
   Future<Result<UserDetail>> getUserDetail(int userId) async {
     try {
@@ -845,6 +866,16 @@ class GroupVANCatman {
       memberNumber: memberNumber,
       limit: limit,
     );
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Create [user] within the authenticated member. The new user is emailed
+  /// a generated password.
+  Future<CreatedUser> createUser(NewUser user) async {
+    final result = await _client.createUser(user);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
