@@ -694,6 +694,31 @@ class CatmanClient extends ApiClient {
     }
   }
 
+  /// List the catalog regions belonging to the member [memberNumber].
+  Future<Result<List<CatalogRegion>>> getMemberCatalogRegions(
+    String memberNumber,
+  ) async {
+    try {
+      final response = await get<List<dynamic>>(
+        '/v3/catman/members/$memberNumber/catalog-regions',
+        decoder: (data) => data as List<dynamic>,
+      );
+
+      final regions = response.data
+          .map((r) => CatalogRegion.fromJson(r as Map<String, dynamic>))
+          .toList();
+
+      return Success(regions);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to get member catalog regions: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to get member catalog regions: $e'),
+      );
+    }
+  }
+
   /// Get the public URL of the default logo for the member [memberNumber].
   Future<Result<String>> getMemberLogo(String memberNumber) async {
     try {
@@ -1028,6 +1053,17 @@ class GroupVANCatman {
     LocationUpdate update,
   ) async {
     final result = await _client.updateMemberLocation(locationId, update);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// List the catalog regions belonging to the member [memberNumber].
+  Future<List<CatalogRegion>> getMemberCatalogRegions(
+    String memberNumber,
+  ) async {
+    final result = await _client.getMemberCatalogRegions(memberNumber);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }

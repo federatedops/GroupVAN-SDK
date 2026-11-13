@@ -158,6 +158,7 @@ export 'src/models/models.dart'
         CreatedUser,
         UserType,
         MemberLocation,
+        CatalogRegion,
         LocationDetails,
         LocationMember,
         LocationContact,
