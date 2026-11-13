@@ -451,6 +451,36 @@ class CatmanClient extends ApiClient {
     }
   }
 
+  /// Reorder the locations of the user [userId], returning the user's updated
+  /// location list. [locationIds] must list every assigned location exactly
+  /// once; the first becomes the primary location and must have can_order set.
+  Future<Result<List<Location>>> reorderUserLocations(
+    String userId,
+    List<String> locationIds,
+  ) async {
+    try {
+      final response = await put<Map<String, dynamic>>(
+        '/v3/catman/users/locations/order',
+        data: {'user_id': userId, 'location_ids': locationIds},
+        decoder: (data) => data as Map<String, dynamic>,
+      );
+
+      final locations =
+          (response.data['locations'] as List<dynamic>? ?? const [])
+              .map((l) => Location.fromJson(l as Map<String, dynamic>))
+              .toList();
+
+      return Success(locations);
+    } catch (e) {
+      GroupVanLogger.catman.severe('Failed to reorder user locations: $e');
+      return Failure(
+        e is GroupVanException
+            ? e
+            : NetworkException('Failed to reorder user locations: $e'),
+      );
+    }
+  }
+
   /// List all user types that can be assigned to users.
   Future<Result<List<UserTypeInfo>>> getUserTypes() async {
     try {
@@ -946,6 +976,20 @@ class GroupVANCatman {
     String locationId,
   ) async {
     final result = await _client.deleteUserLocation(userId, locationId);
+    if (result.isFailure) {
+      throw Exception('Unexpected error: ${result.error}');
+    }
+    return result.value;
+  }
+
+  /// Reorder the locations of the user [userId], returning the user's updated
+  /// location list. [locationIds] must list every assigned location exactly
+  /// once; the first becomes the primary location and must have can_order set.
+  Future<List<Location>> reorderUserLocations(
+    String userId,
+    List<String> locationIds,
+  ) async {
+    final result = await _client.reorderUserLocations(userId, locationIds);
     if (result.isFailure) {
       throw Exception('Unexpected error: ${result.error}');
     }
