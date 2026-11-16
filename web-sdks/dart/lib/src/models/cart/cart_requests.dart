@@ -74,20 +74,29 @@ class SaveCartRequest {
 class CheckoutRequest {
   final String cartId;
   final String? deliveryExpectations;
+  final String? purchaseOrderNumber;
+  final String? comment;
 
   const CheckoutRequest({
     required this.cartId,
     this.deliveryExpectations,
+    this.purchaseOrderNumber,
+    this.comment,
   });
 
   factory CheckoutRequest.fromJson(Map<String, dynamic> json) =>
       CheckoutRequest(
         cartId: json['cart_id'],
         deliveryExpectations: json['delivery_expectations'],
+        purchaseOrderNumber: json['purchase_order_number'],
+        comment: json['comment'],
       );
 
   Map<String, dynamic> toJson() => {
     'cart_id': cartId,
     'delivery_expectations': deliveryExpectations,
+    if (purchaseOrderNumber != null)
+      'purchase_order_number': purchaseOrderNumber,
+    if (comment != null) 'comment': comment,
   };
 }

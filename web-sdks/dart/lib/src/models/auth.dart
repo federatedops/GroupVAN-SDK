@@ -257,6 +257,7 @@ class User {
   final List<Location> locations;
   final bool hasIdentifixAccess;
   final bool canExportBuyersGuide;
+  final bool requirePoNumber;
   final List<String> roles;
   final bool showCartButtonWhenNoPrice;
   final CartBehavior cartBehavior;
@@ -270,6 +271,7 @@ class User {
     required this.roles,
     required this.hasIdentifixAccess,
     this.canExportBuyersGuide = false,
+    this.requirePoNumber = false,
     this.showCartButtonWhenNoPrice = false,
     this.cartBehavior = CartBehavior.noButton,
     this.picture,
@@ -287,6 +289,7 @@ class User {
     roles: List<String>.from(json['roles'] as List),
     hasIdentifixAccess: json['has_identifix_access'],
     canExportBuyersGuide: json['can_export_buyers_guide'] ?? false,
+    requirePoNumber: json['require_po_number'] ?? false,
     showCartButtonWhenNoPrice: json['show_cart_button_when_no_price'] ?? false,
     cartBehavior: CartBehavior.fromValue(json['cart_behavior'] ?? 'no_button'),
     picture: json['picture'],
@@ -310,6 +313,7 @@ class User {
     'roles': roles,
     'has_identifix_access': hasIdentifixAccess,
     'can_export_buyers_guide': canExportBuyersGuide,
+    'require_po_number': requirePoNumber,
     'show_cart_button_when_no_price': showCartButtonWhenNoPrice,
     'cart_behavior': cartBehavior.value,
     'delivery_expectations': deliveryExpectations,
