@@ -37,6 +37,7 @@ TokenClaims _$TokenClaimsFromJson(Map<String, dynamic> json) => TokenClaims(
   member: json['member'] as String?,
   impersonation: json['impersonation'] as bool? ?? false,
   impersonatorId: json['impersonator_id'] as String?,
+  accountNumber: json['account_number'] as String?,
 );
 
 Map<String, dynamic> _$TokenClaimsToJson(TokenClaims instance) =>
@@ -49,4 +50,5 @@ Map<String, dynamic> _$TokenClaimsToJson(TokenClaims instance) =>
       'member': instance.member,
       'impersonation': instance.impersonation,
       'impersonator_id': instance.impersonatorId,
+      'account_number': instance.accountNumber,
     };

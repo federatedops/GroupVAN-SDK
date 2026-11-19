@@ -99,6 +99,10 @@ class TokenClaims extends Equatable {
   @JsonKey(name: 'impersonator_id')
   final String? impersonatorId;
 
+  /// Account number this session punched out to via `/auth/account_punchout`
+  @JsonKey(name: 'account_number')
+  final String? accountNumber;
+
   const TokenClaims({
     required this.userId,
     required this.issuedAt,
@@ -108,6 +112,7 @@ class TokenClaims extends Equatable {
     this.member,
     this.impersonation = false,
     this.impersonatorId,
+    this.accountNumber,
   });
 
   factory TokenClaims.fromJson(Map<String, dynamic> json) =>
@@ -150,6 +155,7 @@ class TokenClaims extends Equatable {
     member,
     impersonation,
     impersonatorId,
+    accountNumber,
   ];
 }
 

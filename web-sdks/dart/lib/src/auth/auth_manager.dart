@@ -639,6 +639,41 @@ class AuthManager {
     }
   }
 
+  /// Punch out to another account via `/auth/account_punchout`.
+  ///
+  /// Requires the `auth:account_punchout` client permission. The server mints
+  /// a session for the same user whose account number replaces theirs across
+  /// the v3 API, and rejects impersonated sessions.
+  Future<void> accountPunchout({required String accountNumber}) async {
+    if (!isAuthenticated) {
+      throw AuthenticationException(
+        'Must be authenticated to punch out to an account',
+        errorType: AuthErrorType.missingToken,
+      );
+    }
+
+    try {
+      final response = await _httpClient.post<Map<String, dynamic>>(
+        '/auth/account_punchout',
+        data: {'account_number': accountNumber},
+        decoder: (data) => data as Map<String, dynamic>,
+        options: _clientId != null
+            ? Options(headers: {'gv-client-id': _clientId})
+            : null,
+      );
+
+      final user = User.fromJson(response.data['user']);
+      final tokenResponse = TokenResponse.fromJson(response.data);
+
+      await _handleTokenResponse(tokenResponse, user: user);
+      GroupVanLogger.auth.info('Punched out to account $accountNumber');
+    } catch (e) {
+      // The caller's session is untouched on failure, so leave status as-is
+      GroupVanLogger.auth.severe('Account punchout failed: $e');
+      rethrow;
+    }
+  }
+
   /// End an impersonated session started with [impersonate].
   ///
   /// Logs out the impersonated session (blacklisting its tokens and clearing
