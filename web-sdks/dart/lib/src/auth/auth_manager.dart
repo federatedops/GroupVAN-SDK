@@ -543,6 +543,15 @@ class AuthManager {
       }
     } catch (e) {
       GroupVanLogger.auth.severe('Failed to link FedLink account: $e');
+      // Here "User not found" means the FedLink username doesn't exist.
+      if (e is AuthenticationException &&
+          e.errorType == AuthErrorType.accountNotLinked) {
+        throw AuthenticationException(
+          e.context?['detail'] ?? 'FedLink user not found.',
+          errorType: AuthErrorType.invalidCredentials,
+          context: e.context,
+        );
+      }
       rethrow;
     }
   }

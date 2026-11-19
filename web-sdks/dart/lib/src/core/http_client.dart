@@ -428,13 +428,25 @@ class GroupVanHttpClient {
             return AuthenticationException(
               'FedLink account must be linked to sign in.',
               errorType: AuthErrorType.accountNotLinked,
-              context: {'correlation_id': correlationId, 'email': email},
+              context: {
+                'correlation_id': correlationId,
+                'email': email,
+                'detail': responseJson['detail'],
+              },
             );
           }
         }
 
         // Handle authentication errors
         if (statusCode == 401) {
+          final data = e.response?.data;
+          if (data is Map && data['title'] == 'Invalid credentials') {
+            return AuthenticationException(
+              data['detail'] ?? 'Invalid credentials.',
+              errorType: AuthErrorType.invalidCredentials,
+              context: {'correlation_id': correlationId},
+            );
+          }
           return AuthenticationException(
             'Authentication failed: ${_dioErrorSummary(e)}',
             errorType: AuthErrorType.invalidToken,
