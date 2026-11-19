@@ -618,6 +618,19 @@ class GroupVANAuth {
     return _authManager.currentStatus;
   }
 
+  /// Punch out to another account number.
+  ///
+  /// Requires the client to hold the `auth:account_punchout` permission. The
+  /// session is replaced by one for the same user whose account number
+  /// overrides theirs across the v3 API; [currentSession] reports it as
+  /// `accountNumber`. Not allowed while impersonating.
+  Future<auth_models.AuthStatus> accountPunchout({
+    required String accountNumber,
+  }) async {
+    await _authManager.accountPunchout(accountNumber: accountNumber);
+    return _authManager.currentStatus;
+  }
+
   /// End the current impersonated session.
   ///
   /// With `useSso: true` the actor's own session is restored from the shared
@@ -726,11 +739,15 @@ class AuthSession {
   /// ID of the user impersonating [user], or null for a normal session
   final String? impersonatorId;
 
+  /// Account number from [GroupVANAuth.accountPunchout], or null for a normal session
+  final String? accountNumber;
+
   const AuthSession({
     required this.accessToken,
     this.expiresAt,
     required this.user,
     this.impersonatorId,
+    this.accountNumber,
   });
 
   factory AuthSession.fromAuthStatus(
@@ -743,6 +760,7 @@ class AuthSession {
         : null,
     user: status.userInfo!,
     impersonatorId: status.claims?.impersonatorId,
+    accountNumber: status.claims?.accountNumber,
   );
 
   /// Whether the session is expired
