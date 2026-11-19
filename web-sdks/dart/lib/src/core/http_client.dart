@@ -428,7 +428,11 @@ class GroupVanHttpClient {
             return AuthenticationException(
               'FedLink account must be linked to sign in.',
               errorType: AuthErrorType.accountNotLinked,
-              context: {'correlation_id': correlationId, 'email': email},
+              context: {
+                'correlation_id': correlationId,
+                'email': email,
+                'detail': responseJson['detail'],
+              },
             );
           }
         }
